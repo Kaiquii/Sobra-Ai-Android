@@ -124,9 +124,27 @@ fun ConfiguracoesRendaScreen(onNavigateBack: () -> Unit) {
         }
     }
 
-    val salarioAtual = currentIncome(incomes, "Salario", selectedMonth, selectedYear)
-    val adiantamentoAtual = currentIncome(incomes, "Adiantamento", selectedMonth, selectedYear)
-    val rendaExtraAtual = currentIncome(incomes, "Renda Extra", selectedMonth, selectedYear)
+    val salarioAtual = currentIncome(
+        incomes = incomes,
+        sources = listOf("Salario", "Salário"),
+        month = selectedMonth,
+        year = selectedYear
+    )
+
+    val adiantamentoAtual = currentIncome(
+        incomes = incomes,
+        sources = listOf("Adiantamento"),
+        month = selectedMonth,
+        year = selectedYear
+    )
+
+    val rendaExtraAtual = currentIncome(
+        incomes = incomes,
+        sources = listOf("Renda Extra"),
+        month = selectedMonth,
+        year = selectedYear
+    )
+
 
     LaunchedEffect(salarioAtual, adiantamentoAtual, rendaExtraAtual) {
         salarioAmount = salarioAtual?.amount?.toString()?.replace(".", ",") ?: ""
@@ -430,16 +448,19 @@ fun ConfiguracoesRendaScreen(onNavigateBack: () -> Unit) {
 
 private fun currentIncome(
     incomes: List<Income>,
-    source: String,
+    sources: List<String>,
     month: Int,
     year: Int
 ): Income? {
-    return incomes.firstOrNull {
-        it.source.equals(source, ignoreCase = true) &&
-                it.month == month &&
-                it.year == year
+    return incomes.firstOrNull { income ->
+        sources.any { source ->
+            income.source.equals(source, ignoreCase = true)
+        } &&
+                income.month == month &&
+                income.year == year
     }
 }
+
 
 private fun saveIncome(
     context: Context,
