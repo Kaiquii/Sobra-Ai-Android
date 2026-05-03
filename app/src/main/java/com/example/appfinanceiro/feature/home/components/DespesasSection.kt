@@ -19,9 +19,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,8 +47,10 @@ fun DespesasSection(
     onRetry: () -> Unit,
     expenses: List<Expense>,
     categoriesMap: Map<Int, String>,
-    onFilterClick: () -> Unit,
-    isFiltered: Boolean,
+    onCategoryFilterClick: () -> Unit,
+    onPaymentSourceFilterClick: () -> Unit,
+    isCategoryFiltered: Boolean,
+    isPaymentSourceFiltered: Boolean,
     onAddClick: () -> Unit
 ) {
     val textColor = MaterialTheme.colorScheme.onBackground
@@ -56,19 +60,78 @@ fun DespesasSection(
         modifier = Modifier.alpha(if (isLoading && expenses.isNotEmpty()) 0.5f else 1f),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Despesas", color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Despesas",
+                color = textColor,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
 
-            Row(
-                modifier = Modifier
-                    .background(if (isFiltered) PrimaryBlue.copy(alpha = 0.2f) else cardBg, RoundedCornerShape(16.dp))
-                    .clickable { onFilterClick() }
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Default.FilterList, contentDescription = "Filtrar", tint = if (isFiltered) PrimaryBlue else TextMuted, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Filtrar", color = if (isFiltered) PrimaryBlue else TextMuted, fontSize = 12.sp)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier
+                        .background(
+                            if (isPaymentSourceFiltered) {
+                                PrimaryBlue.copy(alpha = 0.2f)
+                            } else {
+                                cardBg
+                            },
+                            RoundedCornerShape(16.dp)
+                        )
+                        .clickable { onPaymentSourceFilterClick() }
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccountBalanceWallet,
+                        contentDescription = "Origem",
+                        tint = if (isPaymentSourceFiltered) PrimaryBlue else TextMuted,
+                        modifier = Modifier.size(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "Origem",
+                        color = if (isPaymentSourceFiltered) PrimaryBlue else TextMuted,
+                        fontSize = 12.sp
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .background(
+                            if (isCategoryFiltered) {
+                                PrimaryBlue.copy(alpha = 0.2f)
+                            } else {
+                                cardBg
+                            },
+                            RoundedCornerShape(16.dp)
+                        )
+                        .clickable { onCategoryFilterClick() }
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = "Categoria",
+                        tint = if (isCategoryFiltered) PrimaryBlue else TextMuted,
+                        modifier = Modifier.size(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "Categoria",
+                        color = if (isCategoryFiltered) PrimaryBlue else TextMuted,
+                        fontSize = 12.sp
+                    )
+                }
             }
         }
 
@@ -79,7 +142,7 @@ fun DespesasSection(
                     .padding(32.dp),
                 contentAlignment = Alignment.Center
             ) {
-                androidx.compose.material3.CircularProgressIndicator(color = PrimaryBlue)
+                CircularProgressIndicator(color = PrimaryBlue)
             }
         } else if (expenses.isEmpty() && errorMessage != null) {
             Column(
@@ -88,12 +151,20 @@ fun DespesasSection(
                     .padding(32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(errorMessage, color = TextMuted)
+                Text(
+                    text = errorMessage,
+                    color = TextMuted,
+                    fontSize = 14.sp
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                androidx.compose.material3.TextButton(onClick = onRetry) {
-                    Text("Tentar novamente", color = PrimaryBlue)
+                TextButton(onClick = onRetry) {
+                    Text(
+                        text = "Tentar novamente",
+                        color = PrimaryBlue,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         } else if (expenses.isEmpty()) {
@@ -103,20 +174,27 @@ fun DespesasSection(
                     .padding(32.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Nenhuma despesa encontrada.", color = TextMuted)
+                Text(
+                    text = "Nenhuma despesa encontrada.",
+                    color = TextMuted
+                )
             }
         } else {
-
             expenses.forEach { expense ->
                 val categoryName = categoriesMap[expense.category_id] ?: "Outros"
                 val (icon, color) = getCategoryIconAndColor(categoryName)
                 val formattedDate = formatExpenseDate(expense.date)
 
-                val typeText = if (expense.type.equals("Parcelada", ignoreCase = true) && expense.installments != null && expense.current_installment != null) {
-                    "Parc. ${expense.current_installment}/${expense.installments}"
-                } else {
-                    expense.type
-                }
+                val typeText =
+                    if (
+                        expense.type.equals("Parcelada", ignoreCase = true) &&
+                        expense.installments != null &&
+                        expense.current_installment != null
+                    ) {
+                        "Parc. ${expense.current_installment}/${expense.installments}"
+                    } else {
+                        expense.type
+                    }
 
                 ExpenseItem(
                     icon = icon,
@@ -132,13 +210,30 @@ fun DespesasSection(
         }
 
         Box(
-            modifier = Modifier.fillMaxWidth().border(1.dp, TextMuted.copy(alpha = 0.5f), RoundedCornerShape(12.dp)).padding(16.dp).clickable { onAddClick() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = TextMuted.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable { onAddClick() }
+                .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.AddCircleOutline, contentDescription = "Adicionar", tint = textColor)
+                Icon(
+                    imageVector = Icons.Default.AddCircleOutline,
+                    contentDescription = "Adicionar",
+                    tint = textColor
+                )
+
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Adicionar Despesa", color = textColor)
+
+                Text(
+                    text = "Adicionar Despesa",
+                    color = textColor
+                )
             }
         }
     }
@@ -159,35 +254,91 @@ private fun ExpenseItem(
     val cardBg = MaterialTheme.colorScheme.surface
 
     Row(
-        modifier = Modifier.fillMaxWidth().background(cardBg, RoundedCornerShape(12.dp)).padding(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(cardBg, RoundedCornerShape(12.dp))
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(modifier = Modifier.size(40.dp).background(iconColor.copy(alpha = 0.2f), CircleShape), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = iconColor)
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(iconColor.copy(alpha = 0.2f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor
+            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, color = textColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Text(categoryName, color = TextMuted, fontSize = 12.sp)
+            Text(
+                text = title,
+                color = textColor,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+
+            Text(
+                text = categoryName,
+                color = TextMuted,
+                fontSize = 12.sp
+            )
+
             Spacer(modifier = Modifier.height(6.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.background(TextMuted.copy(alpha = 0.2f), RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) {
-                    Text(type, color = TextMuted, fontSize = 10.sp)
+                Box(
+                    modifier = Modifier
+                        .background(TextMuted.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = type,
+                        color = TextMuted,
+                        fontSize = 10.sp
+                    )
                 }
+
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("• $date", color = TextMuted, fontSize = 10.sp)
+
+                Text(
+                    text = "• $date",
+                    color = TextMuted,
+                    fontSize = 10.sp
+                )
             }
         }
 
         Column(horizontalAlignment = Alignment.End) {
-            Text(value, color = textColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(
+                text = value,
+                color = textColor,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+
             Spacer(modifier = Modifier.height(4.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.AccountBalanceWallet, contentDescription = "Fonte", tint = PrimaryBlue, modifier = Modifier.size(12.dp))
+                Icon(
+                    imageVector = Icons.Default.AccountBalanceWallet,
+                    contentDescription = "Fonte",
+                    tint = PrimaryBlue,
+                    modifier = Modifier.size(12.dp)
+                )
+
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(paymentSource, color = TextMuted, fontSize = 11.sp)
+
+                Text(
+                    text = paymentSource,
+                    color = TextMuted,
+                    fontSize = 11.sp
+                )
             }
         }
     }

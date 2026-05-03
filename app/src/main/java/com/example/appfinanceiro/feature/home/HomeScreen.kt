@@ -77,15 +77,35 @@ fun HomeScreen(
     var incomesError by remember { mutableStateOf<String?>(null) }
     var expensesError by remember { mutableStateOf<String?>(null) }
 
-    var refreshIncomeActions by remember { mutableIntStateOf(0) }
-    var showFilterModal by remember { mutableStateOf(false) }
+    var showCategoryFilterModal by remember { mutableStateOf(false) }
+    var showPaymentSourceFilterModal by remember { mutableStateOf(false) }
     var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
+    var selectedPaymentSource by remember { mutableStateOf<String?>(null) }
     var showExitDialog by remember { mutableStateOf(false) }
 
-    val filteredExpenses = if (selectedCategoryId == null) {
-        expensesData
-    } else {
-        expensesData.filter { it.category_id == selectedCategoryId }
+    var refreshIncomeActions by remember { mutableIntStateOf(0) }
+
+    val filteredExpenses = expensesData.filter { expense ->
+        val matchesCategory =
+            selectedCategoryId == null || expense.category_id == selectedCategoryId
+
+        val matchesPaymentSource = when (selectedPaymentSource) {
+            null -> true
+
+            "Salario" ->
+                expense.payment_source.equals("Salario", ignoreCase = true) ||
+                        expense.payment_source.equals("Salário", ignoreCase = true)
+
+            "Adiantamento" ->
+                expense.payment_source.equals("Adiantamento", ignoreCase = true)
+
+            "Renda Extra" ->
+                expense.payment_source.equals("Renda Extra", ignoreCase = true)
+
+            else -> true
+        }
+
+        matchesCategory && matchesPaymentSource
     }
 
     val salarioAtual = incomesData.firstOrNull {
@@ -107,13 +127,13 @@ fun HomeScreen(
                 it.year == currentYear
     }
 
-
     fun changeMonth(amount: Int) {
         val cal = Calendar.getInstance().apply {
             set(Calendar.YEAR, currentYear)
             set(Calendar.MONTH, currentMonthIndex)
             add(Calendar.MONTH, amount)
         }
+
         currentMonthIndex = cal.get(Calendar.MONTH)
         currentYear = cal.get(Calendar.YEAR)
     }
@@ -215,14 +235,13 @@ fun HomeScreen(
         }
     }
 
-
     Scaffold(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        "Visão Mensal",
+                        text = "Visão Mensal",
                         color = textColor,
                         fontWeight = FontWeight.Bold
                     )
@@ -230,7 +249,7 @@ fun HomeScreen(
                 navigationIcon = {
                     IconButton(onClick = { showExitDialog = true }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Voltar",
                             tint = textColor
                         )
@@ -262,6 +281,7 @@ fun HomeScreen(
                     onNextClick = { changeMonth(1) }
                 )
             }
+
             item {
                 ResumoFinanceiroSection(
                     isLoading = isSummaryLoading || isIncomesLoading,
@@ -280,6 +300,7 @@ fun HomeScreen(
                     onRefresh = { refreshIncomeActions++ }
                 )
             }
+
             item {
                 DespesasSection(
                     isLoading = isExpensesLoading,
@@ -287,21 +308,23 @@ fun HomeScreen(
                     onRetry = { loadExpenses() },
                     expenses = filteredExpenses,
                     categoriesMap = categoriesMap,
-                    onFilterClick = { showFilterModal = true },
-                    isFiltered = selectedCategoryId != null,
+                    onCategoryFilterClick = { showCategoryFilterModal = true },
+                    onPaymentSourceFilterClick = { showPaymentSourceFilterModal = true },
+                    isCategoryFiltered = selectedCategoryId != null,
+                    isPaymentSourceFiltered = selectedPaymentSource != null,
                     onAddClick = onAddClick
                 )
-
             }
+
             item {
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 
-    if (showFilterModal) {
+    if (showCategoryFilterModal) {
         ModalBottomSheet(
-            onDismissRequest = { showFilterModal = false },
+            onDismissRequest = { showCategoryFilterModal = false },
             containerColor = backgroundColor
         ) {
             Column(
@@ -310,7 +333,7 @@ fun HomeScreen(
                     .padding(bottom = 32.dp, start = 24.dp, end = 24.dp)
             ) {
                 Text(
-                    "Filtrar por Categoria",
+                    text = "Filtrar por Categoria",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor,
@@ -322,7 +345,7 @@ fun HomeScreen(
                     isSelected = selectedCategoryId == null,
                     onClick = {
                         selectedCategoryId = null
-                        showFilterModal = false
+                        showCategoryFilterModal = false
                     }
                 )
 
@@ -332,10 +355,67 @@ fun HomeScreen(
                         isSelected = selectedCategoryId == id,
                         onClick = {
                             selectedCategoryId = id
-                            showFilterModal = false
+                            showCategoryFilterModal = false
                         }
                     )
                 }
+            }
+        }
+    }
+
+    if (showPaymentSourceFilterModal) {
+        ModalBottomSheet(
+            onDismissRequest = { showPaymentSourceFilterModal = false },
+            containerColor = backgroundColor
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp, start = 24.dp, end = 24.dp)
+            ) {
+                Text(
+                    text = "Filtrar por Origem",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                FilterOptionItem(
+                    label = "Todas",
+                    isSelected = selectedPaymentSource == null,
+                    onClick = {
+                        selectedPaymentSource = null
+                        showPaymentSourceFilterModal = false
+                    }
+                )
+
+                FilterOptionItem(
+                    label = "Salário",
+                    isSelected = selectedPaymentSource == "Salario",
+                    onClick = {
+                        selectedPaymentSource = "Salario"
+                        showPaymentSourceFilterModal = false
+                    }
+                )
+
+                FilterOptionItem(
+                    label = "Adiantamento",
+                    isSelected = selectedPaymentSource == "Adiantamento",
+                    onClick = {
+                        selectedPaymentSource = "Adiantamento"
+                        showPaymentSourceFilterModal = false
+                    }
+                )
+
+                FilterOptionItem(
+                    label = "Renda Extra",
+                    isSelected = selectedPaymentSource == "Renda Extra",
+                    onClick = {
+                        selectedPaymentSource = "Renda Extra"
+                        showPaymentSourceFilterModal = false
+                    }
+                )
             }
         }
     }
