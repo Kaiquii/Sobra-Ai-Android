@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +52,8 @@ import com.example.appfinanceiro.feature.home.utils.formatCurrency
 @Composable
 fun ResumoFinanceiroSection(
     isLoading: Boolean,
+    errorMessage: String?,
+    onRetry: () -> Unit,
     data: SummaryResponse?,
     salarioIncome: Income?,
     adiantamentoIncome: Income?,
@@ -103,11 +106,12 @@ fun ResumoFinanceiroSection(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "Resumo Financeiro",
+                    text = "Resumo Financeiro",
                     color = textColor,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
+
                 if (isLoading && data != null) {
                     Spacer(modifier = Modifier.width(8.dp))
                     CircularProgressIndicator(
@@ -119,7 +123,30 @@ fun ResumoFinanceiroSection(
             }
         }
 
-        if (data == null && isLoading) {
+        if (data == null && errorMessage != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = errorMessage,
+                    color = TextMuted,
+                    fontSize = 14.sp
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                TextButton(onClick = onRetry) {
+                    Text(
+                        text = "Tentar novamente",
+                        color = PrimaryBlue,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        } else if (data == null && isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -241,6 +268,7 @@ fun ResumoFinanceiroSection(
                         valueColor = if (restSalario < 0) alertColor else textColor,
                         modifier = Modifier.weight(1f)
                     )
+
                     SummaryCard(
                         title = "Restante Adiant.",
                         value = formatCurrency(restAdiant),
@@ -258,6 +286,7 @@ fun ResumoFinanceiroSection(
                         valueColor = textColor,
                         modifier = Modifier.weight(1f)
                     )
+
                     SummaryCard(
                         title = "Gasto Adiant.",
                         value = formatCurrency(gastoAdiant),
@@ -275,6 +304,7 @@ fun ResumoFinanceiroSection(
                         valueColor = textColor,
                         modifier = Modifier.weight(1f)
                     )
+
                     SummaryCard(
                         title = "Total Gasto",
                         value = formatCurrency(totalGasto),
@@ -313,19 +343,27 @@ private fun SummaryCard(
             .padding(16.dp)
     ) {
         Column {
-            Text(title, color = TextMuted, fontSize = 12.sp)
+            Text(
+                text = title,
+                color = TextMuted,
+                fontSize = 12.sp
+            )
+
             Spacer(modifier = Modifier.height(4.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    value,
+                    text = value,
                     color = valueColor,
                     fontSize = valueSize,
                     fontWeight = FontWeight.Bold
                 )
+
                 if (icon != null) {
                     Spacer(modifier = Modifier.weight(1f))
+
                     androidx.compose.material3.Icon(
-                        icon,
+                        imageVector = icon,
                         contentDescription = null,
                         tint = valueColor,
                         modifier = Modifier.size(24.dp)
@@ -335,4 +373,3 @@ private fun SummaryCard(
         }
     }
 }
-

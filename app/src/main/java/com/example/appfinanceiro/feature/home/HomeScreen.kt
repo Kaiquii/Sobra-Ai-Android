@@ -67,15 +67,20 @@ fun HomeScreen(
     var summaryData by remember { mutableStateOf<SummaryResponse?>(null) }
     var expensesData by remember { mutableStateOf<List<Expense>>(emptyList()) }
     var categoriesMap by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
-    var isLoading by remember { mutableStateOf(true) }
+    var incomesData by remember { mutableStateOf<List<Income>>(emptyList()) }
 
+    var isSummaryLoading by remember { mutableStateOf(false) }
+    var isIncomesLoading by remember { mutableStateOf(false) }
+    var isExpensesLoading by remember { mutableStateOf(false) }
+
+    var summaryError by remember { mutableStateOf<String?>(null) }
+    var incomesError by remember { mutableStateOf<String?>(null) }
+    var expensesError by remember { mutableStateOf<String?>(null) }
+
+    var refreshIncomeActions by remember { mutableIntStateOf(0) }
     var showFilterModal by remember { mutableStateOf(false) }
     var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
     var showExitDialog by remember { mutableStateOf(false) }
-
-    var incomesData by remember { mutableStateOf<List<Income>>(emptyList()) }
-    var refreshIncomeActions by remember { mutableIntStateOf(0) }
-
 
     val filteredExpenses = if (selectedCategoryId == null) {
         expensesData
@@ -113,60 +118,103 @@ fun HomeScreen(
         currentYear = cal.get(Calendar.YEAR)
     }
 
-    LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshIncomeActions) {
-        if (userToken != null) {
-            isLoading = true
+    fun loadSummary() {
+        val token = userToken ?: return
+
+        coroutineScope.launch {
+            isSummaryLoading = true
+            summaryError = null
+
             try {
-                val catResponse = RetrofitClient.financeApi.getCategories("Bearer $userToken")
-                categoriesMap = catResponse.categories.associate { it.id to it.name }
+                summaryData = RetrofitClient.financeApi.getSummary(
+                    token = "Bearer $token",
+                    month = currentMonthIndex + 1,
+                    year = currentYear
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("API_ERRO", "Falha ao carregar resumo", e)
+                summaryError = "Não foi possível carregar o resumo financeiro."
+            } finally {
+                isSummaryLoading = false
+            }
+        }
+    }
 
-                val sumResponse = RetrofitClient.financeApi.getSummary(
-                    "Bearer $userToken",
-                    currentMonthIndex + 1,
-                    currentYear
+    fun loadIncomes() {
+        val token = userToken ?: return
+
+        coroutineScope.launch {
+            isIncomesLoading = true
+            incomesError = null
+
+            try {
+                val response = RetrofitClient.financeApi.getIncomes(
+                    token = "Bearer $token",
+                    month = currentMonthIndex + 1,
+                    year = currentYear
                 )
 
-                val incomesResponse = RetrofitClient.financeApi.getIncomes(
-                    "Bearer $userToken",
-                    currentMonthIndex + 1,
-                    currentYear
-                )
+                incomesData = response.incomes
 
-                incomesData = incomesResponse.incomes
-
-
-                val salarioFromIncomes = incomesResponse.incomes
+                val salarioFromIncomes = response.incomes
                     .filter {
                         it.source.equals("Salario", ignoreCase = true) ||
                                 it.source.equals("Salário", ignoreCase = true)
                     }
                     .sumOf { it.amount }
 
-                val adiantamentoFromIncomes = incomesResponse.incomes
+                val adiantamentoFromIncomes = response.incomes
                     .filter { it.source.equals("Adiantamento", ignoreCase = true) }
                     .sumOf { it.amount }
 
-                summaryData = sumResponse.copy(
+                summaryData = summaryData?.copy(
                     salario = salarioFromIncomes,
                     adiantamento = adiantamentoFromIncomes
                 )
-
-                val expResponse = RetrofitClient.financeApi.getExpenses(
-                    "Bearer $userToken",
-                    currentMonthIndex + 1,
-                    currentYear
-                )
-                expensesData = expResponse.expenses
             } catch (e: Exception) {
-                android.util.Log.e("API_ERRO", "Falha ao buscar dados", e)
-                summaryData = null
-                expensesData = emptyList()
-                incomesData = emptyList()
+                android.util.Log.e("API_ERRO", "Falha ao carregar rendas", e)
+                incomesError = "Não foi possível carregar as rendas."
             } finally {
-                isLoading = false
+                isIncomesLoading = false
             }
         }
     }
+
+    fun loadExpenses() {
+        val token = userToken ?: return
+
+        coroutineScope.launch {
+            isExpensesLoading = true
+            expensesError = null
+
+            try {
+                val catResponse = RetrofitClient.financeApi.getCategories("Bearer $token")
+                categoriesMap = catResponse.categories.associate { it.id to it.name }
+
+                val expResponse = RetrofitClient.financeApi.getExpenses(
+                    token = "Bearer $token",
+                    month = currentMonthIndex + 1,
+                    year = currentYear
+                )
+
+                expensesData = expResponse.expenses
+            } catch (e: Exception) {
+                android.util.Log.e("API_ERRO", "Falha ao carregar despesas", e)
+                expensesError = "Não foi possível carregar as despesas."
+            } finally {
+                isExpensesLoading = false
+            }
+        }
+    }
+
+    LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshIncomeActions) {
+        if (userToken != null) {
+            loadSummary()
+            loadIncomes()
+            loadExpenses()
+        }
+    }
+
 
     Scaffold(
         containerColor = backgroundColor,
@@ -216,7 +264,12 @@ fun HomeScreen(
             }
             item {
                 ResumoFinanceiroSection(
-                    isLoading = isLoading,
+                    isLoading = isSummaryLoading || isIncomesLoading,
+                    errorMessage = summaryError ?: incomesError,
+                    onRetry = {
+                        loadSummary()
+                        loadIncomes()
+                    },
                     data = summaryData,
                     salarioIncome = salarioAtual,
                     adiantamentoIncome = adiantamentoAtual,
@@ -226,17 +279,19 @@ fun HomeScreen(
                     year = currentYear,
                     onRefresh = { refreshIncomeActions++ }
                 )
-
             }
             item {
                 DespesasSection(
-                    isLoading = isLoading,
+                    isLoading = isExpensesLoading,
+                    errorMessage = expensesError,
+                    onRetry = { loadExpenses() },
                     expenses = filteredExpenses,
                     categoriesMap = categoriesMap,
                     onFilterClick = { showFilterModal = true },
                     isFiltered = selectedCategoryId != null,
                     onAddClick = onAddClick
                 )
+
             }
             item {
                 Spacer(modifier = Modifier.height(16.dp))

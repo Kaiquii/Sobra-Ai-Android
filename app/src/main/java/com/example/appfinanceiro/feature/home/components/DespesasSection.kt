@@ -39,7 +39,16 @@ import com.example.appfinanceiro.feature.home.utils.formatExpenseDate
 import com.example.appfinanceiro.feature.home.utils.getCategoryIconAndColor
 
 @Composable
-fun DespesasSection(isLoading: Boolean, expenses: List<Expense>, categoriesMap: Map<Int, String>, onFilterClick: () -> Unit, isFiltered: Boolean, onAddClick: () -> Unit) {
+fun DespesasSection(
+    isLoading: Boolean,
+    errorMessage: String?,
+    onRetry: () -> Unit,
+    expenses: List<Expense>,
+    categoriesMap: Map<Int, String>,
+    onFilterClick: () -> Unit,
+    isFiltered: Boolean,
+    onAddClick: () -> Unit
+) {
     val textColor = MaterialTheme.colorScheme.onBackground
     val cardBg = MaterialTheme.colorScheme.surface
 
@@ -63,11 +72,41 @@ fun DespesasSection(isLoading: Boolean, expenses: List<Expense>, categoriesMap: 
             }
         }
 
-        if (expenses.isEmpty() && !isLoading) {
-            Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+        if (expenses.isEmpty() && isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.material3.CircularProgressIndicator(color = PrimaryBlue)
+            }
+        } else if (expenses.isEmpty() && errorMessage != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(errorMessage, color = TextMuted)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                androidx.compose.material3.TextButton(onClick = onRetry) {
+                    Text("Tentar novamente", color = PrimaryBlue)
+                }
+            }
+        } else if (expenses.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text("Nenhuma despesa encontrada.", color = TextMuted)
             }
         } else {
+
             expenses.forEach { expense ->
                 val categoryName = categoriesMap[expense.category_id] ?: "Outros"
                 val (icon, color) = getCategoryIconAndColor(categoryName)
