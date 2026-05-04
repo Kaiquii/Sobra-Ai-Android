@@ -33,13 +33,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
-import com.example.appfinanceiro.core.network.Expense
-import com.example.appfinanceiro.core.network.Income
-import com.example.appfinanceiro.core.network.SummaryResponse
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import com.example.appfinanceiro.feature.home.components.DespesasSection
 import com.example.appfinanceiro.feature.home.components.FilterOptionItem
 import com.example.appfinanceiro.feature.home.components.MonthSelector
@@ -51,7 +48,8 @@ import java.util.Calendar
 @Composable
 fun HomeScreen(
     onNavigate: (Int) -> Unit = {},
-    onAddClick: () -> Unit = {}
+    onAddClick: () -> Unit = {},
+    viewModel: HomeViewModel = viewModel()
 ) {
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColor = MaterialTheme.colorScheme.onBackground
@@ -60,22 +58,10 @@ fun HomeScreen(
 
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
+    val uiState by viewModel.uiState.collectAsState()
 
     var currentMonthIndex by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
     var currentYear by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
-
-    var summaryData by remember { mutableStateOf<SummaryResponse?>(null) }
-    var expensesData by remember { mutableStateOf<List<Expense>>(emptyList()) }
-    var categoriesMap by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
-    var incomesData by remember { mutableStateOf<List<Income>>(emptyList()) }
-
-    var isSummaryLoading by remember { mutableStateOf(false) }
-    var isIncomesLoading by remember { mutableStateOf(false) }
-    var isExpensesLoading by remember { mutableStateOf(false) }
-
-    var summaryError by remember { mutableStateOf<String?>(null) }
-    var incomesError by remember { mutableStateOf<String?>(null) }
-    var expensesError by remember { mutableStateOf<String?>(null) }
 
     var showCategoryFilterModal by remember { mutableStateOf(false) }
     var showPaymentSourceFilterModal by remember { mutableStateOf(false) }
@@ -85,7 +71,7 @@ fun HomeScreen(
 
     var refreshIncomeActions by remember { mutableIntStateOf(0) }
 
-    val filteredExpenses = expensesData.filter { expense ->
+    val filteredExpenses = uiState.expensesData.filter { expense ->
         val matchesCategory =
             selectedCategoryId == null || expense.category_id == selectedCategoryId
 
@@ -108,20 +94,20 @@ fun HomeScreen(
         matchesCategory && matchesPaymentSource
     }
 
-    val salarioAtual = incomesData.firstOrNull {
+    val salarioAtual = uiState.incomesData.firstOrNull {
         (it.source.equals("Salario", ignoreCase = true) ||
                 it.source.equals("Salário", ignoreCase = true)) &&
                 it.month == currentMonthIndex + 1 &&
                 it.year == currentYear
     }
 
-    val adiantamentoAtual = incomesData.firstOrNull {
+    val adiantamentoAtual = uiState.incomesData.firstOrNull {
         it.source.equals("Adiantamento", ignoreCase = true) &&
                 it.month == currentMonthIndex + 1 &&
                 it.year == currentYear
     }
 
-    val rendaExtraAtual = incomesData.firstOrNull {
+    val rendaExtraAtual = uiState.incomesData.firstOrNull {
         it.source.equals("Renda Extra", ignoreCase = true) &&
                 it.month == currentMonthIndex + 1 &&
                 it.year == currentYear
@@ -138,100 +124,9 @@ fun HomeScreen(
         currentYear = cal.get(Calendar.YEAR)
     }
 
-    fun loadSummary() {
-        val token = userToken ?: return
-
-        coroutineScope.launch {
-            isSummaryLoading = true
-            summaryError = null
-
-            try {
-                summaryData = RetrofitClient.financeApi.getSummary(
-                    token = "Bearer $token",
-                    month = currentMonthIndex + 1,
-                    year = currentYear
-                )
-            } catch (e: Exception) {
-                android.util.Log.e("API_ERRO", "Falha ao carregar resumo", e)
-                summaryError = "Não foi possível carregar o resumo financeiro."
-            } finally {
-                isSummaryLoading = false
-            }
-        }
-    }
-
-    fun loadIncomes() {
-        val token = userToken ?: return
-
-        coroutineScope.launch {
-            isIncomesLoading = true
-            incomesError = null
-
-            try {
-                val response = RetrofitClient.financeApi.getIncomes(
-                    token = "Bearer $token",
-                    month = currentMonthIndex + 1,
-                    year = currentYear
-                )
-
-                incomesData = response.incomes
-
-                val salarioFromIncomes = response.incomes
-                    .filter {
-                        it.source.equals("Salario", ignoreCase = true) ||
-                                it.source.equals("Salário", ignoreCase = true)
-                    }
-                    .sumOf { it.amount }
-
-                val adiantamentoFromIncomes = response.incomes
-                    .filter { it.source.equals("Adiantamento", ignoreCase = true) }
-                    .sumOf { it.amount }
-
-                summaryData = summaryData?.copy(
-                    salario = salarioFromIncomes,
-                    adiantamento = adiantamentoFromIncomes
-                )
-            } catch (e: Exception) {
-                android.util.Log.e("API_ERRO", "Falha ao carregar rendas", e)
-                incomesError = "Não foi possível carregar as rendas."
-            } finally {
-                isIncomesLoading = false
-            }
-        }
-    }
-
-    fun loadExpenses() {
-        val token = userToken ?: return
-
-        coroutineScope.launch {
-            isExpensesLoading = true
-            expensesError = null
-
-            try {
-                val catResponse = RetrofitClient.financeApi.getCategories("Bearer $token")
-                categoriesMap = catResponse.categories.associate { it.id to it.name }
-
-                val expResponse = RetrofitClient.financeApi.getExpenses(
-                    token = "Bearer $token",
-                    month = currentMonthIndex + 1,
-                    year = currentYear
-                )
-
-                expensesData = expResponse.expenses
-            } catch (e: Exception) {
-                android.util.Log.e("API_ERRO", "Falha ao carregar despesas", e)
-                expensesError = "Não foi possível carregar as despesas."
-            } finally {
-                isExpensesLoading = false
-            }
-        }
-    }
-
     LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshIncomeActions) {
-        if (userToken != null) {
-            loadSummary()
-            loadIncomes()
-            loadExpenses()
+        userToken?.let { token ->
+            viewModel.loadAll(token, currentMonthIndex + 1, currentYear)
         }
     }
 
@@ -284,13 +179,15 @@ fun HomeScreen(
 
             item {
                 ResumoFinanceiroSection(
-                    isLoading = isSummaryLoading || isIncomesLoading,
-                    errorMessage = summaryError ?: incomesError,
+                    isLoading = uiState.isSummaryLoading || uiState.isIncomesLoading,
+                    errorMessage = uiState.summaryError ?: uiState.incomesError,
                     onRetry = {
-                        loadSummary()
-                        loadIncomes()
+                        userToken?.let { token ->
+                            viewModel.loadSummary(token, currentMonthIndex + 1, currentYear)
+                            viewModel.loadIncomes(token, currentMonthIndex + 1, currentYear)
+                        }
                     },
-                    data = summaryData,
+                    data = uiState.summaryData,
                     salarioIncome = salarioAtual,
                     adiantamentoIncome = adiantamentoAtual,
                     rendaExtraIncome = rendaExtraAtual,
@@ -303,11 +200,15 @@ fun HomeScreen(
 
             item {
                 DespesasSection(
-                    isLoading = isExpensesLoading,
-                    errorMessage = expensesError,
-                    onRetry = { loadExpenses() },
+                    isLoading = uiState.isExpensesLoading,
+                    errorMessage = uiState.expensesError,
+                    onRetry = {
+                        userToken?.let { token ->
+                            viewModel.loadExpenses(token, currentMonthIndex + 1, currentYear)
+                        }
+                    },
                     expenses = filteredExpenses,
-                    categoriesMap = categoriesMap,
+                    categoriesMap = uiState.categoriesMap,
                     onCategoryFilterClick = { showCategoryFilterModal = true },
                     onPaymentSourceFilterClick = { showPaymentSourceFilterModal = true },
                     isCategoryFiltered = selectedCategoryId != null,
@@ -349,7 +250,7 @@ fun HomeScreen(
                     }
                 )
 
-                categoriesMap.forEach { (id, name) ->
+                uiState.categoriesMap.forEach { (id, name) ->
                     FilterOptionItem(
                         label = name,
                         isSelected = selectedCategoryId == id,

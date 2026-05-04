@@ -50,7 +50,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,16 +59,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Expense
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import com.example.appfinanceiro.feature.home.utils.getCategoryIconAndColor
-import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -80,24 +78,21 @@ import java.util.Locale
 fun DespesasScreen(
     onNavigate: (Int) -> Unit,
     onAddClick: () -> Unit,
-    onEditClick: (Int) -> Unit
+    onEditClick: (Int) -> Unit,
+    viewModel: DespesasViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
+    val uiState by viewModel.uiState.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
 
     val backgroundColor = colorScheme.background
     val inputBgColor = colorScheme.surface
-    val filterBgColor = colorScheme.surfaceVariant
     val textColor = colorScheme.onBackground
     val surfaceTextColor = colorScheme.onSurface
     val secondaryTextColor = colorScheme.onSurfaceVariant
 
-    var expensesData by remember { mutableStateOf<List<Expense>>(emptyList()) }
-    var categoriesMap by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
-    var isLoading by remember { mutableStateOf(true) }
     var refreshTrigger by remember { mutableIntStateOf(0) }
 
     var searchQuery by remember { mutableStateOf("") }
@@ -108,34 +103,31 @@ fun DespesasScreen(
     var currentYear by remember { mutableIntStateOf(calendar.get(Calendar.YEAR)) }
 
     var expenseToDelete by remember { mutableStateOf<Expense?>(null) }
-    var isDeleting by remember { mutableStateOf(false) }
 
     LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshTrigger) {
-        if (userToken != null) {
-            isLoading = true
-            try {
-                val catResponse = RetrofitClient.financeApi.getCategories("Bearer $userToken")
-                categoriesMap = catResponse.categories.associate { it.id to it.name }
-
-                val expResponse = RetrofitClient.financeApi.getExpenses(
-                    "Bearer $userToken",
-                    currentMonthIndex + 1,
-                    currentYear
-                )
-                expensesData = expResponse.expenses
-            } catch (e: Exception) {
-                expensesData = emptyList()
-            } finally {
-                isLoading = false
-            }
+        userToken?.let { token ->
+            viewModel.loadExpenses(token, currentMonthIndex + 1, currentYear)
         }
     }
 
-    val filteredExpenses = expensesData.filter { expense ->
+    LaunchedEffect(uiState.deleteSuccessMessage, uiState.deleteErrorMessage) {
+        uiState.deleteSuccessMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.clearMessages()
+        }
+
+        uiState.deleteErrorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.clearMessages()
+        }
+    }
+
+    val filteredExpenses = uiState.expensesData.filter { expense ->
         val matchesSearch = expense.description.contains(searchQuery, ignoreCase = true)
         val matchesType = when (selectedFilter) {
             "Parceladas" -> expense.type.equals("Parcelada", ignoreCase = true)
-            "Únicas" -> expense.type.equals("Única", ignoreCase = true) || expense.type.equals("Unica", ignoreCase = true)
+            "Únicas" -> expense.type.equals("Única", ignoreCase = true) ||
+                    expense.type.equals("Unica", ignoreCase = true)
             "Fixas" -> expense.type.equals("Fixa", ignoreCase = true)
             else -> true
         }
@@ -246,7 +238,6 @@ fun DespesasScreen(
                 }
             }
 
-
             MonthSelector(
                 monthIndex = currentMonthIndex,
                 currentYear = currentYear,
@@ -268,7 +259,7 @@ fun DespesasScreen(
                 }
             )
 
-            if (isLoading) {
+            if (uiState.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -290,7 +281,7 @@ fun DespesasScreen(
                     items(filteredExpenses) { expense ->
                         DespesaListItem(
                             expense = expense,
-                            categoriesMap = categoriesMap,
+                            categoriesMap = uiState.categoriesMap,
                             onEdit = { onEditClick(expense.id) },
                             onDelete = { expenseToDelete = expense }
                         )
@@ -309,7 +300,7 @@ fun DespesasScreen(
         var deleteFutureSelected by remember { mutableStateOf(false) }
 
         AlertDialog(
-            onDismissRequest = { if (!isDeleting) expenseToDelete = null },
+            onDismissRequest = { if (!uiState.isDeleting) expenseToDelete = null },
             containerColor = backgroundColor,
             titleContentColor = textColor,
             textContentColor = textColor,
@@ -338,7 +329,9 @@ fun DespesasScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { deleteFutureSelected = !deleteFutureSelected }
+                            modifier = Modifier.clickable {
+                                deleteFutureSelected = !deleteFutureSelected
+                            }
                         ) {
                             Checkbox(
                                 checked = deleteFutureSelected,
@@ -361,33 +354,20 @@ fun DespesasScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        isDeleting = true
-                        coroutineScope.launch {
-                            try {
-                                RetrofitClient.financeApi.deleteExpense(
-                                    token = "Bearer $userToken",
-                                    id = expenseToDelete!!.id,
-                                    deleteFuture = if (isInstallmentExpense && deleteFutureSelected) true else null
-                                )
-                                Toast.makeText(
-                                    context,
-                                    "Excluído com sucesso!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                        val token = userToken ?: return@TextButton
+                        val selectedExpense = expenseToDelete ?: return@TextButton
+
+                        viewModel.deleteExpense(
+                            token = token,
+                            expenseId = selectedExpense.id,
+                            deleteFuture = if (isInstallmentExpense && deleteFutureSelected) true else null,
+                            onDeleted = {
                                 expenseToDelete = null
                                 refreshTrigger++
-                            } catch (e: Exception) {
-                                Toast.makeText(
-                                    context,
-                                    "Erro ao excluir",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } finally {
-                                isDeleting = false
                             }
-                        }
+                        )
                     },
-                    enabled = !isDeleting
+                    enabled = !uiState.isDeleting
                 ) {
                     Text(
                         "Confirmar",
@@ -399,7 +379,7 @@ fun DespesasScreen(
             dismissButton = {
                 TextButton(
                     onClick = { expenseToDelete = null },
-                    enabled = !isDeleting
+                    enabled = !uiState.isDeleting
                 ) {
                     Text("Cancelar", color = PrimaryBlue, fontWeight = FontWeight.Bold)
                 }
@@ -441,7 +421,6 @@ fun DespesaListItem(
     val (icon, color) = getCategoryIconAndColor(categoryName)
 
     val cardBg = colorScheme.surface
-    val chipBg = colorScheme.surfaceVariant
     val titleColor = colorScheme.onSurface
     val secondaryColor = colorScheme.onSurfaceVariant
 

@@ -32,14 +32,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
-import com.example.appfinanceiro.core.network.CategoryReportResponse
-import com.example.appfinanceiro.core.network.ChartReportResponse
-import com.example.appfinanceiro.core.network.SummaryResponse
-import com.example.appfinanceiro.core.network.YearlySummaryResponse
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import com.example.appfinanceiro.feature.relatorios.components.CategoryExpensesCard
 import com.example.appfinanceiro.feature.relatorios.components.IncomeVsExpenseCard
@@ -50,11 +46,13 @@ import java.util.Calendar
 @Composable
 fun RelatoriosScreen(
     onNavigate: (Int) -> Unit = {},
-    onAddClick: () -> Unit = {}
+    onAddClick: () -> Unit = {},
+    viewModel: RelatoriosViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
+    val uiState by viewModel.uiState.collectAsState()
 
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColor = MaterialTheme.colorScheme.onBackground
@@ -62,12 +60,6 @@ fun RelatoriosScreen(
     var currentMonthIndex by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
     var currentYear by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
     var selectedRange by remember { mutableStateOf(ReportRange.ONE_MONTH) }
-
-    var summaryData by remember { mutableStateOf<SummaryResponse?>(null) }
-    var categoryData by remember { mutableStateOf<List<CategoryReportResponse>>(emptyList()) }
-    var chartData by remember { mutableStateOf<List<ChartReportResponse>>(emptyList()) }
-    var yearlySummary by remember { mutableStateOf<YearlySummaryResponse?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
 
     val currentMonthNumber = currentMonthIndex + 1
 
@@ -82,38 +74,12 @@ fun RelatoriosScreen(
     }
 
     LaunchedEffect(currentMonthIndex, currentYear, userToken) {
-        if (userToken != null) {
-            isLoading = true
-            try {
-                summaryData = RetrofitClient.financeApi.getSummary(
-                    token = "Bearer $userToken",
-                    month = currentMonthNumber,
-                    year = currentYear
-                )
-
-                categoryData = RetrofitClient.financeApi.getReportCategories(
-                    token = "Bearer $userToken",
-                    month = currentMonthNumber,
-                    year = currentYear
-                )
-
-                chartData = RetrofitClient.financeApi.getReportChart(
-                    token = "Bearer $userToken",
-                    year = currentYear
-                )
-
-                yearlySummary = RetrofitClient.financeApi.getYearlySummary(
-                    token = "Bearer $userToken",
-                    year = currentYear
-                )
-            } catch (e: Exception) {
-                summaryData = null
-                categoryData = emptyList()
-                chartData = emptyList()
-                yearlySummary = null
-            } finally {
-                isLoading = false
-            }
+        userToken?.let { token ->
+            viewModel.loadReports(
+                token = token,
+                month = currentMonthNumber,
+                year = currentYear
+            )
         }
     }
 
@@ -148,7 +114,7 @@ fun RelatoriosScreen(
             )
         }
     ) { paddingValues ->
-        if (isLoading) {
+        if (uiState.isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -168,7 +134,7 @@ fun RelatoriosScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-            item {
+                item {
                     MonthSelector(
                         monthIndex = currentMonthIndex,
                         currentYear = currentYear,
@@ -179,15 +145,15 @@ fun RelatoriosScreen(
 
                 item {
                     CategoryExpensesCard(
-                        totalExpense = summaryData?.total_expense ?: 0.0,
-                        categories = categoryData
+                        totalExpense = uiState.summaryData?.total_expense ?: 0.0,
+                        categories = uiState.categoryData
                     )
                 }
 
                 item {
                     IncomeVsExpenseCard(
-                        summaryData = summaryData,
-                        chartData = chartData,
+                        summaryData = uiState.summaryData,
+                        chartData = uiState.chartData,
                         selectedRange = selectedRange,
                         currentMonth = currentMonthNumber,
                         onRangeSelected = { selectedRange = it }
@@ -195,7 +161,7 @@ fun RelatoriosScreen(
                 }
 
                 item {
-                    YearSummarySection(yearlySummary = yearlySummary)
+                    YearSummarySection(yearlySummary = uiState.yearlySummary)
                 }
 
                 item {
