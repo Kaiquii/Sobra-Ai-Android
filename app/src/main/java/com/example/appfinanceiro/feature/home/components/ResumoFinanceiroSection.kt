@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -100,26 +103,21 @@ fun ResumoFinanceiroSection(
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "Resumo Financeiro",
-                    color = textColor,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Resumo Financeiro",
+                color = textColor,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
 
-                if (isLoading && data != null) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        color = PrimaryBlue,
-                        strokeWidth = 2.dp
-                    )
-                }
+            if (isLoading && data != null) {
+                Spacer(modifier = Modifier.width(8.dp))
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    color = PrimaryBlue,
+                    strokeWidth = 2.dp
+                )
             }
         }
 
@@ -130,11 +128,7 @@ fun ResumoFinanceiroSection(
                     .padding(vertical = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = errorMessage,
-                    color = TextMuted,
-                    fontSize = 14.sp
-                )
+                Text(errorMessage, color = TextMuted, fontSize = 14.sp)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -163,16 +157,41 @@ fun ResumoFinanceiroSection(
                 val salario = data?.salario ?: 0.0
                 val adiantamento = data?.adiantamento ?: 0.0
                 val rendaExtraDisp = data?.restante_renda_extra ?: 0.0
-
                 val gastoSalario = data?.total_gasto_salario ?: 0.0
                 val gastoAdiant = data?.total_gasto_adiantamento ?: 0.0
-
                 val restSalario = data?.restante_salario ?: 0.0
                 val restAdiant = data?.restante_adiantamento ?: 0.0
-
                 val totalRecebido = data?.total_income ?: 0.0
                 val totalGasto = data?.total_expense ?: 0.0
                 val totalDisp = data?.total_geral_disponivel ?: 0.0
+
+                HighlightSummaryCard(
+                    title = "Total Geral Disponível",
+                    subtitle = if (totalDisp < 0) "Atenção: saldo negativo no mês" else "Saldo livre no mês",
+                    value = formatCurrency(totalDisp),
+                    bgColor = cardBlue,
+                    valueColor = if (totalDisp < 0) alertColor else PrimaryBlue
+                )
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SummaryCard(
+                        title = "Total Recebido",
+                        value = formatCurrency(totalRecebido),
+                        bgColor = cardBg,
+                        valueColor = textColor,
+                        icon = Icons.Default.TrendingUp,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    SummaryCard(
+                        title = "Total Gasto",
+                        value = formatCurrency(totalGasto),
+                        bgColor = cardBg,
+                        valueColor = textColor,
+                        icon = Icons.Default.AccountBalanceWallet,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     EditableIncomeSummaryCard(
@@ -295,35 +314,45 @@ fun ResumoFinanceiroSection(
                         modifier = Modifier.weight(1f)
                     )
                 }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SummaryCard(
-                        title = "Total Recebido",
-                        value = formatCurrency(totalRecebido),
-                        bgColor = cardBg,
-                        valueColor = textColor,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    SummaryCard(
-                        title = "Total Gasto",
-                        value = formatCurrency(totalGasto),
-                        bgColor = cardBg,
-                        valueColor = textColor,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                SummaryCard(
-                    title = "Total Geral Disponível",
-                    value = formatCurrency(totalDisp),
-                    valueSize = 24.sp,
-                    valueColor = if (totalDisp < 0) alertColor else PrimaryBlue,
-                    bgColor = cardBlue,
-                    icon = Icons.Default.AccountBalanceWallet
-                )
             }
         }
+    }
+}
+
+@Composable
+private fun HighlightSummaryCard(
+    title: String,
+    subtitle: String,
+    value: String,
+    bgColor: Color,
+    valueColor: Color
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(bgColor, RoundedCornerShape(12.dp))
+            .padding(18.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, color = TextMuted, fontSize = 12.sp)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = value,
+                color = valueColor,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(subtitle, color = TextMuted, fontSize = 11.sp)
+        }
+
+        Icon(
+            imageVector = Icons.Default.Savings,
+            contentDescription = null,
+            tint = valueColor,
+            modifier = Modifier.size(28.dp)
+        )
     }
 }
 
@@ -339,15 +368,11 @@ private fun SummaryCard(
 ) {
     Box(
         modifier = modifier
-            .background(bgColor, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+            .background(bgColor, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
         Column {
-            Text(
-                text = title,
-                color = TextMuted,
-                fontSize = 12.sp
-            )
+            Text(title, color = TextMuted, fontSize = 12.sp)
 
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -362,11 +387,11 @@ private fun SummaryCard(
                 if (icon != null) {
                     Spacer(modifier = Modifier.weight(1f))
 
-                    androidx.compose.material3.Icon(
+                    Icon(
                         imageVector = icon,
                         contentDescription = null,
                         tint = valueColor,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }

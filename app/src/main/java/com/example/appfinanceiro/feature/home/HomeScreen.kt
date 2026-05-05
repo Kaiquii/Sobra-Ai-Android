@@ -70,6 +70,13 @@ fun HomeScreen(
     var showExitDialog by remember { mutableStateOf(false) }
 
     var refreshIncomeActions by remember { mutableIntStateOf(0) }
+    val selectedCategoryName = selectedCategoryId?.let { uiState.categoriesMap[it] }
+    val selectedPaymentSourceName = when (selectedPaymentSource) {
+        "Salario" -> "Salário"
+        "Adiantamento" -> "Adiantamento"
+        "Renda Extra" -> "Renda Extra"
+        else -> null
+    }
 
     val filteredExpenses = uiState.expensesData.filter { expense ->
         val matchesCategory =
@@ -213,6 +220,10 @@ fun HomeScreen(
                     onPaymentSourceFilterClick = { showPaymentSourceFilterModal = true },
                     isCategoryFiltered = selectedCategoryId != null,
                     isPaymentSourceFiltered = selectedPaymentSource != null,
+                    selectedCategoryName = selectedCategoryName,
+                    selectedPaymentSourceName = selectedPaymentSourceName,
+                    onClearCategoryFilter = { selectedCategoryId = null },
+                    onClearPaymentSourceFilter = { selectedPaymentSource = null },
                     onAddClick = onAddClick
                 )
             }
