@@ -40,17 +40,13 @@ import com.example.appfinanceiro.core.designsystem.theme.GreenPositive
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Expense
-import com.example.appfinanceiro.feature.home.utils.formatCurrency
-import com.example.appfinanceiro.feature.home.utils.formatExpenseDate
-import com.example.appfinanceiro.feature.home.utils.getCategoryIconAndColor
 
 @Composable
-fun DespesasSection(
+fun DespesasHeaderSection(
     isLoading: Boolean,
     errorMessage: String?,
     onRetry: () -> Unit,
     expenses: List<Expense>,
-    categoriesMap: Map<Int, String>,
     onCategoryFilterClick: () -> Unit,
     onPaymentSourceFilterClick: () -> Unit,
     isCategoryFiltered: Boolean,
@@ -62,7 +58,6 @@ fun DespesasSection(
     onAddClick: () -> Unit
 ) {
     val textColor = MaterialTheme.colorScheme.onBackground
-    val cardBg = MaterialTheme.colorScheme.surface
     val hasActiveFilters = isCategoryFiltered || isPaymentSourceFiltered
 
     Column(
@@ -171,59 +166,36 @@ fun DespesasSection(
                     Text("Adicionar despesa", color = PrimaryBlue, fontWeight = FontWeight.Bold)
                 }
             }
-        } else {
-            expenses.forEach { expense ->
-                val categoryName = categoriesMap[expense.category_id] ?: "Outros"
-                val (icon, color) = getCategoryIconAndColor(categoryName)
-                val formattedDate = formatExpenseDate(expense.date)
-
-                val typeText =
-                    if (
-                        expense.type.equals("Parcelada", ignoreCase = true) &&
-                        expense.installments != null &&
-                        expense.current_installment != null
-                    ) {
-                        "Parc. ${expense.current_installment}/${expense.installments}"
-                    } else {
-                        expense.type
-                    }
-
-                ExpenseItem(
-                    icon = icon,
-                    iconColor = color,
-                    title = expense.description,
-                    categoryName = categoryName,
-                    paymentSource = expense.payment_source ?: "Não informado",
-                    type = typeText,
-                    date = formattedDate,
-                    value = "- ${formatCurrency(expense.amount)}"
-                )
-            }
         }
+    }
+}
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = TextMuted.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .clickable { onAddClick() }
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.AddCircleOutline,
-                    contentDescription = "Adicionar",
-                    tint = textColor
-                )
+@Composable
+fun AddExpenseButton(onAddClick: () -> Unit) {
+    val textColor = MaterialTheme.colorScheme.onBackground
 
-                Spacer(modifier = Modifier.width(8.dp))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = TextMuted.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .clickable { onAddClick() }
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.AddCircleOutline,
+                contentDescription = "Adicionar",
+                tint = textColor
+            )
 
-                Text(text = "Adicionar Despesa", color = textColor)
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(text = "Adicionar Despesa", color = textColor)
         }
     }
 }
@@ -295,7 +267,7 @@ private fun ActiveFilterChip(
 }
 
 @Composable
-private fun ExpenseItem(
+fun ExpenseItem(
     icon: ImageVector,
     iconColor: Color,
     title: String,

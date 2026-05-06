@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,10 +38,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
-import com.example.appfinanceiro.feature.home.components.DespesasSection
+import com.example.appfinanceiro.feature.home.components.AddExpenseButton
+import com.example.appfinanceiro.feature.home.components.DespesasHeaderSection
+import com.example.appfinanceiro.feature.home.components.ExpenseItem
 import com.example.appfinanceiro.feature.home.components.FilterOptionItem
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import com.example.appfinanceiro.feature.home.components.ResumoFinanceiroSection
+import com.example.appfinanceiro.feature.home.utils.formatCurrency
+import com.example.appfinanceiro.feature.home.utils.formatExpenseDate
+import com.example.appfinanceiro.feature.home.utils.getCategoryIconAndColor
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -206,7 +212,7 @@ fun HomeScreen(
             }
 
             item {
-                DespesasSection(
+                DespesasHeaderSection(
                     isLoading = uiState.isExpensesLoading,
                     errorMessage = uiState.expensesError,
                     onRetry = {
@@ -215,7 +221,6 @@ fun HomeScreen(
                         }
                     },
                     expenses = filteredExpenses,
-                    categoriesMap = uiState.categoriesMap,
                     onCategoryFilterClick = { showCategoryFilterModal = true },
                     onPaymentSourceFilterClick = { showPaymentSourceFilterModal = true },
                     isCategoryFiltered = selectedCategoryId != null,
@@ -228,9 +233,41 @@ fun HomeScreen(
                 )
             }
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
+            items(
+                items = filteredExpenses,
+                key = { expense -> expense.id }
+            ) { expense ->
+                val categoryName = uiState.categoriesMap[expense.category_id] ?: "Outros"
+                val (icon, color) = getCategoryIconAndColor(categoryName)
+                val formattedDate = formatExpenseDate(expense.date)
+
+                val typeText =
+                    if (
+                        expense.type.equals("Parcelada", ignoreCase = true) &&
+                        expense.installments != null &&
+                        expense.current_installment != null
+                    ) {
+                        "Parc. ${expense.current_installment}/${expense.installments}"
+                    } else {
+                        expense.type
+                    }
+
+                ExpenseItem(
+                    icon = icon,
+                    iconColor = color,
+                    title = expense.description,
+                    categoryName = categoryName,
+                    paymentSource = expense.payment_source ?: "Não informado",
+                    type = typeText,
+                    date = formattedDate,
+                    value = "- ${formatCurrency(expense.amount)}"
+                )
             }
+
+            item {
+                AddExpenseButton(onAddClick)
+            }
+
         }
     }
 
