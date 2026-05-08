@@ -77,7 +77,8 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
     val userToken by remember { SessionManager(context) }.token.collectAsState(initial = null)
 
     val backgroundColor = MaterialTheme.colorScheme.background
-    val inputBgColor = Color(0xFF1E232D)
+    val textColor = MaterialTheme.colorScheme.onBackground
+    val inputBgColor = MaterialTheme.colorScheme.surface
 
     var amountText by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -234,8 +235,24 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Nova Despesa", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center) },
-                navigationIcon = { IconButton(onClick = onNavigateBack) { Icon(Icons.Default.Close, contentDescription = "Fechar", tint = Color.White) } },
+                title = {
+                    Text(
+                        "Nova Despesa",
+                        color = textColor,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Fechar",
+                            tint = textColor
+                        )
+                    }
+                },
                 actions = { Spacer(modifier = Modifier.width(48.dp)) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
