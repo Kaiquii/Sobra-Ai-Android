@@ -3,6 +3,7 @@ package com.example.appfinanceiro.feature.despesas.components
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -49,6 +49,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -56,6 +57,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.designsystem.theme.BackgroundDark
+import com.example.appfinanceiro.core.designsystem.theme.BackgroundLight
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Category
 import com.example.appfinanceiro.core.network.ExpenseUpdateRequest
@@ -76,6 +79,9 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
 
     val backgroundColor = colorScheme.background
     val inputBgColor = colorScheme.surface
+    val isDark = isSystemInDarkTheme()
+    val dialogBackgroundColor = if (isDark) BackgroundDark else BackgroundLight
+    val dialogTextColor = if (isDark) Color.White else Color.Black
 
     var amountText by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -273,7 +279,10 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
 
-                if (originalType.equals("Parcelada", ignoreCase = true)) {
+                if (
+                    originalType.equals("Parcelada", ignoreCase = true) ||
+                    originalType.equals("Fixa", ignoreCase = true)
+                ) {
                     Spacer(modifier = Modifier.height(24.dp))
                     Row(
                         modifier = Modifier
@@ -285,13 +294,21 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Atualizar parcelas futuras?",
+                                if (originalType.equals("Fixa", ignoreCase = true)) {
+                                    "Atualizar despesas futuras?"
+                                } else {
+                                    "Atualizar parcelas futuras?"
+                                },
                                 color = colorScheme.onSurface,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                "Aplica essa edição aos próximos meses",
+                                if (originalType.equals("Fixa", ignoreCase = true)) {
+                                    "Aplica essa edição aos próximos meses desta despesa fixa"
+                                } else {
+                                    "Aplica essa edição aos próximos meses"
+                                },
                                 color = colorScheme.onSurfaceVariant,
                                 fontSize = 12.sp
                             )
@@ -307,22 +324,6 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                     }
                 }
 
-                if (originalType.equals("Fixa", ignoreCase = true)) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = inputBgColor
-                    ) {
-                        Text(
-                            text = "Ao salvar, esta alteração será aplicada ao mês atual e aos próximos meses desta despesa fixa.",
-                            color = colorScheme.onSurface,
-                            fontSize = 14.sp,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
@@ -332,7 +333,7 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                             return@Button
                         }
 
-                        if (originalType.equals("Fixa", ignoreCase = true)) {
+                        if (originalType.equals("Fixa", ignoreCase = true) && updateFuture) {
                             showFixedExpenseConfirmation = true
                             return@Button
                         }
@@ -353,7 +354,14 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                                     category_id = selectedCategory!!.id,
                                     payment_source = selectedSource,
                                     date = dateFormat.format(parsedDate),
-                                    update_future = if (originalType.equals("Parcelada", ignoreCase = true)) updateFuture else null
+                                    update_future = if (
+                                        originalType.equals("Parcelada", ignoreCase = true) ||
+                                        originalType.equals("Fixa", ignoreCase = true)
+                                    ) {
+                                        updateFuture
+                                    } else {
+                                        null
+                                    }
                                 )
 
                                 RetrofitClient.financeApi.updateExpense("Bearer $userToken", expenseId, request)
@@ -386,17 +394,18 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
             if (showFixedExpenseConfirmation) {
                 AlertDialog(
                     onDismissRequest = { if (!isLoading) showFixedExpenseConfirmation = false },
-                    containerColor = colorScheme.surface,
+                    containerColor = dialogBackgroundColor,
+                    titleContentColor = dialogTextColor,
+                    textContentColor = dialogTextColor,
                     title = {
                         Text(
                             "Atualizar despesa fixa",
-                            color = colorScheme.onSurface
+                            fontWeight = FontWeight.Bold
                         )
                     },
                     text = {
                         Text(
-                            "Esta alteração será aplicada ao mês atual e aos próximos meses desta despesa fixa.",
-                            color = colorScheme.onSurfaceVariant
+                            "Esta alteração será aplicada ao mês atual e aos próximos meses desta despesa fixa."
                         )
                     },
                     confirmButton = {
@@ -419,7 +428,7 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                                             category_id = selectedCategory!!.id,
                                             payment_source = selectedSource,
                                             date = dateFormat.format(parsedDate),
-                                            update_future = null
+                                            update_future = true
                                         )
 
                                         RetrofitClient.financeApi.updateExpense("Bearer $userToken", expenseId, request)
