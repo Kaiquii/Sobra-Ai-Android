@@ -93,6 +93,13 @@ class MainActivity : FragmentActivity() {
                 ) {
                     val navController = rememberNavController()
 
+                    fun navigateToLogin() {
+                        navController.navigate("login") {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+
                     val destination = when {
                         userToken == null -> "login"
                         !biometricEnabledForSavedUser -> "home"
@@ -148,7 +155,8 @@ class MainActivity : FragmentActivity() {
                                 },
                                 onAddClick = {
                                     navController.navigate("nova_despesa")
-                                }
+                                },
+                                onSessionExpired = { navigateToLogin() }
                             )
                         }
 
@@ -210,7 +218,8 @@ class MainActivity : FragmentActivity() {
                                 },
                                 onEditClick = { expenseId ->
                                     navController.navigate("editar_despesa/$expenseId")
-                                }
+                                },
+                                onSessionExpired = { navigateToLogin() }
                             )
                         }
 
@@ -256,7 +265,8 @@ class MainActivity : FragmentActivity() {
                                 },
                                 onAddClick = {
                                     navController.navigate("nova_despesa")
-                                }
+                                },
+                                onSessionExpired = { navigateToLogin() }
                             )
                         }
 

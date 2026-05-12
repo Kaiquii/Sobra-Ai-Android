@@ -79,6 +79,7 @@ fun DespesasScreen(
     onNavigate: (Int) -> Unit,
     onAddClick: () -> Unit,
     onEditClick: (Int) -> Unit,
+    onSessionExpired: () -> Unit = {},
     viewModel: DespesasViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -107,6 +108,14 @@ fun DespesasScreen(
     LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshTrigger) {
         userToken?.let { token ->
             viewModel.loadExpenses(token, currentMonthIndex + 1, currentYear)
+        }
+    }
+
+    LaunchedEffect(uiState.isSessionExpired) {
+        if (uiState.isSessionExpired) {
+            sessionManager.clearSession()
+            viewModel.clearSessionExpired()
+            onSessionExpired()
         }
     }
 

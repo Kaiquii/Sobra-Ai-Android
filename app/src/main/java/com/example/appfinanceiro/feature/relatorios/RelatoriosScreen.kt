@@ -47,6 +47,7 @@ import java.util.Calendar
 fun RelatoriosScreen(
     onNavigate: (Int) -> Unit = {},
     onAddClick: () -> Unit = {},
+    onSessionExpired: () -> Unit = {},
     viewModel: RelatoriosViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -80,6 +81,14 @@ fun RelatoriosScreen(
                 month = currentMonthNumber,
                 year = currentYear
             )
+        }
+    }
+
+    LaunchedEffect(uiState.isSessionExpired) {
+        if (uiState.isSessionExpired) {
+            sessionManager.clearSession()
+            viewModel.clearSessionExpired()
+            onSessionExpired()
         }
     }
 

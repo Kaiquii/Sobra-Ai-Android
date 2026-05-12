@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanceiro.core.data.FinanceRepository
+import com.example.appfinanceiro.core.data.SessionExpiredException
 import com.example.appfinanceiro.core.network.Expense
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,8 @@ data class DespesasUiState(
     val isDeleting: Boolean = false,
     val errorMessage: String? = null,
     val deleteSuccessMessage: String? = null,
-    val deleteErrorMessage: String? = null
+    val deleteErrorMessage: String? = null,
+    val isSessionExpired: Boolean = false
 )
 
 class DespesasViewModel(
@@ -30,7 +32,7 @@ class DespesasViewModel(
     fun loadExpenses(token: String, month: Int, year: Int) {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(isLoading = true, errorMessage = null)
+                it.copy(isLoading = true, errorMessage = null, isSessionExpired = false)
             }
 
             try {
@@ -44,6 +46,10 @@ class DespesasViewModel(
                         },
                         expensesData = expenses.expenses
                     )
+                }
+            } catch (e: SessionExpiredException) {
+                _uiState.update {
+                    it.copy(isSessionExpired = true)
                 }
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao carregar despesas", e)
@@ -82,6 +88,10 @@ class DespesasViewModel(
                     it.copy(deleteSuccessMessage = "Excluído com sucesso!")
                 }
                 onDeleted()
+            } catch (e: SessionExpiredException) {
+                _uiState.update {
+                    it.copy(isSessionExpired = true)
+                }
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao excluir despesa", e)
                 _uiState.update {
@@ -98,6 +108,12 @@ class DespesasViewModel(
     fun clearMessages() {
         _uiState.update {
             it.copy(deleteSuccessMessage = null, deleteErrorMessage = null)
+        }
+    }
+
+    fun clearSessionExpired() {
+        _uiState.update {
+            it.copy(isSessionExpired = false)
         }
     }
 }

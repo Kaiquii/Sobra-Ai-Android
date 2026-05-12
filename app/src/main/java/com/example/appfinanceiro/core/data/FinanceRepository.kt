@@ -9,37 +9,57 @@ import com.example.appfinanceiro.core.network.IncomesResponse
 import com.example.appfinanceiro.core.network.SummaryResponse
 import com.example.appfinanceiro.core.network.YearlySummaryResponse
 import com.example.appfinanceiro.core.network.auth.RetrofitClient
+import retrofit2.HttpException
 
 class FinanceRepository {
 
     private fun bearer(token: String): String = "Bearer $token"
 
+    private suspend fun <T> authorizedRequest(block: suspend () -> T): T {
+        return try {
+            block()
+        } catch (e: HttpException) {
+            if (e.code() == 401) {
+                throw SessionExpiredException()
+            }
+            throw e
+        }
+    }
+
     suspend fun getSummary(token: String, month: Int, year: Int): SummaryResponse {
-        return RetrofitClient.financeApi.getSummary(
-            token = bearer(token),
-            month = month,
-            year = year
-        )
+        return authorizedRequest {
+            RetrofitClient.financeApi.getSummary(
+                token = bearer(token),
+                month = month,
+                year = year
+            )
+        }
     }
 
     suspend fun getCategories(token: String): CategoriesResponse {
-        return RetrofitClient.financeApi.getCategories(bearer(token))
+        return authorizedRequest {
+            RetrofitClient.financeApi.getCategories(bearer(token))
+        }
     }
 
     suspend fun getExpenses(token: String, month: Int, year: Int): ExpensesResponse {
-        return RetrofitClient.financeApi.getExpenses(
-            token = bearer(token),
-            month = month,
-            year = year
-        )
+        return authorizedRequest {
+            RetrofitClient.financeApi.getExpenses(
+                token = bearer(token),
+                month = month,
+                year = year
+            )
+        }
     }
 
     suspend fun getIncomes(token: String, month: Int? = null, year: Int? = null): IncomesResponse {
-        return RetrofitClient.financeApi.getIncomes(
-            token = bearer(token),
-            month = month,
-            year = year
-        )
+        return authorizedRequest {
+            RetrofitClient.financeApi.getIncomes(
+                token = bearer(token),
+                month = month,
+                year = year
+            )
+        }
     }
 
     suspend fun deleteExpense(
@@ -47,11 +67,13 @@ class FinanceRepository {
         id: Int,
         deleteFuture: Boolean? = null
     ): DefaultResponse {
-        return RetrofitClient.financeApi.deleteExpense(
-            token = bearer(token),
-            id = id,
-            deleteFuture = deleteFuture
-        )
+        return authorizedRequest {
+            RetrofitClient.financeApi.deleteExpense(
+                token = bearer(token),
+                id = id,
+                deleteFuture = deleteFuture
+            )
+        }
     }
 
     suspend fun getReportCategories(
@@ -59,24 +81,30 @@ class FinanceRepository {
         month: Int,
         year: Int
     ): List<CategoryReportResponse> {
-        return RetrofitClient.financeApi.getReportCategories(
-            token = bearer(token),
-            month = month,
-            year = year
-        )
+        return authorizedRequest {
+            RetrofitClient.financeApi.getReportCategories(
+                token = bearer(token),
+                month = month,
+                year = year
+            )
+        }
     }
 
     suspend fun getReportChart(token: String, year: Int): List<ChartReportResponse> {
-        return RetrofitClient.financeApi.getReportChart(
-            token = bearer(token),
-            year = year
-        )
+        return authorizedRequest {
+            RetrofitClient.financeApi.getReportChart(
+                token = bearer(token),
+                year = year
+            )
+        }
     }
 
     suspend fun getYearlySummary(token: String, year: Int): YearlySummaryResponse {
-        return RetrofitClient.financeApi.getYearlySummary(
-            token = bearer(token),
-            year = year
-        )
+        return authorizedRequest {
+            RetrofitClient.financeApi.getYearlySummary(
+                token = bearer(token),
+                year = year
+            )
+        }
     }
 }

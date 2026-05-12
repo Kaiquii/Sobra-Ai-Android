@@ -55,6 +55,7 @@ import java.util.Calendar
 fun HomeScreen(
     onNavigate: (Int) -> Unit = {},
     onAddClick: () -> Unit = {},
+    onSessionExpired: () -> Unit = {},
     viewModel: HomeViewModel = viewModel()
 ) {
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -140,6 +141,14 @@ fun HomeScreen(
     LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshIncomeActions) {
         userToken?.let { token ->
             viewModel.loadAll(token, currentMonthIndex + 1, currentYear)
+        }
+    }
+
+    LaunchedEffect(uiState.isSessionExpired) {
+        if (uiState.isSessionExpired) {
+            sessionManager.clearSession()
+            viewModel.clearSessionExpired()
+            onSessionExpired()
         }
     }
 

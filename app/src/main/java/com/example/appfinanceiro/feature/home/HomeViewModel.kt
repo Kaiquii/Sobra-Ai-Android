@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanceiro.core.data.FinanceRepository
+import com.example.appfinanceiro.core.data.SessionExpiredException
 import com.example.appfinanceiro.core.network.Expense
 import com.example.appfinanceiro.core.network.Income
 import com.example.appfinanceiro.core.network.SummaryResponse
@@ -22,7 +23,8 @@ data class HomeUiState(
     val isExpensesLoading: Boolean = false,
     val summaryError: String? = null,
     val incomesError: String? = null,
-    val expensesError: String? = null
+    val expensesError: String? = null,
+    val isSessionExpired: Boolean = false
 )
 
 class HomeViewModel(
@@ -41,13 +43,17 @@ class HomeViewModel(
     fun loadSummary(token: String, month: Int, year: Int) {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(isSummaryLoading = true, summaryError = null)
+                it.copy(isSummaryLoading = true, summaryError = null, isSessionExpired = false)
             }
 
             try {
                 val summary = repository.getSummary(token, month, year)
                 _uiState.update {
                     it.copy(summaryData = summary)
+                }
+            } catch (e: SessionExpiredException) {
+                _uiState.update {
+                    it.copy(isSessionExpired = true)
                 }
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao carregar resumo", e)
@@ -65,7 +71,7 @@ class HomeViewModel(
     fun loadIncomes(token: String, month: Int, year: Int) {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(isIncomesLoading = true, incomesError = null)
+                it.copy(isIncomesLoading = true, incomesError = null, isSessionExpired = false)
             }
 
             try {
@@ -91,6 +97,10 @@ class HomeViewModel(
                         )
                     )
                 }
+            } catch (e: SessionExpiredException) {
+                _uiState.update {
+                    it.copy(isSessionExpired = true)
+                }
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao carregar rendas", e)
                 _uiState.update {
@@ -107,7 +117,7 @@ class HomeViewModel(
     fun loadExpenses(token: String, month: Int, year: Int) {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(isExpensesLoading = true, expensesError = null)
+                it.copy(isExpensesLoading = true, expensesError = null, isSessionExpired = false)
             }
 
             try {
@@ -122,6 +132,10 @@ class HomeViewModel(
                         expensesData = expenses.expenses
                     )
                 }
+            } catch (e: SessionExpiredException) {
+                _uiState.update {
+                    it.copy(isSessionExpired = true)
+                }
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao carregar despesas", e)
                 _uiState.update {
@@ -132,6 +146,12 @@ class HomeViewModel(
                     it.copy(isExpensesLoading = false)
                 }
             }
+        }
+    }
+
+    fun clearSessionExpired() {
+        _uiState.update {
+            it.copy(isSessionExpired = false)
         }
     }
 }

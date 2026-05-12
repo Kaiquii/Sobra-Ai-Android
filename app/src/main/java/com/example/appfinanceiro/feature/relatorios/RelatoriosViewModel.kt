@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanceiro.core.data.FinanceRepository
+import com.example.appfinanceiro.core.data.SessionExpiredException
 import com.example.appfinanceiro.core.network.CategoryReportResponse
 import com.example.appfinanceiro.core.network.ChartReportResponse
 import com.example.appfinanceiro.core.network.SummaryResponse
@@ -19,7 +20,8 @@ data class RelatoriosUiState(
     val chartData: List<ChartReportResponse> = emptyList(),
     val yearlySummary: YearlySummaryResponse? = null,
     val isLoading: Boolean = true,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isSessionExpired: Boolean = false
 )
 
 class RelatoriosViewModel(
@@ -32,7 +34,7 @@ class RelatoriosViewModel(
     fun loadReports(token: String, month: Int, year: Int) {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(isLoading = true, errorMessage = null)
+                it.copy(isLoading = true, errorMessage = null, isSessionExpired = false)
             }
 
             try {
@@ -48,6 +50,10 @@ class RelatoriosViewModel(
                         chartData = chart,
                         yearlySummary = yearly
                     )
+                }
+            } catch (e: SessionExpiredException) {
+                _uiState.update {
+                    it.copy(isSessionExpired = true)
                 }
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao carregar relatórios", e)
@@ -65,6 +71,12 @@ class RelatoriosViewModel(
                     it.copy(isLoading = false)
                 }
             }
+        }
+    }
+
+    fun clearSessionExpired() {
+        _uiState.update {
+            it.copy(isSessionExpired = false)
         }
     }
 }
