@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -367,7 +366,6 @@ private fun AssistantInputBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(colorScheme.background)
-            .imePadding()
             .navigationBarsPadding()
             .padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 22.dp),
         verticalAlignment = Alignment.CenterVertically,
