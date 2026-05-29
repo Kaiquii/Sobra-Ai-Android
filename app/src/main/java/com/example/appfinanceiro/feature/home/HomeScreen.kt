@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,6 +56,7 @@ import java.util.Calendar
 fun HomeScreen(
     onNavigate: (Int) -> Unit = {},
     onAddClick: () -> Unit = {},
+    onAssistantClick: () -> Unit = {},
     onSessionExpired: () -> Unit = {},
     viewModel: HomeViewModel = viewModel()
 ) {
@@ -168,6 +170,15 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Voltar",
+                            tint = textColor
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onAssistantClick) {
+                        Icon(
+                            imageVector = Icons.Default.Chat,
+                            contentDescription = "Assistente IA",
                             tint = textColor
                         )
                     }

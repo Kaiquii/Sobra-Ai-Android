@@ -76,6 +76,53 @@ data class CategoryResponse(
     val message: String
 )
 
+data class AssistantChatRequest(
+    val message: String,
+    val conversation_id: Int? = null
+)
+
+data class AssistantChatResponse(
+    val conversation_id: Int,
+    val reply: String,
+    val tool_call: String? = null,
+    val error_code: String? = null,
+    val retry_after_seconds: Int? = null
+)
+
+data class AssistantConversation(
+    val conversation_id: Int,
+    val title: String,
+    val created_at: String,
+    val updated_at: String,
+    val display_date: String? = null,
+    val display_time: String? = null,
+    val display_label: String? = null
+)
+
+data class AssistantConversationsResponse(
+    val total: Int,
+    val conversations: List<AssistantConversation>
+)
+
+data class AssistantConversationSummary(
+    val conversation_id: Int,
+    val title: String,
+    val display_label: String? = null
+)
+
+data class AssistantStoredMessage(
+    val message_id: Int,
+    val conversation_id: Int,
+    val role: String,
+    val content: String,
+    val display_time: String? = null
+)
+
+data class AssistantMessagesResponse(
+    val conversation: AssistantConversationSummary,
+    val messages: List<AssistantStoredMessage>
+)
+
 
 data class ExpenseRequest(
     val amount: Double,
@@ -126,6 +173,29 @@ data class YearlySummaryResponse(
 )
 
 interface FinanceApi {
+    @retrofit2.http.POST("api/assistant/chat")
+    suspend fun chatAssistant(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Body request: AssistantChatRequest
+    ): AssistantChatResponse
+
+    @GET("api/assistant/conversations")
+    suspend fun getAssistantConversations(
+        @Header("Authorization") token: String
+    ): AssistantConversationsResponse
+
+    @GET("api/assistant/conversations/{id}/messages")
+    suspend fun getAssistantMessages(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): AssistantMessagesResponse
+
+    @DELETE("api/assistant/conversations/{id}")
+    suspend fun deleteAssistantConversation(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): DefaultResponse
+
     @GET("api/reports/summary")
     suspend fun getSummary(
         @Header("Authorization") token: String,

@@ -3,6 +3,10 @@ package com.example.appfinanceiro.core.data
 import com.example.appfinanceiro.core.network.CategoryReportResponse
 import com.example.appfinanceiro.core.network.CategoriesResponse
 import com.example.appfinanceiro.core.network.ChartReportResponse
+import com.example.appfinanceiro.core.network.AssistantChatRequest
+import com.example.appfinanceiro.core.network.AssistantChatResponse
+import com.example.appfinanceiro.core.network.AssistantConversationsResponse
+import com.example.appfinanceiro.core.network.AssistantMessagesResponse
 import com.example.appfinanceiro.core.network.DefaultResponse
 import com.example.appfinanceiro.core.network.ExpensesResponse
 import com.example.appfinanceiro.core.network.IncomesResponse
@@ -32,6 +36,46 @@ class FinanceRepository {
                 token = bearer(token),
                 month = month,
                 year = year
+            )
+        }
+    }
+
+    suspend fun chatAssistant(
+        token: String,
+        message: String,
+        conversationId: Int?
+    ): AssistantChatResponse {
+        return authorizedRequest {
+            RetrofitClient.financeApi.chatAssistant(
+                token = bearer(token),
+                request = AssistantChatRequest(
+                    message = message,
+                    conversation_id = conversationId
+                )
+            )
+        }
+    }
+
+    suspend fun getAssistantConversations(token: String): AssistantConversationsResponse {
+        return authorizedRequest {
+            RetrofitClient.financeApi.getAssistantConversations(bearer(token))
+        }
+    }
+
+    suspend fun getAssistantMessages(token: String, conversationId: Int): AssistantMessagesResponse {
+        return authorizedRequest {
+            RetrofitClient.financeApi.getAssistantMessages(
+                token = bearer(token),
+                id = conversationId
+            )
+        }
+    }
+
+    suspend fun deleteAssistantConversation(token: String, conversationId: Int): DefaultResponse {
+        return authorizedRequest {
+            RetrofitClient.financeApi.deleteAssistantConversation(
+                token = bearer(token),
+                id = conversationId
             )
         }
     }

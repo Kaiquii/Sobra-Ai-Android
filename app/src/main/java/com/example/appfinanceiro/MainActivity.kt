@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.appfinanceiro.core.biometric.BiometricAuth
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.theme.AppFinanceiroTheme
+import com.example.appfinanceiro.feature.assistant.AssistantScreen
 import com.example.appfinanceiro.feature.despesas.DespesasScreen
 import com.example.appfinanceiro.feature.despesas.components.EditarDespesaScreen
 import com.example.appfinanceiro.feature.despesas.components.NovaDespesaScreen
@@ -156,6 +157,16 @@ class MainActivity : FragmentActivity() {
                                 onAddClick = {
                                     navController.navigate("nova_despesa")
                                 },
+                                onAssistantClick = {
+                                    navController.navigate("assistant") { launchSingleTop = true }
+                                },
+                                onSessionExpired = { navigateToLogin() }
+                            )
+                        }
+
+                        composable("assistant") {
+                            AssistantScreen(
+                                onNavigateBack = { navController.popBackStack() },
                                 onSessionExpired = { navigateToLogin() }
                             )
                         }
