@@ -1,5 +1,14 @@
 package com.example.appfinanceiro.feature.assistant
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,11 +28,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +51,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,9 +66,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +87,8 @@ fun AssistantScreen(
 
     var input by remember { mutableStateOf("") }
     var showConversations by remember { mutableStateOf(false) }
+    var isListening by remember { mutableStateOf(false) }
+    var voiceError by remember { mutableStateOf<String?>(null) }
 
     val colorScheme = MaterialTheme.colorScheme
     val backgroundColor = colorScheme.background
@@ -82,6 +98,124 @@ fun AssistantScreen(
             !uiState.isSending &&
             userToken != null &&
             (uiState.quotaRetrySeconds ?: 0) <= 0
+
+    val speechRecognizer = remember(context) {
+        if (SpeechRecognizer.isRecognitionAvailable(context)) {
+            SpeechRecognizer.createSpeechRecognizer(context)
+        } else {
+            null
+        }
+    }
+    val speechIntent = remember {
+        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.forLanguageTag("pt-BR").toLanguageTag())
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+        }
+    }
+
+    fun startListening() {
+        if (speechRecognizer == null) {
+            voiceError = "Reconhecimento de voz indisponivel neste aparelho."
+            return
+        }
+
+        voiceError = null
+        isListening = true
+        speechRecognizer.startListening(speechIntent)
+    }
+
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            startListening()
+        } else {
+            isListening = false
+            voiceError = "Permissao de microfone negada."
+        }
+    }
+
+    fun toggleVoiceInput() {
+        if (isListening) {
+            speechRecognizer?.stopListening()
+            isListening = false
+            return
+        }
+
+        val hasAudioPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasAudioPermission) {
+            startListening()
+        } else {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    DisposableEffect(speechRecognizer) {
+        val listener = object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {
+                isListening = true
+                voiceError = null
+            }
+
+            override fun onBeginningOfSpeech() {
+                isListening = true
+            }
+
+            override fun onRmsChanged(rmsdB: Float) = Unit
+
+            override fun onBufferReceived(buffer: ByteArray?) = Unit
+
+            override fun onEndOfSpeech() {
+                isListening = false
+            }
+
+            override fun onError(error: Int) {
+                isListening = false
+                voiceError = when (error) {
+                    SpeechRecognizer.ERROR_NO_MATCH -> "Nao entendi. Tente falar de novo."
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Nao ouvi nada. Toque no microfone e tente novamente."
+                    SpeechRecognizer.ERROR_AUDIO -> "Nao foi possivel acessar o audio."
+                    SpeechRecognizer.ERROR_NETWORK,
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Falha de rede ao transcrever a voz."
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Permissao de microfone negada."
+                    else -> "Nao foi possivel transcrever a voz."
+                }
+            }
+
+            override fun onResults(results: Bundle?) {
+                isListening = false
+                val transcript = results
+                    ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.firstOrNull()
+                    ?.trim()
+
+                if (transcript.isNullOrBlank()) {
+                    voiceError = "Nao entendi. Tente falar de novo."
+                } else {
+                    input = transcript
+                    voiceError = null
+                }
+            }
+
+            override fun onPartialResults(partialResults: Bundle?) = Unit
+
+            override fun onEvent(eventType: Int, params: Bundle?) = Unit
+        }
+
+        speechRecognizer?.setRecognitionListener(listener)
+
+        onDispose {
+            speechRecognizer?.destroy()
+        }
+    }
 
     LaunchedEffect(userToken) {
         userToken?.let { token ->
@@ -118,7 +252,7 @@ fun AssistantScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             tint = textColor,
                             contentDescription = "Voltar"
                         )
@@ -149,12 +283,16 @@ fun AssistantScreen(
                 enabled = !uiState.isSending,
                 canSend = canSend,
                 quotaRetrySeconds = uiState.quotaRetrySeconds,
+                isListening = isListening,
+                voiceError = voiceError,
                 onValueChange = {
                     input = it
+                    voiceError = null
                     if (uiState.errorMessage != null) {
                         viewModel.clearError()
                     }
                 },
+                onVoiceClick = { toggleVoiceInput() },
                 onSend = {
                     userToken?.let { token ->
                         val message = input
@@ -356,63 +494,105 @@ private fun AssistantInputBar(
     enabled: Boolean,
     canSend: Boolean,
     quotaRetrySeconds: Int?,
+    isListening: Boolean,
+    voiceError: String?,
     onValueChange: (String) -> Unit,
+    onVoiceClick: () -> Unit,
     onSend: () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val isQuotaBlocked = (quotaRetrySeconds ?: 0) > 0
+    val canUseVoice = enabled && !isQuotaBlocked
+    val statusText = when {
+        isListening -> "Ouvindo..."
+        voiceError != null -> voiceError
+        else -> null
+    }
+    val statusColor = if (isListening) PrimaryBlue else colorScheme.error
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(colorScheme.background)
             .navigationBarsPadding()
             .padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 22.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.weight(1f),
-            placeholder = {
-                Text(
-                    if (isQuotaBlocked) {
-                        "Tente novamente em ${quotaRetrySeconds}s"
-                    } else {
-                        "Digite sua mensagem..."
+        statusText?.let { text ->
+            Text(
+                text = text,
+                color = statusColor,
+                fontWeight = if (isListening) FontWeight.SemiBold else FontWeight.Normal,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.weight(1f),
+                placeholder = {
+                    Text(
+                        if (isListening) {
+                            "Fale sua mensagem..."
+                        } else if (isQuotaBlocked) {
+                            "Tente novamente em ${quotaRetrySeconds}s"
+                        } else {
+                            "Digite sua mensagem..."
+                        }
+                    )
+                },
+                enabled = enabled && !isQuotaBlocked,
+                minLines = 1,
+                maxLines = 4,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    keyboardType = KeyboardType.Text
+                ),
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = colorScheme.surface,
+                    unfocusedContainerColor = colorScheme.surface,
+                    disabledContainerColor = colorScheme.surface,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    cursorColor = PrimaryBlue
+                )
+            )
+
+            IconButton(
+                onClick = onVoiceClick,
+                enabled = canUseVoice,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
+                    contentDescription = if (isListening) "Parar gravacao" else "Falar mensagem",
+                    tint = when {
+                        isListening -> colorScheme.error
+                        canUseVoice -> PrimaryBlue
+                        else -> colorScheme.onSurfaceVariant
                     }
                 )
-            },
-            enabled = enabled && !isQuotaBlocked,
-            minLines = 1,
-            maxLines = 4,
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                keyboardType = KeyboardType.Text
-            ),
-            shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = colorScheme.surface,
-                unfocusedContainerColor = colorScheme.surface,
-                disabledContainerColor = colorScheme.surface,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                cursorColor = PrimaryBlue
-            )
-        )
+            }
 
-        IconButton(
-            onClick = onSend,
-            enabled = canSend,
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Send,
-                contentDescription = "Enviar",
-                tint = if (canSend) PrimaryBlue else colorScheme.onSurfaceVariant
-            )
+            IconButton(
+                onClick = onSend,
+                enabled = canSend,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = "Enviar",
+                    tint = if (canSend) PrimaryBlue else colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
