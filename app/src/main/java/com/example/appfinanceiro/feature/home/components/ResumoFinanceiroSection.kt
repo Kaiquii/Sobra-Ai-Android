@@ -156,11 +156,13 @@ fun ResumoFinanceiroSection(
             ) {
                 val salario = data?.salario ?: 0.0
                 val adiantamento = data?.adiantamento ?: 0.0
-                val rendaExtraDisp = data?.restante_renda_extra ?: 0.0
+                val rendaExtra = data?.renda_extra_amt ?: 0.0
                 val gastoSalario = data?.total_gasto_salario ?: 0.0
                 val gastoAdiant = data?.total_gasto_adiantamento ?: 0.0
+                val gastoRendaExtra = data?.total_gasto_renda_extra ?: 0.0
                 val restSalario = data?.restante_salario ?: 0.0
                 val restAdiant = data?.restante_adiantamento ?: 0.0
+                val restRendaExtra = data?.restante_renda_extra ?: 0.0
                 val totalRecebido = data?.total_income ?: 0.0
                 val totalGasto = data?.total_expense ?: 0.0
                 val totalDisp = data?.total_geral_disponivel ?: 0.0
@@ -252,8 +254,8 @@ fun ResumoFinanceiroSection(
                 }
 
                 EditableIncomeSummaryCard(
-                    title = "Renda Extra (Disponível)",
-                    value = formatCurrency(rendaExtraDisp),
+                    title = "Renda Extra",
+                    value = formatCurrency(rendaExtra),
                     bgColor = cardBg,
                     valueColor = GreenPositive,
                     existingIncome = rendaExtraIncome,
@@ -297,6 +299,14 @@ fun ResumoFinanceiroSection(
                     )
                 }
 
+                SummaryCard(
+                    title = "Restante Renda Extra",
+                    value = formatCurrency(restRendaExtra),
+                    bgColor = cardPurple,
+                    valueColor = if (restRendaExtra < 0) alertColor else textColor,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SummaryCard(
                         title = "Gasto Salário",
@@ -314,6 +324,14 @@ fun ResumoFinanceiroSection(
                         modifier = Modifier.weight(1f)
                     )
                 }
+
+                SummaryCard(
+                    title = "Gasto Renda Extra",
+                    value = formatCurrency(gastoRendaExtra),
+                    bgColor = cardBg,
+                    valueColor = textColor,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }

@@ -88,12 +88,17 @@ class HomeViewModel(
                     .filter { it.source.equals("Adiantamento", ignoreCase = true) }
                     .sumOf { it.amount }
 
+                val rendaExtraFromIncomes = response.incomes
+                    .filter { it.source.equals("Renda Extra", ignoreCase = true) }
+                    .sumOf { it.amount }
+
                 _uiState.update { state ->
                     state.copy(
                         incomesData = response.incomes,
                         summaryData = state.summaryData?.copy(
                             salario = salarioFromIncomes,
-                            adiantamento = adiantamentoFromIncomes
+                            adiantamento = adiantamentoFromIncomes,
+                            renda_extra_amt = rendaExtraFromIncomes
                         )
                     )
                 }
