@@ -109,7 +109,7 @@ fun AjudaScreen(
 
             HelpSection(
                 title = "Como usar o app",
-                text = "O App Financeiro ajuda você a organizar suas rendas, despesas e acompanhar o seu saldo mensal. Na tela inicial, você visualiza um resumo do mês selecionado, incluindo salário, adiantamento, renda extra, total gasto e valores restantes."
+                text = "O SobraAí ajuda você a organizar suas rendas, despesas e acompanhar o seu saldo mensal. Na tela inicial, você visualiza um resumo do mês selecionado, incluindo salário, adiantamento, renda extra, total gasto e valores restantes."
             )
 
             HelpSection(

@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "App Financeiro"
+rootProject.name = "Sobra-Ai-Android"
 include(":app")

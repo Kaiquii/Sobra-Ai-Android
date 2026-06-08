@@ -1,4 +1,4 @@
-# 💰 App Financeiro
+# 💰 SobraAí
 
 Um aplicativo moderno de gestão financeira desenvolvido nativamente para Android. Este projeto foca em uma interface de usuário elegante e responsiva, com integração segura a uma API RESTful.
 
@@ -26,4 +26,4 @@ Para rodar este aplicativo no seu computador, você precisará do **Android Stud
 
 ### 1. Clonar o repositório
 ```bash
-git clone [https://github.com/Kaiquii/App-Financeiro.git]
+git clone [https://github.com/Kaiquii/Sobra-Ai-Android.git]
