@@ -11,10 +11,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.HelpOutline
@@ -116,6 +119,7 @@ fun PerfilScreen(
 
     var showExitDialog by remember { mutableStateOf(false) }
     var showRemovePhotoDialog by remember { mutableStateOf(false) }
+    var showPhotoPreviewDialog by remember { mutableStateOf(false) }
     var isPhotoLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(userToken) {
@@ -245,6 +249,34 @@ fun PerfilScreen(
         )
     }
 
+    if (showPhotoPreviewDialog && fullAvatarUrl != null) {
+        AlertDialog(
+            onDismissRequest = { showPhotoPreviewDialog = false },
+            containerColor = MaterialTheme.colorScheme.background,
+            shape = RoundedCornerShape(24.dp),
+            text = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(PrimaryBlue.copy(alpha = 0.08f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ProfileAvatarImage(
+                        imageUrl = fullAvatarUrl,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showPhotoPreviewDialog = false }) {
+                    Text("Fechar", color = PrimaryBlue, fontWeight = FontWeight.Medium)
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = backgroundColor,
         topBar = {
@@ -272,8 +304,8 @@ fun PerfilScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Box(
-                modifier = Modifier.size(116.dp),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.size(width = 128.dp, height = 122.dp),
+                contentAlignment = Alignment.TopCenter
             ) {
                 Box(
                     modifier = Modifier
@@ -281,7 +313,11 @@ fun PerfilScreen(
                         .background(PrimaryBlue.copy(alpha = 0.2f), CircleShape)
                         .clip(CircleShape)
                         .clickable(enabled = !isPhotoLoading) {
-                            photoPickerLauncher.launch("image/*")
+                            if (fullAvatarUrl != null) {
+                                showPhotoPreviewDialog = true
+                            } else {
+                                photoPickerLauncher.launch("image/*")
+                            }
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -314,24 +350,28 @@ fun PerfilScreen(
                 }
 
                 if (!isPhotoLoading) {
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .size(34.dp)
-                            .background(MaterialTheme.colorScheme.background, CircleShape)
-                            .padding(3.dp)
-                            .background(PrimaryBlue, CircleShape)
-                            .clickable {
-                                photoPickerLauncher.launch("image/*")
-                            },
-                        contentAlignment = Alignment.Center
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
+                        AvatarActionButton(
+                            icon = Icons.Default.Edit,
                             contentDescription = "Alterar foto",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
+                            backgroundColor = PrimaryBlue,
+                            onClick = { photoPickerLauncher.launch("image/*") }
                         )
+
+                        if (fullAvatarUrl != null) {
+                            AvatarActionButton(
+                                icon = Icons.Default.Delete,
+                                contentDescription = "Remover foto",
+                                backgroundColor = DangerRed,
+                                onClick = { showRemovePhotoDialog = true }
+                            )
+                        }
                     }
                 }
             }
@@ -383,15 +423,6 @@ fun PerfilScreen(
                 border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue.copy(alpha = 0.5f))
             ) {
                 Text("Editar Perfil")
-            }
-
-            if (fullAvatarUrl != null) {
-                TextButton(
-                    onClick = { showRemovePhotoDialog = true },
-                    enabled = !isPhotoLoading
-                ) {
-                    Text("Remover foto", color = DangerRed)
-                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -492,6 +523,31 @@ private fun SettingsItem(
         }
 
         Icon(Icons.Default.ChevronRight, contentDescription = "Acessar", tint = TextMuted)
+    }
+}
+
+@Composable
+private fun AvatarActionButton(
+    icon: ImageVector,
+    contentDescription: String,
+    backgroundColor: Color,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(34.dp)
+            .background(MaterialTheme.colorScheme.background, CircleShape)
+            .padding(3.dp)
+            .background(backgroundColor, CircleShape)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = Color.White,
+            modifier = Modifier.size(16.dp)
+        )
     }
 }
 
