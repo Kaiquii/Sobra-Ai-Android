@@ -3,8 +3,12 @@ package com.example.appfinanceiro.core.network
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.Path
+import retrofit2.http.Part
 import retrofit2.http.Query
+import okhttp3.MultipartBody
 
 data class SummaryResponse(
     val month: Int,
@@ -153,6 +157,23 @@ data class UpdateProfileRequest(
     val email: String
 )
 
+data class ProfileUser(
+    val id: Int,
+    val name: String,
+    val email: String,
+    val role: String,
+    val avatar_url: String? = null
+)
+
+data class ProfileResponse(
+    val user: ProfileUser
+)
+
+data class ProfilePhotoResponse(
+    val message: String,
+    val avatar_url: String? = null
+)
+
 data class CategoryReportResponse(
     val category_id: Int,
     val category_name: String,
@@ -292,6 +313,23 @@ interface FinanceApi {
         @retrofit2.http.Header("Authorization") token: String,
         @retrofit2.http.Body request: UpdateProfileRequest
     ): DefaultResponse
+
+    @GET("api/users/profile")
+    suspend fun getProfile(
+        @Header("Authorization") token: String
+    ): ProfileResponse
+
+    @Multipart
+    @PATCH("api/users/profile/photo")
+    suspend fun updateProfilePhoto(
+        @Header("Authorization") token: String,
+        @Part photo: MultipartBody.Part
+    ): ProfilePhotoResponse
+
+    @DELETE("api/users/profile/photo")
+    suspend fun deleteProfilePhoto(
+        @Header("Authorization") token: String
+    ): retrofit2.Response<DefaultResponse>
 
     @GET("api/reports/categories")
     suspend fun getReportCategories(

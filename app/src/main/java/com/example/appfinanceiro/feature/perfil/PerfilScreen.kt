@@ -1,5 +1,14 @@
 package com.example.appfinanceiro.feature.perfil
 
+import android.content.Context
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.provider.OpenableColumns
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -20,41 +29,59 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appfinanceiro.BuildConfig
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
+import com.example.appfinanceiro.core.network.auth.RetrofitClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import java.net.URL
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,13 +94,17 @@ fun PerfilScreen(
     onHelpClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColor = MaterialTheme.colorScheme.onBackground
 
     val sessionManager = remember { SessionManager(context) }
+    val userToken by sessionManager.token.collectAsState(initial = null)
     val userName by sessionManager.userName.collectAsState(initial = "")
     val userEmail by sessionManager.userEmail.collectAsState(initial = "")
     val userRole by sessionManager.userRole.collectAsState(initial = "")
+    val userAvatarUrl by sessionManager.userAvatarUrl.collectAsState(initial = "")
+    val fullAvatarUrl = remember(userAvatarUrl) { buildFullAvatarUrl(userAvatarUrl) }
 
     val isAdmin = userRole.equals("admin", ignoreCase = true)
     val roleLabel = when (userRole.lowercase()) {
@@ -84,6 +115,79 @@ fun PerfilScreen(
     val adminRoleColor = Color(0xFFFF9800)
 
     var showExitDialog by remember { mutableStateOf(false) }
+    var showRemovePhotoDialog by remember { mutableStateOf(false) }
+    var isPhotoLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(userToken) {
+        val token = userToken ?: return@LaunchedEffect
+
+        try {
+            val profile = RetrofitClient.financeApi.getProfile("Bearer $token").user
+            sessionManager.saveToken(
+                token = token,
+                name = profile.name,
+                email = profile.email,
+                role = profile.role,
+                avatarUrl = profile.avatar_url
+            )
+        } catch (e: Exception) {
+            Log.e("PROFILE_ERRO", "Falha ao carregar perfil", e)
+        }
+    }
+
+    fun uploadProfilePhoto(uri: Uri) {
+        val token = userToken
+        if (token.isNullOrBlank()) {
+            Toast.makeText(context, "Sessão inválida. Faça login novamente.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        isPhotoLoading = true
+        coroutineScope.launch {
+            try {
+                val photoPart = createPhotoPart(context, uri)
+                val response = RetrofitClient.financeApi.updateProfilePhoto(
+                    token = "Bearer $token",
+                    photo = photoPart
+                )
+                sessionManager.saveAvatarUrl(response.avatar_url)
+                Toast.makeText(context, "Foto atualizada com sucesso!", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("PROFILE_ERRO", "Falha ao atualizar foto", e)
+                Toast.makeText(context, "Não foi possível atualizar a foto.", Toast.LENGTH_SHORT).show()
+            } finally {
+                isPhotoLoading = false
+            }
+        }
+    }
+
+    fun removeProfilePhoto() {
+        val token = userToken
+        if (token.isNullOrBlank()) {
+            Toast.makeText(context, "Sessão inválida. Faça login novamente.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        isPhotoLoading = true
+        coroutineScope.launch {
+            try {
+                RetrofitClient.financeApi.deleteProfilePhoto("Bearer $token")
+                sessionManager.saveAvatarUrl(null)
+                Toast.makeText(context, "Foto removida com sucesso!", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("PROFILE_ERRO", "Falha ao remover foto", e)
+                Toast.makeText(context, "Não foi possível remover a foto.", Toast.LENGTH_SHORT).show()
+            } finally {
+                isPhotoLoading = false
+            }
+        }
+    }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { uploadProfilePhoto(it) }
+    }
 
     if (showExitDialog) {
         ExitConfirmationDialog(
@@ -93,6 +197,50 @@ fun PerfilScreen(
             },
             onDismiss = {
                 showExitDialog = false
+            }
+        )
+    }
+
+    if (showRemovePhotoDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!isPhotoLoading) {
+                    showRemovePhotoDialog = false
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.background,
+            shape = RoundedCornerShape(24.dp),
+            title = {
+                Text(
+                    text = "Remover foto",
+                    color = textColor,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Tem certeza que deseja remover sua foto de perfil?",
+                    color = textColor
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !isPhotoLoading,
+                    onClick = {
+                        showRemovePhotoDialog = false
+                        removeProfilePhoto()
+                    }
+                ) {
+                    Text("Remover", color = DangerRed, fontWeight = FontWeight.Medium)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !isPhotoLoading,
+                    onClick = { showRemovePhotoDialog = false }
+                ) {
+                    Text("Cancelar", color = PrimaryBlue, fontWeight = FontWeight.Medium)
+                }
             }
         )
     }
@@ -124,21 +272,67 @@ fun PerfilScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .background(PrimaryBlue.copy(alpha = 0.2f), CircleShape)
-                    .clip(CircleShape),
+                modifier = Modifier.size(116.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if (userName.isNotEmpty()) {
-                    Text(
-                        text = userName.first().uppercase(),
-                        color = PrimaryBlue,
-                        fontSize = 40.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                } else {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(60.dp))
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .background(PrimaryBlue.copy(alpha = 0.2f), CircleShape)
+                        .clip(CircleShape)
+                        .clickable(enabled = !isPhotoLoading) {
+                            photoPickerLauncher.launch("image/*")
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (fullAvatarUrl != null) {
+                        ProfileAvatarImage(
+                            imageUrl = fullAvatarUrl,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else if (userName.isNotEmpty()) {
+                        Text(
+                            text = userName.first().uppercase(),
+                            color = PrimaryBlue,
+                            fontSize = 40.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    } else {
+                        Icon(Icons.Default.Person, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(60.dp))
+                    }
+
+                    if (isPhotoLoading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.35f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
+                        }
+                    }
+                }
+
+                if (!isPhotoLoading) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .size(34.dp)
+                            .background(MaterialTheme.colorScheme.background, CircleShape)
+                            .padding(3.dp)
+                            .background(PrimaryBlue, CircleShape)
+                            .clickable {
+                                photoPickerLauncher.launch("image/*")
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Alterar foto",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
 
@@ -189,6 +383,15 @@ fun PerfilScreen(
                 border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue.copy(alpha = 0.5f))
             ) {
                 Text("Editar Perfil")
+            }
+
+            if (fullAvatarUrl != null) {
+                TextButton(
+                    onClick = { showRemovePhotoDialog = true },
+                    enabled = !isPhotoLoading
+                ) {
+                    Text("Remover foto", color = DangerRed)
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -290,4 +493,69 @@ private fun SettingsItem(
 
         Icon(Icons.Default.ChevronRight, contentDescription = "Acessar", tint = TextMuted)
     }
+}
+
+@Composable
+private fun ProfileAvatarImage(
+    imageUrl: String,
+    modifier: Modifier = Modifier
+) {
+    var imageBitmap by remember(imageUrl) { mutableStateOf<ImageBitmap?>(null) }
+
+
+    LaunchedEffect(imageUrl) {
+        imageBitmap = withContext(Dispatchers.IO) {
+            runCatching {
+                URL(imageUrl).openStream().use { input ->
+                    BitmapFactory.decodeStream(input)?.asImageBitmap()
+                }
+            }.getOrNull()
+        }
+    }
+
+    imageBitmap?.let { bitmap ->
+        Image(
+            bitmap = bitmap,
+            contentDescription = "Foto de perfil",
+            contentScale = ContentScale.Crop,
+            modifier = modifier
+        )
+    }
+}
+
+private fun buildFullAvatarUrl(avatarUrl: String): String? {
+    val cleanAvatarUrl = avatarUrl.trim()
+    if (cleanAvatarUrl.isBlank()) return null
+
+    return if (cleanAvatarUrl.startsWith("http://") || cleanAvatarUrl.startsWith("https://")) {
+        cleanAvatarUrl
+    } else {
+        "${BuildConfig.API_BASE_URL.removeSuffix("/")}/${cleanAvatarUrl.removePrefix("/")}"
+    }
+}
+
+private fun createPhotoPart(context: Context, uri: Uri): MultipartBody.Part {
+    val contentResolver = context.contentResolver
+    val mimeType = contentResolver.getType(uri) ?: "image/*"
+    val fileName = getFileName(context, uri)
+    val bytes = contentResolver.openInputStream(uri)?.use { input ->
+        input.readBytes()
+    } ?: throw IllegalArgumentException("Nao foi possivel ler a imagem selecionada.")
+
+    val requestBody = RequestBody.create(MediaType.parse(mimeType), bytes)
+
+    return MultipartBody.Part.createFormData("photo", fileName, requestBody)
+}
+
+private fun getFileName(context: Context, uri: Uri): String {
+    val cursor = context.contentResolver.query(uri, null, null, null, null)
+
+    cursor?.use {
+        val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (nameIndex >= 0 && it.moveToFirst()) {
+            return it.getString(nameIndex)
+        }
+    }
+
+    return "avatar.jpg"
 }

@@ -72,6 +72,7 @@ fun LoginScreen(
     var pendingUserName by remember { mutableStateOf("") }
     var pendingUserEmail by remember { mutableStateOf("") }
     var pendingUserRole by remember { mutableStateOf("") }
+    var pendingUserAvatarUrl by remember { mutableStateOf<String?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -99,6 +100,7 @@ fun LoginScreen(
         name: String,
         userEmail: String,
         userRole: String,
+        userAvatarUrl: String? = null,
         biometricEnabled: Boolean? = null
     ) {
         coroutineScope.launch {
@@ -106,7 +108,8 @@ fun LoginScreen(
                 token = token,
                 name = name,
                 email = userEmail,
-                role = userRole
+                role = userRole,
+                avatarUrl = userAvatarUrl
             )
 
             if (biometricEnabled != null) {
@@ -140,6 +143,7 @@ fun LoginScreen(
                 pendingUserName = response.user.name
                 pendingUserEmail = response.user.email
                 pendingUserRole = response.user.role
+                pendingUserAvatarUrl = response.user.avatar_url
 
                 if (activity != null && BiometricAuth.isAvailable(activity)) {
                     showBiometricOffer = true
@@ -148,7 +152,8 @@ fun LoginScreen(
                         token = pendingToken,
                         name = pendingUserName,
                         userEmail = pendingUserEmail,
-                        userRole = pendingUserRole
+                        userRole = pendingUserRole,
+                        userAvatarUrl = pendingUserAvatarUrl
                     )
                 }
             } catch (e: Exception) {
@@ -305,6 +310,7 @@ fun LoginScreen(
                             name = pendingUserName,
                             userEmail = pendingUserEmail,
                             userRole = pendingUserRole,
+                            userAvatarUrl = pendingUserAvatarUrl,
                             biometricEnabled = true
                         )
                     }
@@ -324,6 +330,7 @@ fun LoginScreen(
                             name = pendingUserName,
                             userEmail = pendingUserEmail,
                             userRole = pendingUserRole,
+                            userAvatarUrl = pendingUserAvatarUrl,
                             biometricEnabled = false
                         )
                     }

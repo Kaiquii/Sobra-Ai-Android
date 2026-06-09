@@ -55,6 +55,7 @@ fun EditarPerfilScreen(onNavigateBack: () -> Unit) {
     val userToken by sessionManager.token.collectAsState(initial = null)
     val currentName by sessionManager.userName.collectAsState(initial = "")
     val currentEmail by sessionManager.userEmail.collectAsState(initial = "")
+    val currentAvatarUrl by sessionManager.userAvatarUrl.collectAsState(initial = "")
 
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColor = MaterialTheme.colorScheme.onBackground
@@ -142,7 +143,8 @@ fun EditarPerfilScreen(onNavigateBack: () -> Unit) {
                                 token = token,
                                 name = name.trim(),
                                 email = email.trim(),
-                                role = currentRole
+                                role = currentRole,
+                                avatarUrl = currentAvatarUrl
                             )
 
                             Toast.makeText(context, "Perfil atualizado com sucesso!", Toast.LENGTH_SHORT).show()

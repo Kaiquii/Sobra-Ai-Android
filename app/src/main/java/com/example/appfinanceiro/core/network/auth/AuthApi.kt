@@ -21,7 +21,8 @@ data class ResetPasswordRequest(
 data class UserResponse(
     val name: String,
     val email: String,
-    val role: String
+    val role: String,
+    val avatar_url: String? = null
 )
 
 data class LoginResponse(
