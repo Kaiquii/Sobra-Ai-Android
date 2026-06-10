@@ -1,14 +1,12 @@
 package com.example.appfinanceiro.feature.perfil
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -62,14 +60,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.example.appfinanceiro.BuildConfig
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
@@ -78,13 +77,10 @@ import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.auth.RetrofitClient
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import java.net.URL
+import okhttp3.RequestBody.Companion.toRequestBody
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,7 +103,6 @@ fun PerfilScreen(
     val userEmail by sessionManager.userEmail.collectAsState(initial = "")
     val userRole by sessionManager.userRole.collectAsState(initial = "")
     val userAvatarUrl by sessionManager.userAvatarUrl.collectAsState(initial = "")
-    val fullAvatarUrl = remember(userAvatarUrl) { buildFullAvatarUrl(userAvatarUrl) }
 
     val isAdmin = userRole.equals("admin", ignoreCase = true)
     val roleLabel = when (userRole.lowercase()) {
@@ -121,6 +116,12 @@ fun PerfilScreen(
     var showRemovePhotoDialog by remember { mutableStateOf(false) }
     var showPhotoPreviewDialog by remember { mutableStateOf(false) }
     var isPhotoLoading by remember { mutableStateOf(false) }
+    var localAvatarPreviewUri by remember { mutableStateOf<Uri?>(null) }
+    var avatarCacheVersion by remember { mutableStateOf<Long?>(null) }
+    val fullAvatarUrl = remember(userAvatarUrl, avatarCacheVersion) {
+        buildFullAvatarUrl(userAvatarUrl, avatarCacheVersion)
+    }
+    val avatarImageModel = localAvatarPreviewUri ?: fullAvatarUrl
 
     LaunchedEffect(userToken) {
         val token = userToken ?: return@LaunchedEffect
@@ -146,6 +147,7 @@ fun PerfilScreen(
             return
         }
 
+        localAvatarPreviewUri = uri
         isPhotoLoading = true
         coroutineScope.launch {
             try {
@@ -155,8 +157,10 @@ fun PerfilScreen(
                     photo = photoPart
                 )
                 sessionManager.saveAvatarUrl(response.avatar_url)
+                avatarCacheVersion = System.currentTimeMillis()
                 Toast.makeText(context, "Foto atualizada com sucesso!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
+                localAvatarPreviewUri = null
                 Log.e("PROFILE_ERRO", "Falha ao atualizar foto", e)
                 Toast.makeText(context, "Não foi possível atualizar a foto.", Toast.LENGTH_SHORT).show()
             } finally {
@@ -176,6 +180,8 @@ fun PerfilScreen(
         coroutineScope.launch {
             try {
                 RetrofitClient.financeApi.deleteProfilePhoto("Bearer $token")
+                localAvatarPreviewUri = null
+                avatarCacheVersion = null
                 sessionManager.saveAvatarUrl(null)
                 Toast.makeText(context, "Foto removida com sucesso!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
@@ -249,7 +255,7 @@ fun PerfilScreen(
         )
     }
 
-    if (showPhotoPreviewDialog && fullAvatarUrl != null) {
+    if (showPhotoPreviewDialog && avatarImageModel != null) {
         AlertDialog(
             onDismissRequest = { showPhotoPreviewDialog = false },
             containerColor = MaterialTheme.colorScheme.background,
@@ -264,7 +270,7 @@ fun PerfilScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     ProfileAvatarImage(
-                        imageUrl = fullAvatarUrl,
+                        model = avatarImageModel,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -313,7 +319,7 @@ fun PerfilScreen(
                         .background(PrimaryBlue.copy(alpha = 0.2f), CircleShape)
                         .clip(CircleShape)
                         .clickable(enabled = !isPhotoLoading) {
-                            if (fullAvatarUrl != null) {
+                            if (avatarImageModel != null) {
                                 showPhotoPreviewDialog = true
                             } else {
                                 photoPickerLauncher.launch("image/*")
@@ -321,9 +327,9 @@ fun PerfilScreen(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    if (fullAvatarUrl != null) {
+                    if (avatarImageModel != null) {
                         ProfileAvatarImage(
-                            imageUrl = fullAvatarUrl,
+                            model = avatarImageModel,
                             modifier = Modifier.fillMaxSize()
                         )
                     } else if (userName.isNotEmpty()) {
@@ -364,7 +370,7 @@ fun PerfilScreen(
                             onClick = { photoPickerLauncher.launch("image/*") }
                         )
 
-                        if (fullAvatarUrl != null) {
+                        if (avatarImageModel != null) {
                             AvatarActionButton(
                                 icon = Icons.Default.Delete,
                                 contentDescription = "Remover foto",
@@ -553,41 +559,39 @@ private fun AvatarActionButton(
 
 @Composable
 private fun ProfileAvatarImage(
-    imageUrl: String,
+    model: Any,
     modifier: Modifier = Modifier
 ) {
-    var imageBitmap by remember(imageUrl) { mutableStateOf<ImageBitmap?>(null) }
+    val context = LocalContext.current
 
-
-    LaunchedEffect(imageUrl) {
-        imageBitmap = withContext(Dispatchers.IO) {
-            runCatching {
-                URL(imageUrl).openStream().use { input ->
-                    BitmapFactory.decodeStream(input)?.asImageBitmap()
-                }
-            }.getOrNull()
-        }
-    }
-
-    imageBitmap?.let { bitmap ->
-        Image(
-            bitmap = bitmap,
-            contentDescription = "Foto de perfil",
-            contentScale = ContentScale.Crop,
-            modifier = modifier
-        )
-    }
+    AsyncImage(
+        model = ImageRequest.Builder(context)
+            .data(model)
+            .crossfade(true)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
+            .build(),
+        contentDescription = "Foto de perfil",
+        contentScale = ContentScale.Crop,
+        modifier = modifier
+    )
 }
 
-private fun buildFullAvatarUrl(avatarUrl: String): String? {
+private fun buildFullAvatarUrl(avatarUrl: String, cacheVersion: Long? = null): String? {
     val cleanAvatarUrl = avatarUrl.trim()
     if (cleanAvatarUrl.isBlank()) return null
 
-    return if (cleanAvatarUrl.startsWith("http://") || cleanAvatarUrl.startsWith("https://")) {
+    val fullUrl = if (cleanAvatarUrl.startsWith("http://") || cleanAvatarUrl.startsWith("https://")) {
         cleanAvatarUrl
     } else {
         "${BuildConfig.API_BASE_URL.removeSuffix("/")}/${cleanAvatarUrl.removePrefix("/")}"
     }
+
+    return cacheVersion?.let { version ->
+        val separator = if (fullUrl.contains("?")) "&" else "?"
+        "$fullUrl${separator}v=$version"
+    } ?: fullUrl
 }
 
 private fun createPhotoPart(context: Context, uri: Uri): MultipartBody.Part {
@@ -598,7 +602,7 @@ private fun createPhotoPart(context: Context, uri: Uri): MultipartBody.Part {
         input.readBytes()
     } ?: throw IllegalArgumentException("Nao foi possivel ler a imagem selecionada.")
 
-    val requestBody = RequestBody.create(MediaType.parse(mimeType), bytes)
+    val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
 
     return MultipartBody.Part.createFormData("photo", fileName, requestBody)
 }
