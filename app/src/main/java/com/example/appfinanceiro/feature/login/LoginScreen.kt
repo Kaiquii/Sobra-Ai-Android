@@ -45,12 +45,14 @@ import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextSecondary
 import com.example.appfinanceiro.core.network.auth.LoginRequest
 import com.example.appfinanceiro.core.network.auth.RetrofitClient
+import com.example.appfinanceiro.core.network.parseApiErrorMessage
 import com.example.appfinanceiro.feature.login.components.AuthErrorMessage
 import com.example.appfinanceiro.feature.login.components.AuthHeader
 import com.example.appfinanceiro.feature.login.components.AuthPasswordField
 import com.example.appfinanceiro.feature.login.components.AuthPrimaryButton
 import com.example.appfinanceiro.feature.login.components.AuthTextField
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 @Composable
 fun LoginScreen(
@@ -90,6 +92,7 @@ fun LoginScreen(
                 savedToken != null &&
                 biometricEnabledForSavedUser &&
                 BiometricAuth.isAvailable(activity)
+    val biometricActivity = activity?.takeIf { canUseBiometric }
 
     fun clearError() {
         errorMessage = ""
@@ -156,6 +159,17 @@ fun LoginScreen(
                         userAvatarUrl = pendingUserAvatarUrl
                     )
                 }
+            } catch (e: HttpException) {
+                val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
+
+                if (e.code() == 403 && !apiMessage.isNullOrBlank()) {
+                    sessionManager.clearSession()
+                    errorMessage = apiMessage
+                } else {
+                    errorMessage = apiMessage ?: "Credenciais invalidas ou erro no servidor."
+                }
+
+                android.util.Log.e("API_ERRO", "Erro no login: ${e.message}", e)
             } catch (e: Exception) {
                 errorMessage = "Credenciais invalidas ou erro no servidor."
                 android.util.Log.e("API_ERRO", "Erro no login: ${e.message}", e)
@@ -243,11 +257,11 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (canUseBiometric && activity != null) {
+        if (biometricActivity != null) {
             OutlinedButton(
                 onClick = {
                     BiometricAuth.showBiometricPrompt(
-                        activity = activity,
+                        activity = biometricActivity,
                         onSuccess = onLoginSuccess,
                         onError = { errorMessage = "Nao foi possivel autenticar com biometria." }
                     )

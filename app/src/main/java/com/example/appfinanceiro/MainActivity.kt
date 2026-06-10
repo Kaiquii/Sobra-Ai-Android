@@ -1,6 +1,7 @@
 package com.example.appfinanceiro
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.appfinanceiro.core.biometric.BiometricAuth
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.theme.AppFinanceiroTheme
+import com.example.appfinanceiro.core.network.SessionAccessEvents
 import com.example.appfinanceiro.feature.assistant.AssistantScreen
 import com.example.appfinanceiro.feature.despesas.DespesasScreen
 import com.example.appfinanceiro.feature.despesas.components.EditarDespesaScreen
@@ -98,6 +100,18 @@ class MainActivity : FragmentActivity() {
                         navController.navigate("login") {
                             popUpTo(0) { inclusive = true }
                             launchSingleTop = true
+                        }
+                    }
+
+                    LaunchedEffect(Unit) {
+                        SessionAccessEvents.accessRevoked.collect { message ->
+                            sessionManager.clearSession()
+                            Toast.makeText(
+                                this@MainActivity,
+                                message,
+                                Toast.LENGTH_LONG
+                            ).show()
+                            navigateToLogin()
                         }
                     }
 
