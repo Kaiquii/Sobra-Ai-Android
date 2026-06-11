@@ -2,12 +2,16 @@ package com.example.appfinanceiro.feature.login
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -58,6 +62,11 @@ fun EsqueciSenhaScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
+    val isResetStep = step == ForgotPasswordStep.ResetPassword
+    val headerTopSpacing = if (isResetStep) 8.dp else 16.dp
+    val sectionSpacing = if (isResetStep) 24.dp else 32.dp
+    val fieldSpacing = if (isResetStep) 12.dp else 16.dp
 
     fun clearError() {
         errorMessage = ""
@@ -162,23 +171,27 @@ fun EsqueciSenhaScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
+                .weight(1f)
+                .navigationBarsPadding()
+                .imePadding()
+                .verticalScroll(scrollState)
+                .padding(bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(headerTopSpacing))
 
             AuthHeader(
                 icon = Icons.Default.LockReset,
                 iconDescription = "Recuperar",
-                title = if (step == ForgotPasswordStep.Email) "Recuperar Senha" else "Nova Senha",
-                subtitle = if (step == ForgotPasswordStep.Email) {
+                title = if (!isResetStep) "Recuperar Senha" else "Nova Senha",
+                subtitle = if (!isResetStep) {
                     "Informe seu e-mail cadastrado"
                 } else {
                     "Digite o codigo enviado para seu e-mail"
                 }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(sectionSpacing))
 
             AuthTextField(
                 label = "E-mail",
@@ -192,8 +205,8 @@ fun EsqueciSenhaScreen(
                 keyboardType = KeyboardType.Email
             )
 
-            if (step == ForgotPasswordStep.ResetPassword) {
-                Spacer(modifier = Modifier.height(16.dp))
+            if (isResetStep) {
+                Spacer(modifier = Modifier.height(fieldSpacing))
 
                 AuthTextField(
                     label = "Codigo",
@@ -207,7 +220,7 @@ fun EsqueciSenhaScreen(
                     keyboardType = KeyboardType.Number
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(fieldSpacing))
 
                 AuthPasswordField(
                     label = "Nova Senha",
@@ -220,7 +233,7 @@ fun EsqueciSenhaScreen(
                     enabled = !isLoading
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(fieldSpacing))
 
                 AuthPasswordField(
                     label = "Confirmar Nova Senha",
