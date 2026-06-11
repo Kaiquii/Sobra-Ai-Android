@@ -5,11 +5,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -47,6 +52,7 @@ import java.util.Calendar
 fun RelatoriosScreen(
     onNavigate: (Int) -> Unit = {},
     onAddClick: () -> Unit = {},
+    onInstallmentsClick: () -> Unit = {},
     onSessionExpired: () -> Unit = {},
     viewModel: RelatoriosViewModel = viewModel()
 ) {
@@ -150,6 +156,23 @@ fun RelatoriosScreen(
                         onPrevClick = { changeMonth(-1) },
                         onNextClick = { changeMonth(1) }
                     )
+                }
+
+                item {
+                    Button(
+                        onClick = onInstallmentsClick,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CreditCard,
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Compromissos Parcelados")
+                    }
                 }
 
                 item {

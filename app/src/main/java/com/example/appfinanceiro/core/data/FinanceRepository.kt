@@ -9,6 +9,7 @@ import com.example.appfinanceiro.core.network.AssistantConversationsResponse
 import com.example.appfinanceiro.core.network.AssistantMessagesResponse
 import com.example.appfinanceiro.core.network.DefaultResponse
 import com.example.appfinanceiro.core.network.ExpensesResponse
+import com.example.appfinanceiro.core.network.InstallmentCommitmentsResponse
 import com.example.appfinanceiro.core.network.IncomesResponse
 import com.example.appfinanceiro.core.network.SummaryResponse
 import com.example.appfinanceiro.core.network.YearlySummaryResponse
@@ -148,6 +149,24 @@ class FinanceRepository {
             RetrofitClient.financeApi.getYearlySummary(
                 token = bearer(token),
                 year = year
+            )
+        }
+    }
+
+    suspend fun getInstallmentCommitments(
+        token: String,
+        months: Int = 12,
+        month: Int? = null,
+        year: Int? = null,
+        includeCurrentMonthAsPaid: Boolean = false
+    ): InstallmentCommitmentsResponse {
+        return authorizedRequest {
+            RetrofitClient.financeApi.getInstallmentCommitments(
+                token = bearer(token),
+                months = months,
+                month = month,
+                year = year,
+                includeCurrentMonthAsPaid = includeCurrentMonthAsPaid
             )
         }
     }

@@ -193,6 +193,72 @@ data class YearlySummaryResponse(
     val year: Int
 )
 
+data class InstallmentCommitmentsResponse(
+    val mes_base: Int,
+    val ano_base: Int,
+    val meses: Int,
+    val resumo: InstallmentCommitmentsSummary,
+    val compras: List<InstallmentPurchase>,
+    val linha_do_tempo: List<InstallmentTimelineMonth>
+)
+
+data class InstallmentCommitmentsSummary(
+    val total_original: Double,
+    val total_pago: Double,
+    val total_restante: Double,
+    val parcelas_pagas: Int,
+    val parcelas_restantes: Int,
+    val total_compras: Int,
+    val mes_mais_pesado: InstallmentHeavyMonth? = null
+)
+
+data class InstallmentHeavyMonth(
+    val mes: Int,
+    val ano: Int,
+    val total: Double
+)
+
+data class InstallmentPurchase(
+    val serie_id: String,
+    val descricao: String,
+    val categoria_id: Int,
+    val categoria_nome: String,
+    val fonte_pagamento: String,
+    val valor_parcela: Double,
+    val total_original: Double,
+    val total_pago: Double,
+    val total_restante: Double,
+    val parcelas_pagas: Int,
+    val parcelas_restantes: Int,
+    val total_parcelas: Int,
+    val primeiro_mes: Int,
+    val primeiro_ano: Int,
+    val ultimo_mes: Int,
+    val ultimo_ano: Int,
+    val proxima_parcela: InstallmentParcel? = null
+)
+
+data class InstallmentParcel(
+    val id: Int,
+    val serie_id: String,
+    val descricao: String,
+    val categoria_id: Int,
+    val categoria_nome: String,
+    val fonte_pagamento: String,
+    val valor: Double,
+    val mes: Int,
+    val ano: Int,
+    val parcela_atual: Int,
+    val total_parcelas: Int
+)
+
+data class InstallmentTimelineMonth(
+    val mes: Int,
+    val ano: Int,
+    val total: Double,
+    val parcelas: List<InstallmentParcel>
+)
+
 interface FinanceApi {
     @retrofit2.http.POST("api/assistant/chat")
     suspend fun chatAssistant(
@@ -349,4 +415,13 @@ interface FinanceApi {
         @Header("Authorization") token: String,
         @Query("year") year: Int
     ): YearlySummaryResponse
+
+    @GET("api/reports/installment-commitments")
+    suspend fun getInstallmentCommitments(
+        @Header("Authorization") token: String,
+        @Query("months") months: Int = 12,
+        @Query("month") month: Int? = null,
+        @Query("year") year: Int? = null,
+        @Query("include_current_month_as_paid") includeCurrentMonthAsPaid: Boolean = false
+    ): InstallmentCommitmentsResponse
 }

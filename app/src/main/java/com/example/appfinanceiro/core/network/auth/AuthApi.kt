@@ -1,5 +1,6 @@
 package com.example.appfinanceiro.core.network.auth
 
+import android.util.Log
 import com.example.appfinanceiro.BuildConfig
 import com.example.appfinanceiro.core.network.FinanceApi
 import com.example.appfinanceiro.core.network.SessionAccessEvents
@@ -9,6 +10,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
+import java.util.concurrent.TimeUnit
 
 data class LoginRequest(val email: String, val password: String)
 data class RegisterRequest(val name: String, val email: String, val password: String)
@@ -54,8 +56,21 @@ interface AuthApi {
 object RetrofitClient {
     private val authenticatedClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor { chain ->
-                val response = chain.proceed(chain.request())
+                val request = chain.request()
+                val startedAt = System.nanoTime()
+                val response = chain.proceed(request)
+                val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
+
+                if (request.url.encodedPath.contains("installment-commitments")) {
+                    Log.d(
+                        "API_DEBUG",
+                        "GET ${request.url} -> ${response.code} em ${elapsedMs}ms"
+                    )
+                }
 
                 if (response.code == 403) {
                     val errorMessage = parseApiErrorMessage(

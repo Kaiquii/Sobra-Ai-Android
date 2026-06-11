@@ -35,6 +35,7 @@ import com.example.appfinanceiro.feature.perfil.PerfilScreen
 import com.example.appfinanceiro.feature.perfil.components.CategoriasScreen
 import com.example.appfinanceiro.feature.perfil.components.ConfiguracoesRendaScreen
 import com.example.appfinanceiro.feature.perfil.components.EditarPerfilScreen
+import com.example.appfinanceiro.feature.relatorios.InstallmentCommitmentsScreen
 import com.example.appfinanceiro.feature.relatorios.RelatoriosScreen
 import com.example.appfinanceiro.feature.perfil.components.AjudaScreen
 
@@ -291,6 +292,18 @@ class MainActivity : FragmentActivity() {
                                 onAddClick = {
                                     navController.navigate("nova_despesa")
                                 },
+                                onInstallmentsClick = {
+                                    navController.navigate("compromissos_parcelados") {
+                                        launchSingleTop = true
+                                    }
+                                },
+                                onSessionExpired = { navigateToLogin() }
+                            )
+                        }
+
+                        composable("compromissos_parcelados") {
+                            InstallmentCommitmentsScreen(
+                                onNavigateBack = { navController.popBackStack() },
                                 onSessionExpired = { navigateToLogin() }
                             )
                         }
