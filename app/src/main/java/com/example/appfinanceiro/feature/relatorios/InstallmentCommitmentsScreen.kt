@@ -1,6 +1,8 @@
 package com.example.appfinanceiro.feature.relatorios
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,13 +21,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,6 +77,7 @@ import com.example.appfinanceiro.core.network.InstallmentParcel
 import com.example.appfinanceiro.core.network.InstallmentPurchase
 import com.example.appfinanceiro.core.network.InstallmentTimelineMonth
 import com.example.appfinanceiro.feature.relatorios.utils.formatCurrency
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,14 +92,21 @@ fun InstallmentCommitmentsScreen(
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
     var includeCurrentMonthAsPaid by remember { mutableStateOf(false) }
+    var selectedCalendarMonths by remember { mutableIntStateOf(12) }
+    val initialDate = remember { Calendar.getInstance() }
+    var selectedMonth by remember { mutableIntStateOf(initialDate.get(Calendar.MONTH) + 1) }
+    var selectedYear by remember { mutableIntStateOf(initialDate.get(Calendar.YEAR)) }
 
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColor = MaterialTheme.colorScheme.onBackground
 
-    LaunchedEffect(userToken, includeCurrentMonthAsPaid) {
+    LaunchedEffect(userToken, selectedMonth, selectedYear, selectedCalendarMonths, includeCurrentMonthAsPaid) {
         userToken?.let { token ->
             viewModel.loadCommitments(
                 token = token,
+                month = selectedMonth,
+                year = selectedYear,
+                months = selectedCalendarMonths,
                 includeCurrentMonthAsPaid = includeCurrentMonthAsPaid
             )
         }
@@ -148,6 +165,9 @@ fun InstallmentCommitmentsScreen(
                         userToken?.let { token ->
                             viewModel.loadCommitments(
                                 token = token,
+                                month = selectedMonth,
+                                year = selectedYear,
+                                months = selectedCalendarMonths,
                                 includeCurrentMonthAsPaid = includeCurrentMonthAsPaid
                             )
                         }
@@ -160,11 +180,49 @@ fun InstallmentCommitmentsScreen(
 
             else -> {
                 if (data == null || data.resumo.total_compras == 0) {
-                    EmptyState(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                    )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = paddingValues.calculateTopPadding() + 12.dp,
+                            bottom = paddingValues.calculateBottomPadding() + 24.dp
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        item {
+                            MonthSwitcher(
+                                month = selectedMonth,
+                                year = selectedYear,
+                                onChange = { month, year ->
+                                    selectedMonth = month
+                                    selectedYear = year
+                                }
+                            )
+                        }
+
+                        item {
+                            CommitmentFiltersRow(
+                                checked = includeCurrentMonthAsPaid,
+                                selectedMonths = selectedCalendarMonths,
+                                showCalendarFilter = selectedTab == 1,
+                                onCheckedChange = { includeCurrentMonthAsPaid = it },
+                                onSelectedMonthsChange = { selectedCalendarMonths = it }
+                            )
+                        }
+
+                        item {
+                            PeriodInfo(
+                                startMonth = selectedMonth,
+                                startYear = selectedYear,
+                                months = selectedCalendarMonths
+                            )
+                        }
+
+                        item {
+                            EmptyState(modifier = Modifier.fillMaxWidth())
+                        }
+                    }
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -187,9 +245,23 @@ fun InstallmentCommitmentsScreen(
                         }
 
                         item {
-                            CompactCurrentMonthPaymentToggle(
+                            MonthSwitcher(
+                                month = selectedMonth,
+                                year = selectedYear,
+                                onChange = { month, year ->
+                                    selectedMonth = month
+                                    selectedYear = year
+                                }
+                            )
+                        }
+
+                        item {
+                            CommitmentFiltersRow(
                                 checked = includeCurrentMonthAsPaid,
-                                onCheckedChange = { includeCurrentMonthAsPaid = it }
+                                selectedMonths = selectedCalendarMonths,
+                                showCalendarFilter = selectedTab == 1,
+                                onCheckedChange = { includeCurrentMonthAsPaid = it },
+                                onSelectedMonthsChange = { selectedCalendarMonths = it }
                             )
                         }
 
@@ -221,6 +293,14 @@ fun InstallmentCommitmentsScreen(
                                 PurchaseCard(purchase)
                             }
                         } else {
+                            item {
+                                PeriodInfo(
+                                    startMonth = data.mes_base,
+                                    startYear = data.ano_base,
+                                    months = data.meses
+                                )
+                            }
+
                             items(data.linha_do_tempo) { month ->
                                 TimelineMonthCard(month)
                             }
@@ -233,12 +313,265 @@ fun InstallmentCommitmentsScreen(
 }
 
 @Composable
-private fun CompactCurrentMonthPaymentToggle(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+private fun PeriodInfo(
+    startMonth: Int,
+    startYear: Int,
+    months: Int
+) {
+    val end = addMonths(startMonth, startYear, months - 1)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 2.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(
+            text = "Periodo",
+            color = TextMuted,
+            fontSize = 13.sp
+        )
+        Text(
+            text = "${formatMonthYear(startMonth, startYear)} ate ${formatMonthYear(end.first, end.second)}",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun CalendarPeriodFilter(
+    selectedMonths: Int,
+    onSelectedMonthsChange: (Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val options = listOf(12, 24, 36, 60)
+
+    Box {
+        Surface(
+            modifier = Modifier.clickable { expanded = true },
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, TextMuted.copy(alpha = 0.16f))
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CalendarMonth,
+                    contentDescription = null,
+                    tint = TextMuted,
+                    modifier = Modifier.size(18.dp)
+                )
+
+                Text(
+                    text = "$selectedMonths meses",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
+
+                Icon(
+                    imageVector = if (expanded) {
+                        Icons.Default.KeyboardArrowUp
+                    } else {
+                        Icons.Default.KeyboardArrowDown
+                    },
+                    contentDescription = null,
+                    tint = TextMuted,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "$option meses",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                    trailingIcon = {
+                        if (option == selectedMonths) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = PrimaryBlue
+                            )
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                        onSelectedMonthsChange(option)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthSwitcher(
+    month: Int,
+    year: Int,
+    onChange: (month: Int, year: Int) -> Unit
+) {
+    val previous = addMonths(month, year, -1)
+    val next = addMonths(month, year, 1)
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, TextMuted.copy(alpha = 0.16f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            MonthSideButton(
+                modifier = Modifier.weight(1f),
+                text = formatShortMonth(previous.first),
+                icon = Icons.Default.ChevronLeft,
+                onClick = { onChange(previous.first, previous.second) }
+            )
+
+            MonthCenterPill(
+                modifier = Modifier.weight(1.05f),
+                text = "${formatShortMonth(month)}/${year.toString().takeLast(2)}"
+            )
+
+            MonthSideButton(
+                modifier = Modifier.weight(1f),
+                text = formatShortMonth(next.first),
+                icon = Icons.Default.ChevronRight,
+                iconAfter = true,
+                onClick = { onChange(next.first, next.second) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun MonthSideButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    icon: ImageVector,
+    iconAfter: Boolean = false,
+    onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
+            .clickable { onClick() }
+            .padding(horizontal = 10.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = if (iconAfter) Arrangement.End else Arrangement.Start
+    ) {
+        if (!iconAfter) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = TextMuted,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        Text(
+            text = text,
+            color = TextMuted,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
+        )
+
+        if (iconAfter) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = TextMuted,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun MonthCenterPill(
+    modifier: Modifier = Modifier,
+    text: String
+) {
+    Row(
+        modifier = modifier
+            .background(PrimaryBlue.copy(alpha = 0.13f), RoundedCornerShape(22.dp))
+            .padding(horizontal = 12.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.CalendarMonth,
+            contentDescription = null,
+            tint = PrimaryBlue,
+            modifier = Modifier.size(16.dp)
+        )
+
+        Spacer(modifier = Modifier.size(6.dp))
+
+        Text(
+            text = text,
+            color = PrimaryBlue,
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp
+        )
+    }
+}
+
+@Composable
+private fun CommitmentFiltersRow(
+    checked: Boolean,
+    selectedMonths: Int,
+    showCalendarFilter: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    onSelectedMonthsChange: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        CompactCurrentMonthPaymentToggle(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.weight(1f)
+        )
+
+        if (showCalendarFilter) {
+            CalendarPeriodFilter(
+                selectedMonths = selectedMonths,
+                onSelectedMonthsChange = onSelectedMonthsChange
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompactCurrentMonthPaymentToggle(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 2.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -482,6 +815,8 @@ private fun PurchaseCard(purchase: InstallmentPurchase) {
                 trackColor = TextMuted.copy(alpha = 0.2f)
             )
 
+            PurchasePeriodInfo(purchase)
+
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 SmallMetric(
                     modifier = Modifier.weight(1f),
@@ -503,6 +838,25 @@ private fun PurchaseCard(purchase: InstallmentPurchase) {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun PurchasePeriodInfo(purchase: InstallmentPurchase) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            text = "Periodo",
+            color = TextMuted,
+            fontSize = 13.sp
+        )
+        Text(
+            text = "${formatMonthYear(purchase.primeiro_mes, purchase.primeiro_ano)} ate ${
+                formatMonthYear(purchase.ultimo_mes, purchase.ultimo_ano)
+            }",
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -674,4 +1028,23 @@ private fun monthName(month: Int): String {
         12 -> "Dezembro"
         else -> "-"
     }
+}
+
+private fun formatShortMonth(month: Int): String {
+    return monthName(month).take(3)
+}
+
+private fun formatMonthYear(month: Int, year: Int): String {
+    return "${formatShortMonth(month)}/$year"
+}
+
+private fun addMonths(month: Int, year: Int, amount: Int): Pair<Int, Int> {
+    val calendar = Calendar.getInstance().apply {
+        set(Calendar.YEAR, year)
+        set(Calendar.MONTH, month - 1)
+        set(Calendar.DAY_OF_MONTH, 1)
+        add(Calendar.MONTH, amount)
+    }
+
+    return Pair(calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.YEAR))
 }

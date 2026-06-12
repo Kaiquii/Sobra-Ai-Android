@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
-import java.util.Calendar
 
 data class InstallmentCommitmentsUiState(
     val data: InstallmentCommitmentsResponse? = null,
@@ -29,6 +28,8 @@ class InstallmentCommitmentsViewModel(
 
     fun loadCommitments(
         token: String,
+        month: Int,
+        year: Int,
         months: Int = 12,
         includeCurrentMonthAsPaid: Boolean = false
     ) {
@@ -38,15 +39,11 @@ class InstallmentCommitmentsViewModel(
             }
 
             try {
-                val currentDate = Calendar.getInstance()
-                val currentMonth = currentDate.get(Calendar.MONTH) + 1
-                val currentYear = currentDate.get(Calendar.YEAR)
-
                 val response = repository.getInstallmentCommitments(
                     token = token,
                     months = months,
-                    month = currentMonth,
-                    year = currentYear,
+                    month = month,
+                    year = year,
                     includeCurrentMonthAsPaid = includeCurrentMonthAsPaid
                 )
                 _uiState.update {
