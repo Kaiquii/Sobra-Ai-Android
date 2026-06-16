@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
@@ -24,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -269,7 +272,7 @@ private fun PeriodHeader(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = "Mês principal",
-                color = TextMuted,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -277,7 +280,7 @@ private fun PeriodHeader(
             Text(
                 text = currentLabel,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 18.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -288,30 +291,40 @@ private fun PeriodHeader(
         ) {
             Text(
                 text = "Comparar com",
-                color = TextMuted,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(3.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onPrevCompareClick) {
+                IconButton(
+                    onClick = onPrevCompareClick,
+                    modifier = Modifier.size(28.dp)
+                ) {
                     Icon(
                         imageVector = Icons.Default.ChevronLeft,
                         contentDescription = "Mês anterior",
-                        tint = PrimaryBlue
+                        tint = PrimaryBlue,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
                 Text(
                     text = comparedLabel,
                     color = PrimaryBlue,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.width(92.dp)
                 )
-                IconButton(onClick = onNextCompareClick) {
+                IconButton(
+                    onClick = onNextCompareClick,
+                    modifier = Modifier.size(28.dp)
+                ) {
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = "Próximo mês",
-                        tint = PrimaryBlue
+                        tint = PrimaryBlue,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }
@@ -337,8 +350,8 @@ private fun ComparisonMetricRow(
         Text(
             text = title,
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+            fontSize = 18.sp,
+            fontWeight = FontWeight.ExtraBold
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -364,8 +377,8 @@ private fun ComparisonMetricRow(
         Text(
             text = "${statusLabel(status)} ${formatSignedCurrency(difference)} (${formatPercent(percent)})",
             color = statusColor,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -381,16 +394,17 @@ private fun ValueColumn(
     Column(modifier = modifier) {
         Text(
             text = label,
-            color = TextMuted,
-            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = value,
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 18.sp,
+            fontSize = 19.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -412,8 +426,8 @@ private fun BreakdownSection(
     Text(
         text = title,
         color = MaterialTheme.colorScheme.onSurface,
-        fontWeight = FontWeight.Bold,
-        fontSize = 16.sp
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 18.sp
     )
 
     Spacer(modifier = Modifier.height(10.dp))
@@ -448,8 +462,8 @@ private fun BreakdownRow(
         Text(
             text = item.name,
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -473,8 +487,8 @@ private fun BreakdownRow(
         Text(
             text = "${statusLabel(item.status)} ${formatSignedCurrency(item.difference)} (${formatPercent(item.percent)})",
             color = statusColor,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
