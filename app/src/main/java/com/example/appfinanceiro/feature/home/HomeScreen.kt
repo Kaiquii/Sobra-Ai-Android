@@ -2,7 +2,9 @@ package com.example.appfinanceiro.feature.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -292,6 +294,8 @@ fun HomeScreen(
     }
 
     if (showCategoryFilterModal) {
+        val categoryOptions = uiState.categoriesMap.toList()
+
         ModalBottomSheet(
             onDismissRequest = { showCategoryFilterModal = false },
             containerColor = backgroundColor
@@ -299,7 +303,8 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 32.dp, start = 24.dp, end = 24.dp)
+                    .fillMaxHeight(0.9f)
+                    .padding(start = 24.dp, end = 24.dp)
             ) {
                 Text(
                     text = "Filtrar por Categoria",
@@ -309,24 +314,36 @@ fun HomeScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                FilterOptionItem(
-                    label = "Todas",
-                    isSelected = selectedCategoryId == null,
-                    onClick = {
-                        selectedCategoryId = null
-                        showCategoryFilterModal = false
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentPadding = PaddingValues(bottom = 32.dp)
+                ) {
+                    item(key = "all") {
+                        FilterOptionItem(
+                            label = "Todas",
+                            isSelected = selectedCategoryId == null,
+                            onClick = {
+                                selectedCategoryId = null
+                                showCategoryFilterModal = false
+                            }
+                        )
                     }
-                )
 
-                uiState.categoriesMap.forEach { (id, name) ->
-                    FilterOptionItem(
-                        label = name,
-                        isSelected = selectedCategoryId == id,
-                        onClick = {
-                            selectedCategoryId = id
-                            showCategoryFilterModal = false
-                        }
-                    )
+                    items(
+                        items = categoryOptions,
+                        key = { (id, _) -> id }
+                    ) { (id, name) ->
+                        FilterOptionItem(
+                            label = name,
+                            isSelected = selectedCategoryId == id,
+                            onClick = {
+                                selectedCategoryId = id
+                                showCategoryFilterModal = false
+                            }
+                        )
+                    }
                 }
             }
         }
