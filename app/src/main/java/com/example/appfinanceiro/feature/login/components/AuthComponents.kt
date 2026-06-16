@@ -44,14 +44,19 @@ fun AuthHeader(
     icon: ImageVector,
     iconDescription: String,
     title: String,
-    subtitle: String
+    subtitle: String,
+    compact: Boolean = false
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
     val textColor = MaterialTheme.colorScheme.onBackground
+    val iconContainerSize = if (compact) 56.dp else 64.dp
+    val iconSize = if (compact) 28.dp else 32.dp
+    val titleTopSpacing = if (compact) 18.dp else 32.dp
+    val titleSize = if (compact) 26.sp else 28.sp
 
     Box(
         modifier = Modifier
-            .size(64.dp)
+            .size(iconContainerSize)
             .background(surfaceColor, RoundedCornerShape(16.dp)),
         contentAlignment = Alignment.Center
     ) {
@@ -59,15 +64,15 @@ fun AuthHeader(
             imageVector = icon,
             contentDescription = iconDescription,
             tint = PrimaryBlue,
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(iconSize)
         )
     }
 
-    Spacer(modifier = Modifier.height(32.dp))
+    Spacer(modifier = Modifier.height(titleTopSpacing))
 
     Text(
         text = title,
-        fontSize = 28.sp,
+        fontSize = titleSize,
         fontWeight = FontWeight.Bold,
         color = textColor
     )

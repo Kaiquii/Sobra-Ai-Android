@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,9 +64,11 @@ fun EsqueciSenhaScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val isResetStep = step == ForgotPasswordStep.ResetPassword
-    val headerTopSpacing = if (isResetStep) 8.dp else 16.dp
-    val sectionSpacing = if (isResetStep) 24.dp else 32.dp
-    val fieldSpacing = if (isResetStep) 12.dp else 16.dp
+    val headerTopSpacing = if (isResetStep) 0.dp else 16.dp
+    val sectionSpacing = if (isResetStep) 16.dp else 32.dp
+    val fieldSpacing = if (isResetStep) 8.dp else 16.dp
+    val buttonTopSpacing = if (isResetStep) 16.dp else 24.dp
+    val bottomSpacing = if (isResetStep) 40.dp else 24.dp
 
     fun clearError() {
         errorMessage = ""
@@ -90,7 +92,7 @@ fun EsqueciSenhaScreen(
                 Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
                 step = ForgotPasswordStep.ResetPassword
             } catch (e: Exception) {
-                errorMessage = "Nao foi possivel solicitar o codigo. Tente novamente."
+                errorMessage = "Não foi possível solicitar o código. Tente novamente."
                 android.util.Log.e("API_ERRO", "Falha ao solicitar codigo", e)
             } finally {
                 isLoading = false
@@ -105,7 +107,7 @@ fun EsqueciSenhaScreen(
             }
 
             code.length != 6 -> {
-                errorMessage = "O codigo deve ter 6 digitos."
+                errorMessage = "O código deve ter 6 dígitos."
             }
 
             newPassword.isBlank() -> {
@@ -113,7 +115,7 @@ fun EsqueciSenhaScreen(
             }
 
             confirmPassword != newPassword -> {
-                errorMessage = "A confirmacao de senha nao confere."
+                errorMessage = "A confirmação de senha não confere."
             }
 
             else -> {
@@ -133,7 +135,7 @@ fun EsqueciSenhaScreen(
                         Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
                         onNavigateBack()
                     } catch (e: Exception) {
-                        errorMessage = "Codigo invalido ou expirado."
+                        errorMessage = "Código inválido ou expirado."
                         android.util.Log.e("API_ERRO", "Falha ao redefinir senha", e)
                     } finally {
                         isLoading = false
@@ -161,7 +163,7 @@ fun EsqueciSenhaScreen(
                     .offset(x = (-12).dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Voltar",
                     tint = MaterialTheme.colorScheme.onBackground
                 )
@@ -187,8 +189,9 @@ fun EsqueciSenhaScreen(
                 subtitle = if (!isResetStep) {
                     "Informe seu e-mail cadastrado"
                 } else {
-                    "Digite o codigo enviado para seu e-mail"
-                }
+                    "Digite o código enviado para seu e-mail"
+                },
+                compact = isResetStep
             )
 
             Spacer(modifier = Modifier.height(sectionSpacing))
@@ -209,7 +212,7 @@ fun EsqueciSenhaScreen(
                 Spacer(modifier = Modifier.height(fieldSpacing))
 
                 AuthTextField(
-                    label = "Codigo",
+                    label = "Código",
                     value = code,
                     onValueChange = {
                         code = it.filter { char -> char.isDigit() }.take(6)
@@ -247,7 +250,7 @@ fun EsqueciSenhaScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(buttonTopSpacing))
 
             if (errorMessage.isNotBlank()) {
                 AuthErrorMessage(errorMessage)
@@ -255,7 +258,7 @@ fun EsqueciSenhaScreen(
             }
 
             AuthPrimaryButton(
-                text = if (step == ForgotPasswordStep.Email) "Enviar Codigo" else "Atualizar Senha",
+                text = if (step == ForgotPasswordStep.Email) "Enviar Código" else "Atualizar Senha",
                 isLoading = isLoading,
                 enabled = true,
                 onClick = {
@@ -266,6 +269,8 @@ fun EsqueciSenhaScreen(
                     }
                 }
             )
+
+            Spacer(modifier = Modifier.height(bottomSpacing))
         }
     }
 }
