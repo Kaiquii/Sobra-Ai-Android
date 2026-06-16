@@ -1,6 +1,7 @@
 package com.example.appfinanceiro.feature.relatorios.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -117,12 +118,16 @@ fun MonthComparisonSection(
             shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surface
         ) {
-            Column(modifier = Modifier.padding(18.dp)) {
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val isCompact = maxWidth < 340.dp
+
+                Column(modifier = Modifier.padding(if (isCompact) 14.dp else 18.dp)) {
                 PeriodHeader(
                     currentLabel = currentLabel,
                     comparedLabel = comparedLabel,
                     onPrevCompareClick = onPrevCompareClick,
-                    onNextCompareClick = onNextCompareClick
+                    onNextCompareClick = onNextCompareClick,
+                    isCompact = isCompact
                 )
 
                 if (isLoading) {
@@ -173,7 +178,8 @@ fun MonthComparisonSection(
                     difference = data.resumo.diferenca_receitas,
                     percent = data.resumo.percentual_receitas,
                     status = data.resumo.status_receitas,
-                    positiveWhenUp = true
+                    positiveWhenUp = true,
+                    isCompact = isCompact
                 )
 
                 SectionDivider()
@@ -187,7 +193,8 @@ fun MonthComparisonSection(
                     difference = data.resumo.diferenca_despesas,
                     percent = data.resumo.percentual_despesas,
                     status = data.resumo.status_despesas,
-                    positiveWhenUp = false
+                    positiveWhenUp = false,
+                    isCompact = isCompact
                 )
 
                 SectionDivider()
@@ -201,7 +208,8 @@ fun MonthComparisonSection(
                     difference = data.resumo.diferenca_saldo,
                     percent = data.resumo.percentual_saldo,
                     status = data.resumo.status_saldo,
-                    positiveWhenUp = true
+                    positiveWhenUp = true,
+                    isCompact = isCompact
                 )
 
                 BreakdownSection(
@@ -210,7 +218,8 @@ fun MonthComparisonSection(
                     currentLabel = currentLabel,
                     comparedLabel = comparedLabel,
                     positiveWhenUp = false,
-                    items = categoryBreakdowns
+                    items = categoryBreakdowns,
+                    isCompact = isCompact
                 )
 
                 BreakdownSection(
@@ -219,7 +228,8 @@ fun MonthComparisonSection(
                     currentLabel = currentLabel,
                     comparedLabel = comparedLabel,
                     positiveWhenUp = false,
-                    items = paymentSourceBreakdowns
+                    items = paymentSourceBreakdowns,
+                    isCompact = isCompact
                 )
 
                 BreakdownSection(
@@ -228,7 +238,8 @@ fun MonthComparisonSection(
                     currentLabel = currentLabel,
                     comparedLabel = comparedLabel,
                     positiveWhenUp = false,
-                    items = expenseTypeBreakdowns
+                    items = expenseTypeBreakdowns,
+                    isCompact = isCompact
                 )
 
                 if (observations.isNotEmpty()) {
@@ -253,6 +264,7 @@ fun MonthComparisonSection(
                     }
                 }
             }
+            }
         }
     }
 }
@@ -262,8 +274,44 @@ private fun PeriodHeader(
     currentLabel: String,
     comparedLabel: String,
     onPrevCompareClick: () -> Unit,
-    onNextCompareClick: () -> Unit
+    onNextCompareClick: () -> Unit,
+    isCompact: Boolean
 ) {
+    if (isCompact) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Mês principal",
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = currentLabel,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Text(
+                text = "Comparar com",
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            CompareMonthSelector(
+                comparedLabel = comparedLabel,
+                onPrevCompareClick = onPrevCompareClick,
+                onNextCompareClick = onNextCompareClick,
+                isCompact = true
+            )
+        }
+        return
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -296,38 +344,58 @@ private fun PeriodHeader(
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(3.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(
-                    onClick = onPrevCompareClick,
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ChevronLeft,
-                        contentDescription = "Mês anterior",
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-                Text(
-                    text = comparedLabel,
-                    color = PrimaryBlue,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.width(92.dp)
-                )
-                IconButton(
-                    onClick = onNextCompareClick,
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = "Próximo mês",
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-            }
+            CompareMonthSelector(
+                comparedLabel = comparedLabel,
+                onPrevCompareClick = onPrevCompareClick,
+                onNextCompareClick = onNextCompareClick,
+                isCompact = false
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompareMonthSelector(
+    comparedLabel: String,
+    onPrevCompareClick: () -> Unit,
+    onNextCompareClick: () -> Unit,
+    isCompact: Boolean
+) {
+    val textWidth = if (isCompact) 88.dp else 92.dp
+    val monthFontSize = if (isCompact) 19.sp else 20.sp
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        IconButton(
+            onClick = onPrevCompareClick,
+            modifier = Modifier.size(28.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.ChevronLeft,
+                contentDescription = "Mês anterior",
+                tint = PrimaryBlue,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        Text(
+            text = comparedLabel,
+            color = PrimaryBlue,
+            fontSize = monthFontSize,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.width(textWidth)
+        )
+        IconButton(
+            onClick = onNextCompareClick,
+            modifier = Modifier.size(28.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Próximo mês",
+                tint = PrimaryBlue,
+                modifier = Modifier.size(22.dp)
+            )
         }
     }
 }
@@ -342,7 +410,8 @@ private fun ComparisonMetricRow(
     difference: Double,
     percent: Double,
     status: String,
-    positiveWhenUp: Boolean
+    positiveWhenUp: Boolean,
+    isCompact: Boolean
 ) {
     val statusColor = comparisonStatusColor(status, positiveWhenUp)
 
@@ -356,20 +425,38 @@ private fun ComparisonMetricRow(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+        if (isCompact) {
             ValueColumn(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 label = currentLabel,
-                value = formatCurrency(currentValue)
+                value = formatCurrency(currentValue),
+                isCompact = true
             )
+            Spacer(modifier = Modifier.height(10.dp))
             ValueColumn(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 label = comparedLabel,
-                value = formatCurrency(comparedValue)
+                value = formatCurrency(comparedValue),
+                isCompact = true
             )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ValueColumn(
+                    modifier = Modifier.weight(1f),
+                    label = currentLabel,
+                    value = formatCurrency(currentValue),
+                    isCompact = false
+                )
+                ValueColumn(
+                    modifier = Modifier.weight(1f),
+                    label = comparedLabel,
+                    value = formatCurrency(comparedValue),
+                    isCompact = false
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -377,9 +464,9 @@ private fun ComparisonMetricRow(
         Text(
             text = "${statusLabel(status)} ${formatSignedCurrency(difference)} (${formatPercent(percent)})",
             color = statusColor,
-            fontSize = 15.sp,
+            fontSize = if (isCompact) 14.sp else 15.sp,
             fontWeight = FontWeight.Bold,
-            maxLines = 1,
+            maxLines = if (isCompact) 2 else 1,
             overflow = TextOverflow.Ellipsis
         )
     }
@@ -389,7 +476,8 @@ private fun ComparisonMetricRow(
 private fun ValueColumn(
     modifier: Modifier,
     label: String,
-    value: String
+    value: String,
+    isCompact: Boolean
 ) {
     Column(modifier = modifier) {
         Text(
@@ -404,7 +492,7 @@ private fun ValueColumn(
         Text(
             text = value,
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 19.sp,
+            fontSize = if (isCompact) 18.sp else 19.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -419,7 +507,8 @@ private fun BreakdownSection(
     currentLabel: String,
     comparedLabel: String,
     positiveWhenUp: Boolean,
-    items: List<ComparisonBreakdown>
+    items: List<ComparisonBreakdown>,
+    isCompact: Boolean
 ) {
     Spacer(modifier = Modifier.height(18.dp))
 
@@ -440,7 +529,8 @@ private fun BreakdownSection(
                 item = item,
                 currentLabel = currentLabel,
                 comparedLabel = comparedLabel,
-                positiveWhenUp = positiveWhenUp
+                positiveWhenUp = positiveWhenUp,
+                isCompact = isCompact
             )
             if (index != items.lastIndex) {
                 Spacer(modifier = Modifier.height(12.dp))
@@ -454,7 +544,8 @@ private fun BreakdownRow(
     item: ComparisonBreakdown,
     currentLabel: String,
     comparedLabel: String,
-    positiveWhenUp: Boolean
+    positiveWhenUp: Boolean,
+    isCompact: Boolean
 ) {
     val statusColor = comparisonStatusColor(item.status, positiveWhenUp)
 
@@ -468,28 +559,46 @@ private fun BreakdownRow(
             overflow = TextOverflow.Ellipsis
         )
         Spacer(modifier = Modifier.height(6.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+        if (isCompact) {
             ValueColumn(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 label = currentLabel,
-                value = formatCurrency(item.currentValue)
+                value = formatCurrency(item.currentValue),
+                isCompact = true
             )
+            Spacer(modifier = Modifier.height(10.dp))
             ValueColumn(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 label = comparedLabel,
-                value = formatCurrency(item.comparedValue)
+                value = formatCurrency(item.comparedValue),
+                isCompact = true
             )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ValueColumn(
+                    modifier = Modifier.weight(1f),
+                    label = currentLabel,
+                    value = formatCurrency(item.currentValue),
+                    isCompact = false
+                )
+                ValueColumn(
+                    modifier = Modifier.weight(1f),
+                    label = comparedLabel,
+                    value = formatCurrency(item.comparedValue),
+                    isCompact = false
+                )
+            }
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = "${statusLabel(item.status)} ${formatSignedCurrency(item.difference)} (${formatPercent(item.percent)})",
             color = statusColor,
-            fontSize = 14.sp,
+            fontSize = if (isCompact) 13.sp else 14.sp,
             fontWeight = FontWeight.Bold,
-            maxLines = 1,
+            maxLines = if (isCompact) 2 else 1,
             overflow = TextOverflow.Ellipsis
         )
     }
