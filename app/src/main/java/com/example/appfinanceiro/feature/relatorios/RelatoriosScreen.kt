@@ -204,7 +204,7 @@ fun RelatoriosScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item {
+                item(key = "month_selector", contentType = "selector") {
                     MonthSelector(
                         monthIndex = currentMonthIndex,
                         currentYear = currentYear,
@@ -213,7 +213,7 @@ fun RelatoriosScreen(
                     )
                 }
 
-                item {
+                item(key = "installments_button", contentType = "action") {
                     Button(
                         onClick = onInstallmentsClick,
                         modifier = Modifier
@@ -230,14 +230,14 @@ fun RelatoriosScreen(
                     }
                 }
 
-                item {
+                item(key = "category_expenses", contentType = "card") {
                     CategoryExpensesCard(
                         totalExpense = uiState.summaryData?.total_expense ?: 0.0,
                         categories = uiState.categoryData
                     )
                 }
 
-                item {
+                item(key = "month_comparison", contentType = "card") {
                     MonthComparisonSection(
                         data = uiState.monthComparison,
                         isLoading = uiState.isComparisonLoading,
@@ -251,7 +251,7 @@ fun RelatoriosScreen(
                     )
                 }
 
-                item {
+                item(key = "income_vs_expense", contentType = "card") {
                     IncomeVsExpenseCard(
                         summaryData = uiState.summaryData,
                         chartData = uiState.chartData,
@@ -261,11 +261,11 @@ fun RelatoriosScreen(
                     )
                 }
 
-                item {
+                item(key = "year_summary", contentType = "section") {
                     YearSummarySection(yearlySummary = uiState.yearlySummary)
                 }
 
-                item {
+                item(key = "bottom_space", contentType = "spacer") {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }

@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,6 +51,54 @@ fun MonthComparisonSection(
 ) {
     val currentLabel = monthYearLabel(currentMonthIndex + 1, currentYear)
     val comparedLabel = monthYearLabel(compareMonthIndex + 1, compareYear)
+    val categoryBreakdowns = remember(data) {
+        data?.categorias
+            ?.sortedByDescending { abs(it.diferenca) }
+            ?.map {
+                ComparisonBreakdown(
+                    name = it.categoria_nome,
+                    currentValue = it.valor_atual,
+                    comparedValue = it.valor_comparado,
+                    difference = it.diferenca,
+                    percent = it.percentual,
+                    status = it.status
+                )
+            }
+            .orEmpty()
+    }
+    val paymentSourceBreakdowns = remember(data) {
+        data?.fontes_pagamento
+            ?.sortedByDescending { abs(it.diferenca) }
+            ?.map {
+                ComparisonBreakdown(
+                    name = it.fonte_pagamento,
+                    currentValue = it.valor_atual,
+                    comparedValue = it.valor_comparado,
+                    difference = it.diferenca,
+                    percent = it.percentual,
+                    status = it.status
+                )
+            }
+            .orEmpty()
+    }
+    val expenseTypeBreakdowns = remember(data) {
+        data?.tipos_despesa
+            ?.sortedByDescending { abs(it.diferenca) }
+            ?.map {
+                ComparisonBreakdown(
+                    name = it.tipo,
+                    currentValue = it.valor_atual,
+                    comparedValue = it.valor_comparado,
+                    difference = it.diferenca,
+                    percent = it.percentual,
+                    status = it.status
+                )
+            }
+            .orEmpty()
+    }
+    val observations = remember(data) {
+        data?.insights?.map { formatObservation(it) }.orEmpty()
+    }
 
     Column {
         Text(
@@ -158,18 +207,7 @@ fun MonthComparisonSection(
                     currentLabel = currentLabel,
                     comparedLabel = comparedLabel,
                     positiveWhenUp = false,
-                    items = data.categorias
-                        .sortedByDescending { abs(it.diferenca) }
-                        .map {
-                            ComparisonBreakdown(
-                                name = it.categoria_nome,
-                                currentValue = it.valor_atual,
-                                comparedValue = it.valor_comparado,
-                                difference = it.diferenca,
-                                percent = it.percentual,
-                                status = it.status
-                            )
-                        }
+                    items = categoryBreakdowns
                 )
 
                 BreakdownSection(
@@ -178,18 +216,7 @@ fun MonthComparisonSection(
                     currentLabel = currentLabel,
                     comparedLabel = comparedLabel,
                     positiveWhenUp = false,
-                    items = data.fontes_pagamento
-                        .sortedByDescending { abs(it.diferenca) }
-                        .map {
-                            ComparisonBreakdown(
-                                name = it.fonte_pagamento,
-                                currentValue = it.valor_atual,
-                                comparedValue = it.valor_comparado,
-                                difference = it.diferenca,
-                                percent = it.percentual,
-                                status = it.status
-                            )
-                        }
+                    items = paymentSourceBreakdowns
                 )
 
                 BreakdownSection(
@@ -198,21 +225,10 @@ fun MonthComparisonSection(
                     currentLabel = currentLabel,
                     comparedLabel = comparedLabel,
                     positiveWhenUp = false,
-                    items = data.tipos_despesa
-                        .sortedByDescending { abs(it.diferenca) }
-                        .map {
-                            ComparisonBreakdown(
-                                name = it.tipo,
-                                currentValue = it.valor_atual,
-                                comparedValue = it.valor_comparado,
-                                difference = it.diferenca,
-                                percent = it.percentual,
-                                status = it.status
-                            )
-                        }
+                    items = expenseTypeBreakdowns
                 )
 
-                if (data.insights.isNotEmpty()) {
+                if (observations.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(18.dp))
                     Text(
                         text = "Observações",
@@ -223,9 +239,9 @@ fun MonthComparisonSection(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    data.insights.forEach { insight ->
+                    observations.forEach { insight ->
                         Text(
-                            text = "- ${formatObservation(insight)}",
+                            text = "- $insight",
                             color = TextMuted,
                             fontSize = 13.sp,
                             lineHeight = 18.sp

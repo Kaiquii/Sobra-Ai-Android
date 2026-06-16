@@ -24,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,21 +79,6 @@ fun ReportsBarChart(
         ReportRange.ONE_MONTH -> 140.dp
         ReportRange.SIX_MONTHS -> 96.dp
         ReportRange.ONE_YEAR -> 82.dp
-    }
-
-    LaunchedEffect(visibleData, currentMonth, selectedRange) {
-        selectedMonth = visibleData.firstOrNull { it.month == currentMonth }
-
-        if (visibleData.isNotEmpty()) {
-            val currentIndex = visibleData.indexOfFirst { it.month == currentMonth }.coerceAtLeast(0)
-            val approxItemWidthPx = when (selectedRange) {
-                ReportRange.ONE_MONTH -> 170
-                ReportRange.SIX_MONTHS -> 120
-                ReportRange.ONE_YEAR -> 105
-            }
-            val targetScroll = (currentIndex * approxItemWidthPx).coerceAtLeast(0)
-            scrollState.scrollTo(targetScroll)
-        }
     }
 
     Column {
