@@ -86,8 +86,14 @@ fun RelatoriosScreen(
             set(Calendar.MONTH, currentMonthIndex)
             add(Calendar.MONTH, amount)
         }
+
+        val previousMonth = cal.clone() as Calendar
+        previousMonth.add(Calendar.MONTH, -1)
+
         currentMonthIndex = cal.get(Calendar.MONTH)
         currentYear = cal.get(Calendar.YEAR)
+        compareMonthIndex = previousMonth.get(Calendar.MONTH)
+        compareYear = previousMonth.get(Calendar.YEAR)
     }
 
     fun changeCompareMonth(amount: Int) {
