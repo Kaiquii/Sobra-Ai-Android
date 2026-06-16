@@ -193,6 +193,64 @@ data class YearlySummaryResponse(
     val year: Int
 )
 
+data class MonthComparisonResponse(
+    val mes_atual: Int,
+    val ano_atual: Int,
+    val mes_comparado: Int,
+    val ano_comparado: Int,
+    val resumo: MonthComparisonSummary,
+    val categorias: List<MonthComparisonCategory> = emptyList(),
+    val fontes_pagamento: List<MonthComparisonPaymentSource> = emptyList(),
+    val tipos_despesa: List<MonthComparisonExpenseType> = emptyList(),
+    val insights: List<String> = emptyList()
+)
+
+data class MonthComparisonSummary(
+    val receitas_atual: Double,
+    val receitas_comparado: Double,
+    val diferenca_receitas: Double,
+    val percentual_receitas: Double,
+    val status_receitas: String,
+    val despesas_atual: Double,
+    val despesas_comparado: Double,
+    val diferenca_despesas: Double,
+    val percentual_despesas: Double,
+    val status_despesas: String,
+    val saldo_atual: Double,
+    val saldo_comparado: Double,
+    val diferenca_saldo: Double,
+    val percentual_saldo: Double,
+    val status_saldo: String
+)
+
+data class MonthComparisonCategory(
+    val categoria_id: Int,
+    val categoria_nome: String,
+    val valor_atual: Double,
+    val valor_comparado: Double,
+    val diferenca: Double,
+    val percentual: Double,
+    val status: String
+)
+
+data class MonthComparisonPaymentSource(
+    val fonte_pagamento: String,
+    val valor_atual: Double,
+    val valor_comparado: Double,
+    val diferenca: Double,
+    val percentual: Double,
+    val status: String
+)
+
+data class MonthComparisonExpenseType(
+    val tipo: String,
+    val valor_atual: Double,
+    val valor_comparado: Double,
+    val diferenca: Double,
+    val percentual: Double,
+    val status: String
+)
+
 data class InstallmentCommitmentsResponse(
     val mes_base: Int,
     val ano_base: Int,
@@ -415,6 +473,15 @@ interface FinanceApi {
         @Header("Authorization") token: String,
         @Query("year") year: Int
     ): YearlySummaryResponse
+
+    @GET("api/reports/month-comparison")
+    suspend fun getMonthComparison(
+        @Header("Authorization") token: String,
+        @Query("month") month: Int,
+        @Query("year") year: Int,
+        @Query("compare_month") compareMonth: Int? = null,
+        @Query("compare_year") compareYear: Int? = null
+    ): MonthComparisonResponse
 
     @GET("api/reports/installment-commitments")
     suspend fun getInstallmentCommitments(

@@ -7,11 +7,13 @@ import com.example.appfinanceiro.core.data.FinanceRepository
 import com.example.appfinanceiro.core.data.SessionExpiredException
 import com.example.appfinanceiro.core.network.CategoryReportResponse
 import com.example.appfinanceiro.core.network.ChartReportResponse
+import com.example.appfinanceiro.core.network.MonthComparisonResponse
 import com.example.appfinanceiro.core.network.SummaryResponse
 import com.example.appfinanceiro.core.network.YearlySummaryResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 data class RelatoriosUiState(
@@ -19,6 +21,9 @@ data class RelatoriosUiState(
     val categoryData: List<CategoryReportResponse> = emptyList(),
     val chartData: List<ChartReportResponse> = emptyList(),
     val yearlySummary: YearlySummaryResponse? = null,
+    val monthComparison: MonthComparisonResponse? = null,
+    val isComparisonLoading: Boolean = false,
+    val comparisonErrorMessage: String? = null,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val isSessionExpired: Boolean = false
@@ -30,6 +35,7 @@ class RelatoriosViewModel(
 
     private val _uiState = MutableStateFlow(RelatoriosUiState())
     val uiState: StateFlow<RelatoriosUiState> = _uiState
+    private var monthComparisonJob: Job? = null
 
     fun loadReports(token: String, month: Int, year: Int) {
         viewModelScope.launch {
@@ -63,12 +69,59 @@ class RelatoriosViewModel(
                         categoryData = emptyList(),
                         chartData = emptyList(),
                         yearlySummary = null,
+                        monthComparison = null,
                         errorMessage = "Erro ao carregar relatórios"
                     )
                 }
             } finally {
                 _uiState.update {
                     it.copy(isLoading = false)
+                }
+            }
+        }
+    }
+
+    fun loadMonthComparison(
+        token: String,
+        month: Int,
+        year: Int,
+        compareMonth: Int,
+        compareYear: Int
+    ) {
+        monthComparisonJob?.cancel()
+        monthComparisonJob = viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isComparisonLoading = true,
+                    comparisonErrorMessage = null,
+                    isSessionExpired = false
+                )
+            }
+
+            try {
+                val comparison = repository.getMonthComparison(
+                    token = token,
+                    month = month,
+                    year = year,
+                    compareMonth = compareMonth,
+                    compareYear = compareYear
+                )
+
+                _uiState.update {
+                    it.copy(monthComparison = comparison)
+                }
+            } catch (e: SessionExpiredException) {
+                _uiState.update {
+                    it.copy(isSessionExpired = true)
+                }
+            } catch (e: Exception) {
+                Log.e("API_ERRO", "Falha ao carregar comparativo mensal", e)
+                _uiState.update {
+                    it.copy(comparisonErrorMessage = "Erro ao carregar comparativo mensal")
+                }
+            } finally {
+                _uiState.update {
+                    it.copy(isComparisonLoading = false)
                 }
             }
         }

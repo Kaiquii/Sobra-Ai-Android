@@ -44,6 +44,7 @@ import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import com.example.appfinanceiro.feature.relatorios.components.CategoryExpensesCard
 import com.example.appfinanceiro.feature.relatorios.components.IncomeVsExpenseCard
+import com.example.appfinanceiro.feature.relatorios.components.MonthComparisonSection
 import com.example.appfinanceiro.feature.relatorios.components.YearSummarySection
 import java.util.Calendar
 
@@ -66,9 +67,18 @@ fun RelatoriosScreen(
 
     var currentMonthIndex by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
     var currentYear by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
+    var compareMonthIndex by remember {
+        val previousMonth = Calendar.getInstance().apply { add(Calendar.MONTH, -1) }
+        mutableIntStateOf(previousMonth.get(Calendar.MONTH))
+    }
+    var compareYear by remember {
+        val previousMonth = Calendar.getInstance().apply { add(Calendar.MONTH, -1) }
+        mutableIntStateOf(previousMonth.get(Calendar.YEAR))
+    }
     var selectedRange by remember { mutableStateOf(ReportRange.ONE_MONTH) }
 
     val currentMonthNumber = currentMonthIndex + 1
+    val compareMonthNumber = compareMonthIndex + 1
 
     fun changeMonth(amount: Int) {
         val cal = Calendar.getInstance().apply {
@@ -80,12 +90,51 @@ fun RelatoriosScreen(
         currentYear = cal.get(Calendar.YEAR)
     }
 
+    fun changeCompareMonth(amount: Int) {
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.YEAR, compareYear)
+            set(Calendar.MONTH, compareMonthIndex)
+            add(Calendar.MONTH, amount)
+            if (
+                get(Calendar.MONTH) == currentMonthIndex &&
+                get(Calendar.YEAR) == currentYear
+            ) {
+                add(Calendar.MONTH, amount)
+            }
+        }
+        compareMonthIndex = cal.get(Calendar.MONTH)
+        compareYear = cal.get(Calendar.YEAR)
+    }
+
     LaunchedEffect(currentMonthIndex, currentYear, userToken) {
         userToken?.let { token ->
             viewModel.loadReports(
                 token = token,
                 month = currentMonthNumber,
                 year = currentYear
+            )
+        }
+    }
+
+    LaunchedEffect(currentMonthIndex, currentYear, compareMonthIndex, compareYear, userToken) {
+        if (compareMonthIndex == currentMonthIndex && compareYear == currentYear) {
+            val previousMonth = Calendar.getInstance().apply {
+                set(Calendar.YEAR, currentYear)
+                set(Calendar.MONTH, currentMonthIndex)
+                add(Calendar.MONTH, -1)
+            }
+            compareMonthIndex = previousMonth.get(Calendar.MONTH)
+            compareYear = previousMonth.get(Calendar.YEAR)
+            return@LaunchedEffect
+        }
+
+        userToken?.let { token ->
+            viewModel.loadMonthComparison(
+                token = token,
+                month = currentMonthNumber,
+                year = currentYear,
+                compareMonth = compareMonthNumber,
+                compareYear = compareYear
             )
         }
     }
@@ -179,6 +228,20 @@ fun RelatoriosScreen(
                     CategoryExpensesCard(
                         totalExpense = uiState.summaryData?.total_expense ?: 0.0,
                         categories = uiState.categoryData
+                    )
+                }
+
+                item {
+                    MonthComparisonSection(
+                        data = uiState.monthComparison,
+                        isLoading = uiState.isComparisonLoading,
+                        errorMessage = uiState.comparisonErrorMessage,
+                        currentMonthIndex = currentMonthIndex,
+                        currentYear = currentYear,
+                        compareMonthIndex = compareMonthIndex,
+                        compareYear = compareYear,
+                        onPrevCompareClick = { changeCompareMonth(-1) },
+                        onNextCompareClick = { changeCompareMonth(1) }
                     )
                 }
 

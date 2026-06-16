@@ -11,6 +11,7 @@ import com.example.appfinanceiro.core.network.DefaultResponse
 import com.example.appfinanceiro.core.network.ExpensesResponse
 import com.example.appfinanceiro.core.network.InstallmentCommitmentsResponse
 import com.example.appfinanceiro.core.network.IncomesResponse
+import com.example.appfinanceiro.core.network.MonthComparisonResponse
 import com.example.appfinanceiro.core.network.SummaryResponse
 import com.example.appfinanceiro.core.network.YearlySummaryResponse
 import com.example.appfinanceiro.core.network.auth.RetrofitClient
@@ -149,6 +150,24 @@ class FinanceRepository {
             RetrofitClient.financeApi.getYearlySummary(
                 token = bearer(token),
                 year = year
+            )
+        }
+    }
+
+    suspend fun getMonthComparison(
+        token: String,
+        month: Int,
+        year: Int,
+        compareMonth: Int? = null,
+        compareYear: Int? = null
+    ): MonthComparisonResponse {
+        return authorizedRequest {
+            RetrofitClient.financeApi.getMonthComparison(
+                token = bearer(token),
+                month = month,
+                year = year,
+                compareMonth = compareMonth,
+                compareYear = compareYear
             )
         }
     }
