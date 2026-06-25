@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
@@ -410,6 +411,48 @@ fun DespesasScreen(
 }
 
 @Composable
+private fun ExpenseNoteIndicatorIcon() {
+    Box(
+        modifier = Modifier
+            .background(PrimaryBlue.copy(alpha = 0.10f), RoundedCornerShape(6.dp))
+            .padding(4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Description,
+            contentDescription = "Despesa com observação",
+            tint = PrimaryBlue,
+            modifier = Modifier.size(12.dp)
+        )
+    }
+}
+
+@Composable
+private fun ExpenseNotePreviewChip(text: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .background(PrimaryBlue.copy(alpha = 0.10f), RoundedCornerShape(6.dp))
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Description,
+            contentDescription = "Despesa com observação",
+            tint = PrimaryBlue,
+            modifier = Modifier.size(10.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = text,
+            color = PrimaryBlue,
+            fontSize = 10.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
 fun DespesaListItem(
     expense: Expense,
     categoriesMap: Map<Int, String>,
@@ -490,7 +533,10 @@ fun DespesaListItem(
 
                 val typeChipBg = TextMuted.copy(alpha = 0.2f)
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Box(
                         modifier = Modifier
                             .background(typeChipBg, RoundedCornerShape(4.dp))
@@ -508,6 +554,10 @@ fun DespesaListItem(
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 8.dp)
                     )
+                    if (!expense.notes.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        ExpenseNoteIndicatorIcon()
+                    }
                 }
             }
 
@@ -515,14 +565,18 @@ fun DespesaListItem(
 
             Column(horizontalAlignment = Alignment.End) {
                 Row {
-                    Icon(
-                        imageVector = Icons.Default.Visibility,
-                        contentDescription = "Visualizar despesa",
-                        tint = secondaryColor,
+                    Box(
                         modifier = Modifier
                             .size(18.dp)
                             .clickable { onView() }
-                    )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Visibility,
+                            contentDescription = "Visualizar despesa",
+                            tint = secondaryColor,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.width(14.dp))
                     Icon(
                         imageVector = Icons.Default.Edit,

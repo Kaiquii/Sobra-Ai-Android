@@ -286,6 +286,7 @@ fun HomeScreen(
                     type = typeText,
                     date = formattedDate,
                     value = "- ${formatCurrency(expense.amount)}",
+                    notes = expense.notes,
                     onViewClick = { expenseToView = expense }
                 )
             }

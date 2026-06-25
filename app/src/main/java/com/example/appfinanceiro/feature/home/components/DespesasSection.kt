@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.CircularProgressIndicator
@@ -277,6 +278,7 @@ fun ExpenseItem(
     type: String,
     date: String,
     value: String,
+    notes: String?,
     onViewClick: () -> Unit
 ) {
     val textColor = MaterialTheme.colorScheme.onBackground
@@ -326,7 +328,10 @@ fun ExpenseItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 MiniChip(label = type, color = TextMuted)
 
                 Spacer(modifier = Modifier.width(6.dp))
@@ -334,8 +339,14 @@ fun ExpenseItem(
                 Text(
                     text = date,
                     color = TextMuted,
-                    fontSize = 10.sp
+                    fontSize = 10.sp,
+                    maxLines = 1
                 )
+
+                if (!notes.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    NoteIndicatorIcon()
+                }
             }
         }
 
@@ -352,14 +363,18 @@ fun ExpenseItem(
 
                 Spacer(modifier = Modifier.width(6.dp))
 
-                Icon(
-                    imageVector = Icons.Default.Visibility,
-                    contentDescription = "Visualizar despesa",
-                    tint = TextMuted,
+                Box(
                     modifier = Modifier
                         .size(18.dp)
                         .clickable { onViewClick() }
-                )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "Visualizar despesa",
+                        tint = TextMuted,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -388,6 +403,23 @@ fun ExpenseItem(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun NoteIndicatorIcon() {
+    Box(
+        modifier = Modifier
+            .background(PrimaryBlue.copy(alpha = 0.10f), RoundedCornerShape(6.dp))
+            .padding(4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Description,
+            contentDescription = "Despesa com observação",
+            tint = PrimaryBlue,
+            modifier = Modifier.size(12.dp)
+        )
     }
 }
 
