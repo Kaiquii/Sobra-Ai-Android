@@ -1,10 +1,16 @@
 package com.example.appfinanceiro.core.designsystem.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -68,8 +74,7 @@ fun ExpenseDetailsDialog(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                DetailRow(
-                    label = "Observações",
+                NotesDetailBox(
                     value = expense.notes?.takeIf { it.isNotBlank() } ?: "Sem observações"
                 )
             }
@@ -84,6 +89,39 @@ fun ExpenseDetailsDialog(
             }
         }
     )
+}
+
+@Composable
+private fun NotesDetailBox(value: String) {
+    val colorScheme = MaterialTheme.colorScheme
+    val scrollState = rememberScrollState()
+
+    Column {
+        Text(
+            text = "Observações",
+            color = colorScheme.onSurfaceVariant,
+            fontSize = 12.sp
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 150.dp)
+                .background(
+                    color = colorScheme.background.copy(alpha = 0.35f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .verticalScroll(scrollState)
+                .padding(12.dp)
+        ) {
+            Text(
+                text = value,
+                color = colorScheme.onSurface,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
 }
 
 @Composable
