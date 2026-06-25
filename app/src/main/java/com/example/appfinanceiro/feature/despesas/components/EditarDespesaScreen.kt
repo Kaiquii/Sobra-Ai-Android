@@ -62,8 +62,10 @@ import com.example.appfinanceiro.core.designsystem.theme.BackgroundLight
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Category
 import com.example.appfinanceiro.core.network.ExpenseUpdateRequest
+import com.example.appfinanceiro.core.network.parseApiErrorMessage
 import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -85,6 +87,7 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
 
     var amountText by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
     var categories by remember { mutableStateOf<List<Category>>(emptyList()) }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
     var expandedCategory by remember { mutableStateOf(false) }
@@ -115,6 +118,7 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
 
                 amountText = expense.amount.toString().replace(".", ",")
                 description = expense.description
+                notes = expense.notes.orEmpty()
                 selectedCategory = categories.find { it.id == expense.category_id }
 
                 if (sources.contains(expense.payment_source)) {
@@ -279,6 +283,29 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
 
+                FormLabel("Observações")
+                CustomInput(
+                    value = notes,
+                    onValueChange = {
+                        if (it.length <= 500) {
+                            notes = it
+                        }
+                    },
+                    icon = null,
+                    placeholder = "Detalhes extras da despesa",
+                    bgColor = inputBgColor,
+                    singleLine = false,
+                    minLines = 3,
+                    maxLines = 5
+                )
+                Text(
+                    text = "${notes.length}/500",
+                    color = colorScheme.onSurfaceVariant,
+                    fontSize = 12.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.End
+                )
+
                 if (
                     originalType.equals("Parcelada", ignoreCase = true) ||
                     originalType.equals("Fixa", ignoreCase = true)
@@ -332,6 +359,10 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                             Toast.makeText(context, "Preencha os campos!", Toast.LENGTH_SHORT).show()
                             return@Button
                         }
+                        if (notes.length > 500) {
+                            Toast.makeText(context, "Observações devem ter no máximo 500 caracteres.", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
 
                         if (originalType.equals("Fixa", ignoreCase = true) && updateFuture) {
                             showFixedExpenseConfirmation = true
@@ -354,6 +385,7 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                                     category_id = selectedCategory!!.id,
                                     payment_source = selectedSource,
                                     date = dateFormat.format(parsedDate),
+                                    notes = notes.trim(),
                                     update_future = if (
                                         originalType.equals("Parcelada", ignoreCase = true) ||
                                         originalType.equals("Fixa", ignoreCase = true)
@@ -367,6 +399,9 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                                 RetrofitClient.financeApi.updateExpense("Bearer $userToken", expenseId, request)
                                 Toast.makeText(context, "Despesa atualizada!", Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
+                            } catch (e: HttpException) {
+                                val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
+                                Toast.makeText(context, apiMessage ?: "Erro ao atualizar", Toast.LENGTH_SHORT).show()
                             } catch (e: Exception) {
                                 Toast.makeText(context, "Erro ao atualizar", Toast.LENGTH_SHORT).show()
                             } finally {
@@ -428,12 +463,16 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                                             category_id = selectedCategory!!.id,
                                             payment_source = selectedSource,
                                             date = dateFormat.format(parsedDate),
+                                            notes = notes.trim(),
                                             update_future = true
                                         )
 
                                         RetrofitClient.financeApi.updateExpense("Bearer $userToken", expenseId, request)
                                         Toast.makeText(context, "Despesa atualizada!", Toast.LENGTH_SHORT).show()
                                         onNavigateBack()
+                                    } catch (e: HttpException) {
+                                        val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
+                                        Toast.makeText(context, apiMessage ?: "Erro ao atualizar", Toast.LENGTH_SHORT).show()
                                     } catch (e: Exception) {
                                         Toast.makeText(context, "Erro ao atualizar", Toast.LENGTH_SHORT).show()
                                     } finally {

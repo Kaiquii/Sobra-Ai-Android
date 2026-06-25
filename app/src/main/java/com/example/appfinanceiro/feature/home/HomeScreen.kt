@@ -40,7 +40,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
+import com.example.appfinanceiro.core.designsystem.components.ExpenseDetailsDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
+import com.example.appfinanceiro.core.network.Expense
 import com.example.appfinanceiro.feature.home.components.AddExpenseButton
 import com.example.appfinanceiro.feature.home.components.DespesasHeaderSection
 import com.example.appfinanceiro.feature.home.components.ExpenseItem
@@ -76,6 +78,7 @@ fun HomeScreen(
 
     var showCategoryFilterModal by remember { mutableStateOf(false) }
     var showPaymentSourceFilterModal by remember { mutableStateOf(false) }
+    var expenseToView by remember { mutableStateOf<Expense?>(null) }
     var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
     var selectedPaymentSource by remember { mutableStateOf<String?>(null) }
     var showExitDialog by remember { mutableStateOf(false) }
@@ -282,7 +285,8 @@ fun HomeScreen(
                     paymentSource = expense.payment_source ?: "Não informado",
                     type = typeText,
                     date = formattedDate,
-                    value = "- ${formatCurrency(expense.amount)}"
+                    value = "- ${formatCurrency(expense.amount)}",
+                    onViewClick = { expenseToView = expense }
                 )
             }
 
@@ -417,6 +421,14 @@ fun HomeScreen(
             onDismiss = {
                 showExitDialog = false
             }
+        )
+    }
+
+    expenseToView?.let { expense ->
+        ExpenseDetailsDialog(
+            expense = expense,
+            categoryName = uiState.categoriesMap[expense.category_id] ?: "Outros",
+            onDismiss = { expenseToView = null }
         )
     }
 }

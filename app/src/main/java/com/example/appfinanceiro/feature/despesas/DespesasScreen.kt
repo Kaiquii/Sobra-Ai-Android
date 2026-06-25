@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.designsystem.components.ExpenseDetailsDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
@@ -104,6 +106,7 @@ fun DespesasScreen(
     var currentYear by remember { mutableIntStateOf(calendar.get(Calendar.YEAR)) }
 
     var expenseToDelete by remember { mutableStateOf<Expense?>(null) }
+    var expenseToView by remember { mutableStateOf<Expense?>(null) }
 
     LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshTrigger) {
         userToken?.let { token ->
@@ -291,6 +294,7 @@ fun DespesasScreen(
                         DespesaListItem(
                             expense = expense,
                             categoriesMap = uiState.categoriesMap,
+                            onView = { expenseToView = expense },
                             onEdit = { onEditClick(expense.id) },
                             onDelete = { expenseToDelete = expense }
                         )
@@ -395,12 +399,21 @@ fun DespesasScreen(
             }
         )
     }
+
+    expenseToView?.let { expense ->
+        ExpenseDetailsDialog(
+            expense = expense,
+            categoryName = uiState.categoriesMap[expense.category_id] ?: "Outros",
+            onDismiss = { expenseToView = null }
+        )
+    }
 }
 
 @Composable
 fun DespesaListItem(
     expense: Expense,
     categoriesMap: Map<Int, String>,
+    onView: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -502,6 +515,15 @@ fun DespesaListItem(
 
             Column(horizontalAlignment = Alignment.End) {
                 Row {
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "Visualizar despesa",
+                        tint = secondaryColor,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clickable { onView() }
+                    )
+                    Spacer(modifier = Modifier.width(14.dp))
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Editar",

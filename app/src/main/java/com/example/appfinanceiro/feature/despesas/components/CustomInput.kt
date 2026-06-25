@@ -27,7 +27,10 @@ fun CustomInput(
     onTrailingIconClick: (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     modifier: Modifier = Modifier,
-    trailingContent: (@Composable (() -> Unit))? = null
+    trailingContent: (@Composable (() -> Unit))? = null,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = 1
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val secondaryColor = colorScheme.onSurfaceVariant
@@ -89,7 +92,9 @@ fun CustomInput(
             disabledTrailingIconColor = secondaryColor
         ),
         shape = RoundedCornerShape(12.dp),
-        singleLine = true,
+        singleLine = singleLine,
+        minLines = minLines,
+        maxLines = maxLines,
         keyboardOptions = keyboardOptions
     )
 }

@@ -44,7 +44,8 @@ data class Expense(
     val type: String,
     val installments: Int?,
     val current_installment: Int?,
-    val payment_source: String?
+    val payment_source: String?,
+    val notes: String? = null
 )
 data class ExpensesResponse(val expenses: List<Expense>, val total: Int)
 
@@ -135,7 +136,8 @@ data class ExpenseRequest(
     val payment_source: String,
     val date: String,
     val type: String,
-    val installments: Int
+    val installments: Int,
+    val notes: String = ""
 )
 
 data class DefaultResponse(
@@ -149,6 +151,7 @@ data class ExpenseUpdateRequest(
     val payment_source: String? = null,
     val type: String? = null,
     val date: String? = null,
+    val notes: String? = null,
     val update_future: Boolean? = null
 )
 

@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -275,7 +276,8 @@ fun ExpenseItem(
     paymentSource: String,
     type: String,
     date: String,
-    value: String
+    value: String,
+    onViewClick: () -> Unit
 ) {
     val textColor = MaterialTheme.colorScheme.onBackground
     val cardBg = MaterialTheme.colorScheme.surface
@@ -340,12 +342,25 @@ fun ExpenseItem(
         Spacer(modifier = Modifier.width(8.dp))
 
         Column(horizontalAlignment = Alignment.End) {
-            Text(
-                text = value,
-                color = textColor,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = value,
+                    color = textColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
+                Icon(
+                    imageVector = Icons.Default.Visibility,
+                    contentDescription = "Visualizar despesa",
+                    tint = TextMuted,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .clickable { onViewClick() }
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 

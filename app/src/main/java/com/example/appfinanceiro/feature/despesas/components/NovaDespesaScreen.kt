@@ -62,8 +62,10 @@ import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Category
 import com.example.appfinanceiro.core.network.CategoryRequest
 import com.example.appfinanceiro.core.network.ExpenseRequest
+import com.example.appfinanceiro.core.network.parseApiErrorMessage
 import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -82,6 +84,7 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
 
     var amountText by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
     var categories by remember { mutableStateOf<List<Category>>(emptyList()) }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
     var expandedCategory by remember { mutableStateOf(false) }
@@ -332,6 +335,29 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
                 )
             }
 
+            FormLabel("Observações")
+            CustomInput(
+                value = notes,
+                onValueChange = {
+                    if (it.length <= 500) {
+                        notes = it
+                    }
+                },
+                icon = null,
+                placeholder = "Detalhes extras da despesa",
+                bgColor = inputBgColor,
+                singleLine = false,
+                minLines = 3,
+                maxLines = 5
+            )
+            Text(
+                text = "${notes.length}/500",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.End
+            )
+
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -339,6 +365,10 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
                 onClick = {
                     if (amountText.isEmpty() || description.isEmpty() || selectedCategory == null) {
                         Toast.makeText(context, "Preencha todos os campos obrigatórios!", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (notes.length > 500) {
+                        Toast.makeText(context, "Observações devem ter no máximo 500 caracteres.", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
                     isLoading = true
@@ -353,13 +383,17 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
                                 payment_source = selectedSource,
                                 date = dateFormat.format(parsedDate),
                                 type = selectedType,
-                                installments = if (selectedType == "Parcelada") installments else 1
+                                installments = if (selectedType == "Parcelada") installments else 1,
+                                notes = notes.trim()
                             )
 
 
                             RetrofitClient.financeApi.createExpense("Bearer $userToken", request)
                             Toast.makeText(context, "Despesa salva com sucesso!", Toast.LENGTH_SHORT).show()
                             onNavigateBack()
+                        } catch (e: HttpException) {
+                            val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
+                            Toast.makeText(context, apiMessage ?: "Erro ao salvar", Toast.LENGTH_SHORT).show()
                         } catch (e: Exception) { Toast.makeText(context, "Erro ao salvar", Toast.LENGTH_SHORT).show()
                         } finally { isLoading = false }
                     }
