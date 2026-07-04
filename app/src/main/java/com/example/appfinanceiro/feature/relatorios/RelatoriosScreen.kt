@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
+import com.example.appfinanceiro.core.designsystem.components.swipeNavigation
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import com.example.appfinanceiro.feature.relatorios.components.CategoryExpensesCard
@@ -154,6 +155,7 @@ fun RelatoriosScreen(
     }
 
     Scaffold(
+        modifier = Modifier.swipeNavigation(2, onNavigate),
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(

@@ -73,6 +73,7 @@ import com.example.appfinanceiro.BuildConfig
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
+import com.example.appfinanceiro.core.designsystem.components.swipeNavigation
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
@@ -284,6 +285,7 @@ fun PerfilScreen(
     }
 
     Scaffold(
+        modifier = Modifier.swipeNavigation(3, onNavigate),
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(

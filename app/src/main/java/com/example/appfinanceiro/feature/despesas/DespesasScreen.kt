@@ -65,6 +65,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.ExpenseDetailsDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
+import com.example.appfinanceiro.core.designsystem.components.swipeNavigation
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
@@ -149,6 +150,7 @@ fun DespesasScreen(
     }
 
     Scaffold(
+        modifier = Modifier.swipeNavigation(1, onNavigate),
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(

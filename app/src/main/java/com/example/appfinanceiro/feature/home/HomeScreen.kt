@@ -42,6 +42,7 @@ import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
 import com.example.appfinanceiro.core.designsystem.components.ExpenseDetailsDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
+import com.example.appfinanceiro.core.designsystem.components.swipeNavigation
 import com.example.appfinanceiro.core.network.Expense
 import com.example.appfinanceiro.feature.home.components.AddExpenseButton
 import com.example.appfinanceiro.feature.home.components.DespesasHeaderSection
@@ -160,6 +161,7 @@ fun HomeScreen(
     }
 
     Scaffold(
+        modifier = Modifier.swipeNavigation(0, onNavigate),
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
