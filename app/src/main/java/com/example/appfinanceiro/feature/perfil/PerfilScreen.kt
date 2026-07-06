@@ -69,7 +69,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.example.appfinanceiro.BuildConfig
+import br.com.sobraai.app.BuildConfig
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar

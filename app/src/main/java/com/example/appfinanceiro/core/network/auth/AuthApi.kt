@@ -1,7 +1,7 @@
 package com.example.appfinanceiro.core.network.auth
 
 import android.util.Log
-import com.example.appfinanceiro.BuildConfig
+import br.com.sobraai.app.BuildConfig
 import com.example.appfinanceiro.core.network.FinanceApi
 import com.example.appfinanceiro.core.network.SessionAccessEvents
 import com.example.appfinanceiro.core.network.parseApiErrorMessage
