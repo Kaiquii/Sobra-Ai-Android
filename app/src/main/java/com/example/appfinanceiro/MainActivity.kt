@@ -23,6 +23,7 @@ import com.example.appfinanceiro.core.biometric.BiometricAuth
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.theme.AppFinanceiroTheme
 import com.example.appfinanceiro.core.network.SessionAccessEvents
+import com.example.appfinanceiro.core.update.AppUpdateGate
 import com.example.appfinanceiro.feature.assistant.AssistantScreen
 import com.example.appfinanceiro.feature.despesas.DespesasScreen
 import com.example.appfinanceiro.feature.despesas.components.EditarDespesaScreen
@@ -315,6 +316,8 @@ class MainActivity : FragmentActivity() {
                         }
 
                     }
+
+                    AppUpdateGate()
                 }
             }
         }

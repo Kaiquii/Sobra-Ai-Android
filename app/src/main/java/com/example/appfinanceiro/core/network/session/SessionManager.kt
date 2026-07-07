@@ -2,6 +2,7 @@ package com.example.appfinanceiro.core.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -18,6 +19,7 @@ class SessionManager(private val context: Context) {
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
         private val USER_ROLE_KEY = stringPreferencesKey("user_role")
         private val USER_AVATAR_URL_KEY = stringPreferencesKey("user_avatar_url")
+        private val USER_AVATAR_CACHE_VERSION_KEY = longPreferencesKey("user_avatar_cache_version")
         private val BIOMETRIC_ENABLED_EMAILS_KEY =
             stringSetPreferencesKey("biometric_enabled_emails")
     }
@@ -27,6 +29,9 @@ class SessionManager(private val context: Context) {
     val userEmail: Flow<String> = context.dataStore.data.map { it[USER_EMAIL_KEY] ?: "" }
     val userRole: Flow<String> = context.dataStore.data.map { it[USER_ROLE_KEY] ?: "" }
     val userAvatarUrl: Flow<String> = context.dataStore.data.map { it[USER_AVATAR_URL_KEY] ?: "" }
+    val userAvatarCacheVersion: Flow<Long?> = context.dataStore.data.map {
+        it[USER_AVATAR_CACHE_VERSION_KEY]
+    }
 
     val biometricEnabledEmails: Flow<Set<String>> =
         context.dataStore.data.map { it[BIOMETRIC_ENABLED_EMAILS_KEY] ?: emptySet() }
@@ -46,18 +51,21 @@ class SessionManager(private val context: Context) {
 
             if (avatarUrl.isNullOrBlank()) {
                 preferences.remove(USER_AVATAR_URL_KEY)
+                preferences.remove(USER_AVATAR_CACHE_VERSION_KEY)
             } else {
                 preferences[USER_AVATAR_URL_KEY] = avatarUrl
             }
         }
     }
 
-    suspend fun saveAvatarUrl(avatarUrl: String?) {
+    suspend fun saveAvatarUrl(avatarUrl: String?, cacheVersion: Long? = null) {
         context.dataStore.edit { preferences ->
             if (avatarUrl.isNullOrBlank()) {
                 preferences.remove(USER_AVATAR_URL_KEY)
+                preferences.remove(USER_AVATAR_CACHE_VERSION_KEY)
             } else {
                 preferences[USER_AVATAR_URL_KEY] = avatarUrl
+                cacheVersion?.let { preferences[USER_AVATAR_CACHE_VERSION_KEY] = it }
             }
         }
     }
@@ -90,6 +98,7 @@ class SessionManager(private val context: Context) {
             preferences.remove(USER_EMAIL_KEY)
             preferences.remove(USER_ROLE_KEY)
             preferences.remove(USER_AVATAR_URL_KEY)
+            preferences.remove(USER_AVATAR_CACHE_VERSION_KEY)
         }
     }
 }

@@ -9,6 +9,7 @@ import retrofit2.http.Path
 import retrofit2.http.Part
 import retrofit2.http.Query
 import okhttp3.MultipartBody
+import com.google.gson.annotations.SerializedName
 
 data class SummaryResponse(
     val month: Int,
@@ -177,6 +178,26 @@ data class ProfilePhotoResponse(
     val avatar_url: String? = null
 )
 
+data class AppVersionResponse(
+    val id: Int? = null,
+    val platform: String,
+    @SerializedName("latest_version_name")
+    val latestVersionName: String,
+    @SerializedName("latest_version_code")
+    val latestVersionCode: Int,
+    @SerializedName("min_required_version_code")
+    val minRequiredVersionCode: Int,
+    @SerializedName("force_update")
+    val forceUpdate: Boolean,
+    @SerializedName("play_store_url")
+    val playStoreUrl: String,
+    val message: String? = null,
+    @SerializedName("created_at")
+    val createdAt: String? = null,
+    @SerializedName("updated_at")
+    val updatedAt: String? = null
+)
+
 data class CategoryReportResponse(
     val category_id: Int,
     val category_name: String,
@@ -321,6 +342,11 @@ data class InstallmentTimelineMonth(
 )
 
 interface FinanceApi {
+    @GET("api/app-version")
+    suspend fun getAppVersion(
+        @Query("platform") platform: String = "android"
+    ): AppVersionResponse
+
     @retrofit2.http.POST("api/assistant/chat")
     suspend fun chatAssistant(
         @Header("Authorization") token: String,

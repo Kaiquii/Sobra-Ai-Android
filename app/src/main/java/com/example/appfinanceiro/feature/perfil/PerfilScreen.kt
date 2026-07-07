@@ -104,6 +104,7 @@ fun PerfilScreen(
     val userEmail by sessionManager.userEmail.collectAsState(initial = "")
     val userRole by sessionManager.userRole.collectAsState(initial = "")
     val userAvatarUrl by sessionManager.userAvatarUrl.collectAsState(initial = "")
+    val userAvatarCacheVersion by sessionManager.userAvatarCacheVersion.collectAsState(initial = null)
 
     val isAdmin = userRole.equals("admin", ignoreCase = true)
     val roleLabel = when (userRole.lowercase()) {
@@ -118,9 +119,8 @@ fun PerfilScreen(
     var showPhotoPreviewDialog by remember { mutableStateOf(false) }
     var isPhotoLoading by remember { mutableStateOf(false) }
     var localAvatarPreviewUri by remember { mutableStateOf<Uri?>(null) }
-    var avatarCacheVersion by remember { mutableStateOf<Long?>(null) }
-    val fullAvatarUrl = remember(userAvatarUrl, avatarCacheVersion) {
-        buildFullAvatarUrl(userAvatarUrl, avatarCacheVersion)
+    val fullAvatarUrl = remember(userAvatarUrl, userAvatarCacheVersion) {
+        buildFullAvatarUrl(userAvatarUrl, userAvatarCacheVersion)
     }
     val avatarImageModel = localAvatarPreviewUri ?: fullAvatarUrl
 
@@ -157,8 +157,10 @@ fun PerfilScreen(
                     token = "Bearer $token",
                     photo = photoPart
                 )
-                sessionManager.saveAvatarUrl(response.avatar_url)
-                avatarCacheVersion = System.currentTimeMillis()
+                sessionManager.saveAvatarUrl(
+                    avatarUrl = response.avatar_url,
+                    cacheVersion = System.currentTimeMillis()
+                )
                 Toast.makeText(context, "Foto atualizada com sucesso!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 localAvatarPreviewUri = null
@@ -182,7 +184,6 @@ fun PerfilScreen(
             try {
                 RetrofitClient.financeApi.deleteProfilePhoto("Bearer $token")
                 localAvatarPreviewUri = null
-                avatarCacheVersion = null
                 sessionManager.saveAvatarUrl(null)
                 Toast.makeText(context, "Foto removida com sucesso!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
