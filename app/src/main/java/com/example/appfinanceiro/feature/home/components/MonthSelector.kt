@@ -23,12 +23,20 @@ import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 
 @Composable
-fun MonthSelector(monthIndex: Int, currentYear: Int, onPrevClick: () -> Unit, onNextClick: () -> Unit) {
+fun MonthSelector(
+    monthIndex: Int,
+    currentYear: Int,
+    onPrevClick: () -> Unit,
+    onNextClick: () -> Unit,
+    centerSuffix: String? = null
+) {
     val meses = arrayOf("Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
     val prevMonthName = if (monthIndex == 0) meses[11] else meses[monthIndex - 1]
     val currMonthName = meses[monthIndex]
     val nextMonthName = if (monthIndex == 11) meses[0] else meses[monthIndex + 1]
     val shortYear = currentYear.toString().takeLast(2)
+    val centerMonthName = if (centerSuffix != null) currMonthName.take(3) else currMonthName
+    val centerText = centerSuffix?.let { "$centerMonthName/$shortYear • $it" } ?: "$centerMonthName/$shortYear"
 
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onPrevClick() }) {
@@ -37,7 +45,7 @@ fun MonthSelector(monthIndex: Int, currentYear: Int, onPrevClick: () -> Unit, on
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(Icons.Default.CalendarMonth, contentDescription = "Mês atual", tint = PrimaryBlue)
-            Text(text = "$currMonthName/$shortYear", color = PrimaryBlue, fontWeight = FontWeight.Bold)
+            Text(text = centerText, color = PrimaryBlue, fontWeight = FontWeight.Bold)
             Divider(modifier = Modifier.width(40.dp).padding(top = 4.dp), color = PrimaryBlue, thickness = 2.dp)
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onNextClick() }) {

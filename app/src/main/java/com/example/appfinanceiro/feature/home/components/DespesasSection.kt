@@ -71,12 +71,18 @@ fun DespesasHeaderSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Despesas",
-                color = textColor,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Column(
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(
+                    text = "Despesas",
+                    color = textColor,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                ExpenseCountLabel(count = expenses.size)
+            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterButton(
@@ -170,6 +176,19 @@ fun DespesasHeaderSection(
             }
         }
     }
+}
+
+@Composable
+private fun ExpenseCountLabel(count: Int) {
+    val label = if (count == 1) "1 despesa" else "$count despesas"
+
+    Text(
+        text = label,
+        color = TextMuted,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1
+    )
 }
 
 @Composable
