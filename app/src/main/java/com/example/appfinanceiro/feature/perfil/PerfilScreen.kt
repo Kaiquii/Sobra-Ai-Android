@@ -1,6 +1,9 @@
 package com.example.appfinanceiro.feature.perfil
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
@@ -66,6 +69,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.exifinterface.media.ExifInterface
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
@@ -78,7 +82,11 @@ import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.auth.RetrofitClient
+import java.io.ByteArrayOutputStream
+import java.io.File
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -148,11 +156,14 @@ fun PerfilScreen(
             return
         }
 
-        localAvatarPreviewUri = uri
         isPhotoLoading = true
         coroutineScope.launch {
             try {
-                val photoPart = createPhotoPart(context, uri)
+                val preparedPhoto = withContext(Dispatchers.IO) {
+                    prepareProfilePhoto(context, uri)
+                }
+                localAvatarPreviewUri = preparedPhoto.previewUri
+                val photoPart = createPhotoPart(preparedPhoto)
                 val response = RetrofitClient.financeApi.updateProfilePhoto(
                     token = "Bearer $token",
                     photo = photoPart
@@ -597,17 +608,83 @@ private fun buildFullAvatarUrl(avatarUrl: String, cacheVersion: Long? = null): S
     } ?: fullUrl
 }
 
-private fun createPhotoPart(context: Context, uri: Uri): MultipartBody.Part {
-    val contentResolver = context.contentResolver
-    val mimeType = contentResolver.getType(uri) ?: "image/*"
-    val fileName = getFileName(context, uri)
-    val bytes = contentResolver.openInputStream(uri)?.use { input ->
+private class PreparedProfilePhoto(
+    val bytes: ByteArray,
+    val fileName: String,
+    val mimeType: String,
+    val previewUri: Uri
+)
+
+private fun prepareProfilePhoto(context: Context, uri: Uri): PreparedProfilePhoto {
+    val originalFileName = getFileName(context, uri)
+    val jpegFileName = originalFileName
+        .substringBeforeLast('.', missingDelimiterValue = "avatar")
+        .ifBlank { "avatar" }
+        .plus(".jpg")
+
+    val originalBytes = context.contentResolver.openInputStream(uri)?.use { input ->
         input.readBytes()
     } ?: throw IllegalArgumentException("Nao foi possivel ler a imagem selecionada.")
 
-    val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+    val originalBitmap = BitmapFactory.decodeByteArray(originalBytes, 0, originalBytes.size)
+        ?: throw IllegalArgumentException("Nao foi possivel decodificar a imagem selecionada.")
 
-    return MultipartBody.Part.createFormData("photo", fileName, requestBody)
+    val orientation = context.contentResolver.openInputStream(uri)?.use { input ->
+        ExifInterface(input).getAttributeInt(
+            ExifInterface.TAG_ORIENTATION,
+            ExifInterface.ORIENTATION_NORMAL
+        )
+    } ?: ExifInterface.ORIENTATION_NORMAL
+
+    val rotatedBitmap = rotateBitmapByExifOrientation(originalBitmap, orientation)
+    val normalizedBytes = ByteArrayOutputStream().use { output ->
+        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 90, output)
+        output.toByteArray()
+    }
+
+    if (rotatedBitmap !== originalBitmap) {
+        originalBitmap.recycle()
+    }
+    rotatedBitmap.recycle()
+
+    val previewFile = File(context.cacheDir, "profile-avatar-preview-${System.currentTimeMillis()}.jpg")
+    previewFile.writeBytes(normalizedBytes)
+
+    return PreparedProfilePhoto(
+        bytes = normalizedBytes,
+        fileName = jpegFileName,
+        mimeType = "image/jpeg",
+        previewUri = Uri.fromFile(previewFile)
+    )
+}
+
+private fun rotateBitmapByExifOrientation(bitmap: Bitmap, orientation: Int): Bitmap {
+    val matrix = Matrix()
+
+    when (orientation) {
+        ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+        ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+        ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+        ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.preScale(-1f, 1f)
+        ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.preScale(1f, -1f)
+        ExifInterface.ORIENTATION_TRANSPOSE -> {
+            matrix.postRotate(90f)
+            matrix.preScale(-1f, 1f)
+        }
+        ExifInterface.ORIENTATION_TRANSVERSE -> {
+            matrix.postRotate(270f)
+            matrix.preScale(-1f, 1f)
+        }
+        else -> return bitmap
+    }
+
+    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+}
+
+private fun createPhotoPart(photo: PreparedProfilePhoto): MultipartBody.Part {
+    val requestBody = photo.bytes.toRequestBody(photo.mimeType.toMediaTypeOrNull())
+
+    return MultipartBody.Part.createFormData("photo", photo.fileName, requestBody)
 }
 
 private fun getFileName(context: Context, uri: Uri): String {
