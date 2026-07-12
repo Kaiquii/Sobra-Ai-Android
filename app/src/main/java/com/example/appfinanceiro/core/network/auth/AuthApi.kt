@@ -13,7 +13,14 @@ import retrofit2.http.POST
 import java.util.concurrent.TimeUnit
 
 data class LoginRequest(val email: String, val password: String)
-data class RegisterRequest(val name: String, val email: String, val password: String)
+data class RequestRegisterCodeRequest(val email: String)
+
+data class RegisterRequest(
+    val name: String,
+    val email: String,
+    val password: String,
+    val code: String
+)
 
 data class ForgotPasswordRequest(val email: String)
 
@@ -45,6 +52,9 @@ interface AuthApi {
 
     @POST("api/auth/register")
     suspend fun register(@Body request: RegisterRequest): RegisterResponse
+
+    @POST("api/auth/request-register-code")
+    suspend fun requestRegisterCode(@Body request: RequestRegisterCodeRequest): DefaultAuthResponse
 
     @POST("api/auth/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): DefaultAuthResponse

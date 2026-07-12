@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LockReset
@@ -31,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.appfinanceiro.core.network.parseApiErrorMessage
 import com.example.appfinanceiro.core.network.auth.ForgotPasswordRequest
 import com.example.appfinanceiro.core.network.auth.ResetPasswordRequest
 import com.example.appfinanceiro.core.network.auth.RetrofitClient
@@ -40,6 +42,7 @@ import com.example.appfinanceiro.feature.login.components.AuthPasswordField
 import com.example.appfinanceiro.feature.login.components.AuthPrimaryButton
 import com.example.appfinanceiro.feature.login.components.AuthTextField
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 private enum class ForgotPasswordStep {
     Email,
@@ -91,6 +94,14 @@ fun EsqueciSenhaScreen(
 
                 Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
                 step = ForgotPasswordStep.ResetPassword
+            } catch (e: HttpException) {
+                val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
+                errorMessage = if (e.code() == 429) {
+                    "Muitas tentativas. Aguarde alguns minutos antes de solicitar outro código."
+                } else {
+                    apiMessage ?: "Não foi possível solicitar o código. Tente novamente."
+                }
+                android.util.Log.e("API_ERRO", "Falha ao solicitar codigo", e)
             } catch (e: Exception) {
                 errorMessage = "Não foi possível solicitar o código. Tente novamente."
                 android.util.Log.e("API_ERRO", "Falha ao solicitar codigo", e)
@@ -154,7 +165,8 @@ fun EsqueciSenhaScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp)
+                .statusBarsPadding()
+                .padding(top = 12.dp)
         ) {
             IconButton(
                 onClick = onNavigateBack,

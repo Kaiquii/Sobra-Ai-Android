@@ -141,10 +141,13 @@ fun AuthPasswordField(
         enabled = enabled,
         visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
-            IconButton(onClick = { visible = !visible }) {
+            IconButton(
+                onClick = { visible = !visible },
+                modifier = Modifier.size(48.dp)
+            ) {
                 Icon(
                     imageVector = if (visible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                    contentDescription = null,
+                    contentDescription = if (visible) "Ocultar senha" else "Mostrar senha",
                     tint = TextSecondary
                 )
             }
