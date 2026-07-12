@@ -64,8 +64,7 @@ fun AppUpdateGate() {
             val response = RetrofitClient.financeApi.getAppVersion(platform = "android")
             val installedVersionCode = BuildConfig.VERSION_CODE
             val hasUpdate = installedVersionCode < response.latestVersionCode
-            val mustUpdate = response.forceUpdate ||
-                installedVersionCode < response.minRequiredVersionCode
+            val mustUpdate = installedVersionCode < response.minRequiredVersionCode
 
             if (mustUpdate || hasUpdate) {
                 updateState = AppUpdateState(
