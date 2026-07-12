@@ -23,6 +23,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import com.example.appfinanceiro.core.biometric.BiometricAuth
 import com.example.appfinanceiro.core.data.SessionManager
@@ -52,6 +54,7 @@ import com.example.appfinanceiro.feature.login.components.AuthPasswordField
 import com.example.appfinanceiro.feature.login.components.AuthPrimaryButton
 import com.example.appfinanceiro.feature.login.components.AuthTextField
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import retrofit2.HttpException
 
 @Composable
@@ -68,6 +71,9 @@ fun LoginScreen(
     var senha by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    var blockedEmail by remember { mutableStateOf("") }
+    var loginBlockedUntilMillis by remember { mutableStateOf(0L) }
+    var currentTimeMillis by remember { mutableStateOf(System.currentTimeMillis()) }
 
     var showBiometricOffer by remember { mutableStateOf(false) }
     var pendingToken by remember { mutableStateOf("") }
@@ -93,6 +99,20 @@ fun LoginScreen(
                 biometricEnabledForSavedUser &&
                 BiometricAuth.isAvailable(activity)
     val biometricActivity = activity?.takeIf { canUseBiometric }
+    val normalizedEmail = email.trim().lowercase()
+    val isLoginTemporarilyBlocked =
+        normalizedEmail.isNotBlank() &&
+                normalizedEmail == blockedEmail &&
+                currentTimeMillis < loginBlockedUntilMillis
+    val remainingBlockSeconds = ((loginBlockedUntilMillis - currentTimeMillis).coerceAtLeast(0L) + 999L) / 1000L
+
+    LaunchedEffect(loginBlockedUntilMillis) {
+        while (System.currentTimeMillis() < loginBlockedUntilMillis) {
+            currentTimeMillis = System.currentTimeMillis()
+            delay(1_000)
+        }
+        currentTimeMillis = System.currentTimeMillis()
+    }
 
     fun clearError() {
         errorMessage = ""
@@ -128,6 +148,8 @@ fun LoginScreen(
     }
 
     fun login() {
+        if (isLoginTemporarilyBlocked) return
+
         if (email.isBlank() || senha.isBlank()) {
             errorMessage = "Preencha e-mail e senha."
             return
@@ -162,7 +184,12 @@ fun LoginScreen(
             } catch (e: HttpException) {
                 val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
 
-                if (e.code() == 403 && !apiMessage.isNullOrBlank()) {
+                if (e.code() == 429) {
+                    blockedEmail = normalizedEmail
+                    loginBlockedUntilMillis = System.currentTimeMillis() + LOGIN_BLOCK_DURATION_MILLIS
+                    currentTimeMillis = System.currentTimeMillis()
+                    errorMessage = apiMessage ?: "Muitas tentativas de login. Tente novamente em alguns minutos."
+                } else if (e.code() == 403 && !apiMessage.isNullOrBlank()) {
                     sessionManager.clearSession()
                     errorMessage = apiMessage
                 } else {
@@ -248,10 +275,24 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        if (isLoginTemporarilyBlocked) {
+            Text(
+                text = "Bloqueio temporário para este e-mail. Você pode corrigir os dados, mas aguarde para tentar novamente.",
+                color = TextSecondary,
+                fontSize = 13.sp,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         AuthPrimaryButton(
-            text = "Entrar",
+            text = if (isLoginTemporarilyBlocked) {
+                "Tente novamente em ${formatRemainingTime(remainingBlockSeconds)}"
+            } else {
+                "Entrar"
+            },
             isLoading = isLoading,
-            enabled = true,
+            enabled = !isLoginTemporarilyBlocked,
             onClick = { login() }
         )
 
@@ -358,4 +399,12 @@ fun LoginScreen(
             }
         )
     }
+}
+
+private const val LOGIN_BLOCK_DURATION_MILLIS = 5 * 60 * 1_000L
+
+private fun formatRemainingTime(totalSeconds: Long): String {
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%d:%02d".format(minutes, seconds)
 }
