@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.AlertDialog
@@ -224,11 +225,16 @@ private fun UpdateDialogActions(
     onDismiss: () -> Unit,
     onUpdateClick: () -> Unit
 ) {
+    val actionTextColor = if (isSystemInDarkTheme()) Color.Black else Color.White
+
     if (mustUpdate) {
         Button(
             onClick = onUpdateClick,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = updateTypeColor),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = updateTypeColor,
+                contentColor = actionTextColor
+            ),
             shape = RoundedCornerShape(18.dp)
         ) {
             Text("Atualizar agora")
@@ -253,7 +259,10 @@ private fun UpdateDialogActions(
         Button(
             onClick = onUpdateClick,
             modifier = Modifier.weight(1f),
-            colors = ButtonDefaults.buttonColors(containerColor = updateTypeColor),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = updateTypeColor,
+                contentColor = actionTextColor
+            ),
             shape = RoundedCornerShape(18.dp)
         ) {
             Text("Atualizar")
