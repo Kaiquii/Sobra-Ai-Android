@@ -455,15 +455,18 @@ private fun ProfileHeader(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier.size(80.dp),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.size(width = 92.dp, height = 96.dp),
+                contentAlignment = Alignment.TopCenter
             ) {
                 Box(
                     modifier = Modifier
                         .size(76.dp)
                         .background(PrimaryBlue.copy(alpha = 0.16f), CircleShape)
                         .clip(CircleShape)
-                        .clickable(enabled = !isPhotoLoading, onClick = onAvatarClick),
+                        .clickable(
+                            enabled = !isPhotoLoading && avatarImageModel != null,
+                            onClick = onAvatarClick
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     when {
