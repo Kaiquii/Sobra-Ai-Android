@@ -204,6 +204,9 @@ class MainActivity : FragmentActivity() {
                                         2 -> navController.navigate("relatorios") { launchSingleTop = true }
                                     }
                                 },
+                                onAddClick = {
+                                    navController.navigate("nova_despesa")
+                                },
                                 onIncomeSettingsClick = {
                                     navController.navigate("configuracoes_renda")
                                 },
