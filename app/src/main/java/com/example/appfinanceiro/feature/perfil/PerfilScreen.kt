@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
@@ -45,9 +47,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -70,6 +73,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.exifinterface.media.ExifInterface
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
@@ -271,31 +276,67 @@ fun PerfilScreen(
     }
 
     if (showPhotoPreviewDialog && avatarImageModel != null) {
-        AlertDialog(
+        Dialog(
             onDismissRequest = { showPhotoPreviewDialog = false },
-            containerColor = MaterialTheme.colorScheme.background,
-            shape = RoundedCornerShape(24.dp),
-            text = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(PrimaryBlue.copy(alpha = 0.08f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    ProfileAvatarImage(
-                        model = avatarImageModel,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showPhotoPreviewDialog = false }) {
-                    Text("Fechar", color = PrimaryBlue, fontWeight = FontWeight.Medium)
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth(0.92f)
+                    .widthIn(max = 480.dp),
+                color = MaterialTheme.colorScheme.background,
+                shape = RoundedCornerShape(20.dp),
+                tonalElevation = 0.dp,
+                shadowElevation = 8.dp
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 6.dp, bottom = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Foto de perfil",
+                                color = textColor,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = userName.ifBlank { "SobraAí" },
+                                color = TextMuted,
+                                fontSize = 12.sp,
+                                maxLines = 1
+                            )
+                        }
+
+                        IconButton(onClick = { showPhotoPreviewDialog = false }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Fechar",
+                                tint = textColor
+                            )
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ProfileAvatarImage(
+                            model = avatarImageModel,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
-        )
+        }
     }
 
     Scaffold(
@@ -304,6 +345,15 @@ fun PerfilScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Meu perfil", color = textColor, fontWeight = FontWeight.Bold, fontSize = 24.sp) },
+                actions = {
+                    IconButton(onClick = { showExitDialog = true }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = "Sair da conta",
+                            tint = DangerRed
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
         },
@@ -320,7 +370,7 @@ fun PerfilScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             ProfileHeader(
                 userName = userName,
@@ -339,7 +389,7 @@ fun PerfilScreen(
                 onEditProfileClick = onEditProfileClick
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             SectionTitle("Finanças")
             SettingsItem(
@@ -369,23 +419,7 @@ fun PerfilScreen(
                 onClick = onHelpClick
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            OutlinedButton(
-                onClick = { showExitDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DangerRed),
-                border = androidx.compose.foundation.BorderStroke(1.dp, DangerRed.copy(alpha = 0.45f))
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Sair", tint = DangerRed)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Sair da conta", color = DangerRed, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
@@ -417,16 +451,16 @@ private fun ProfileHeader(
         modifier = Modifier
             .fillMaxWidth()
             .background(surfaceColor, RoundedCornerShape(16.dp))
-            .padding(16.dp)
+            .padding(14.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier.size(88.dp),
+                modifier = Modifier.size(80.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = Modifier
-                        .size(82.dp)
+                        .size(76.dp)
                         .background(PrimaryBlue.copy(alpha = 0.16f), CircleShape)
                         .clip(CircleShape)
                         .clickable(enabled = !isPhotoLoading, onClick = onAvatarClick),
@@ -533,13 +567,13 @@ private fun ProfileHeader(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Button(
             onClick = onEditProfileClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(44.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = PrimaryBlue,
@@ -562,7 +596,7 @@ private fun SectionTitle(title: String) {
         fontSize = 17.sp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 2.dp, bottom = 10.dp)
+            .padding(start = 2.dp, bottom = 8.dp)
     )
 }
 
@@ -580,22 +614,22 @@ private fun SettingsItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 10.dp)
+            .padding(bottom = 8.dp)
             .background(cardBg, RoundedCornerShape(12.dp))
             .clickable { onClick() }
-            .padding(horizontal = 14.dp, vertical = 14.dp),
+            .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(44.dp)
                 .background(iconColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(icon, contentDescription = null, tint = iconColor)
         }
 
-        Spacer(modifier = Modifier.width(14.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(title, color = textColor, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
@@ -635,6 +669,7 @@ private fun AvatarActionButton(
 @Composable
 private fun ProfileAvatarImage(
     model: Any,
+    contentScale: ContentScale = ContentScale.Crop,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -648,7 +683,7 @@ private fun ProfileAvatarImage(
             .networkCachePolicy(CachePolicy.ENABLED)
             .build(),
         contentDescription = "Foto de perfil",
-        contentScale = ContentScale.Crop,
+        contentScale = contentScale,
         modifier = modifier
     )
 }
