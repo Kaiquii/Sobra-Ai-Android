@@ -15,14 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AddCircleOutline
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,10 +32,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.appfinanceiro.core.designsystem.theme.GreenPositive
+import com.example.appfinanceiro.core.designsystem.components.ExpenseCard
+import com.example.appfinanceiro.core.designsystem.components.ExpenseCardStyle
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Expense
@@ -300,168 +297,17 @@ fun ExpenseItem(
     notes: String?,
     onViewClick: () -> Unit
 ) {
-    val textColor = MaterialTheme.colorScheme.onBackground
-    val cardBg = MaterialTheme.colorScheme.surface
-    val sourceColor = paymentSourceColor(paymentSource)
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(cardBg, RoundedCornerShape(12.dp))
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(42.dp)
-                .background(iconColor.copy(alpha = 0.16f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                color = textColor,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Text(
-                text = categoryName,
-                color = TextMuted,
-                fontSize = 12.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                MiniChip(label = type, color = TextMuted)
-
-                Spacer(modifier = Modifier.width(6.dp))
-
-                Text(
-                    text = date,
-                    color = TextMuted,
-                    fontSize = 10.sp,
-                    maxLines = 1
-                )
-
-                if (!notes.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    NoteIndicatorIcon()
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Column(horizontalAlignment = Alignment.End) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = value,
-                    color = textColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-
-                Spacer(modifier = Modifier.width(6.dp))
-
-                Box(
-                    modifier = Modifier
-                        .size(18.dp)
-                        .clickable { onViewClick() }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Visibility,
-                        contentDescription = "Visualizar despesa",
-                        tint = TextMuted,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier
-                    .background(sourceColor.copy(alpha = 0.14f), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 7.dp, vertical = 3.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AccountBalanceWallet,
-                    contentDescription = "Fonte",
-                    tint = sourceColor,
-                    modifier = Modifier.size(11.dp)
-                )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                Text(
-                    text = paymentSource,
-                    color = sourceColor,
-                    fontSize = 10.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun NoteIndicatorIcon() {
-    Box(
-        modifier = Modifier
-            .background(PrimaryBlue.copy(alpha = 0.10f), RoundedCornerShape(6.dp))
-            .padding(4.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Description,
-            contentDescription = "Despesa com observação",
-            tint = PrimaryBlue,
-            modifier = Modifier.size(12.dp)
-        )
-    }
-}
-
-@Composable
-private fun MiniChip(label: String, color: Color) {
-    Box(
-        modifier = Modifier
-            .background(color.copy(alpha = 0.18f), RoundedCornerShape(4.dp))
-            .padding(horizontal = 6.dp, vertical = 2.dp)
-    ) {
-        Text(text = label, color = color, fontSize = 10.sp)
-    }
-}
-
-private fun paymentSourceColor(paymentSource: String): Color {
-    return when {
-        paymentSource.equals("Salario", ignoreCase = true) ||
-                paymentSource.equals("Salário", ignoreCase = true) -> PrimaryBlue
-
-        paymentSource.equals("Adiantamento", ignoreCase = true) -> Color(0xFF8B5CF6)
-
-        paymentSource.equals("Renda Extra", ignoreCase = true) -> GreenPositive
-
-        else -> TextMuted
-    }
+    ExpenseCard(
+        style = ExpenseCardStyle.Compact,
+        icon = icon,
+        iconColor = iconColor,
+        title = title,
+        categoryName = categoryName,
+        paymentSource = paymentSource,
+        type = type,
+        date = date,
+        value = value,
+        notes = notes,
+        onView = onViewClick
+    )
 }

@@ -19,16 +19,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -39,7 +33,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
@@ -64,6 +57,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.components.ExpenseDetailsDialog
+import com.example.appfinanceiro.core.designsystem.components.ExpenseCard
+import com.example.appfinanceiro.core.designsystem.components.ExpenseCardStyle
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
 import com.example.appfinanceiro.core.designsystem.components.swipeNavigation
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
@@ -451,48 +446,6 @@ private fun normalizeAmountSearchText(value: String): String {
 }
 
 @Composable
-private fun ExpenseNoteIndicatorIcon() {
-    Box(
-        modifier = Modifier
-            .background(PrimaryBlue.copy(alpha = 0.10f), RoundedCornerShape(6.dp))
-            .padding(4.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Description,
-            contentDescription = "Despesa com observação",
-            tint = PrimaryBlue,
-            modifier = Modifier.size(12.dp)
-        )
-    }
-}
-
-@Composable
-private fun ExpenseNotePreviewChip(text: String, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier
-            .background(PrimaryBlue.copy(alpha = 0.10f), RoundedCornerShape(6.dp))
-            .padding(horizontal = 6.dp, vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Default.Description,
-            contentDescription = "Despesa com observação",
-            tint = PrimaryBlue,
-            modifier = Modifier.size(10.dp)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = text,
-            color = PrimaryBlue,
-            fontSize = 10.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
 fun DespesaListItem(
     expense: Expense,
     categoriesMap: Map<Int, String>,
@@ -500,7 +453,6 @@ fun DespesaListItem(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val colorScheme = MaterialTheme.colorScheme
     val dateFormat = remember { SimpleDateFormat("dd/MM", Locale("pt", "BR")) }
     val formattedDate = try {
         val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault())
@@ -525,144 +477,19 @@ fun DespesaListItem(
     val paymentSource = expense.payment_source ?: "Salário"
     val (icon, color) = getCategoryIconAndColor(categoryName)
 
-    val cardBg = colorScheme.surface
-    val titleColor = colorScheme.onSurface
-    val secondaryColor = colorScheme.onSurfaceVariant
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = cardBg
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(color.copy(alpha = 0.12f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = expense.description,
-                    color = titleColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = categoryName,
-                    color = secondaryColor,
-                    fontSize = 13.sp
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val typeChipBg = TextMuted.copy(alpha = 0.2f)
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .background(typeChipBg, RoundedCornerShape(4.dp))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = typeLabel,
-                            color = TextMuted,
-                            fontSize = 10.sp
-                        )
-                    }
-                    Text(
-                        text = " • $formattedDate",
-                        color = secondaryColor,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                    if (!expense.notes.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        ExpenseNoteIndicatorIcon()
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(horizontalAlignment = Alignment.End) {
-                Row {
-                    Box(
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clickable { onView() }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Visibility,
-                            contentDescription = "Visualizar despesa",
-                            tint = secondaryColor,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar",
-                        tint = PrimaryBlue,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clickable { onEdit() }
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Deletar",
-                        tint = DangerRed,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clickable { onDelete() }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "- $formattedAmount",
-                    color = titleColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.AccountBalanceWallet,
-                        contentDescription = null,
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = paymentSource,
-                        color = secondaryColor,
-                        fontSize = 12.sp
-                    )
-                }
-            }
-        }
-    }
+    ExpenseCard(
+        style = ExpenseCardStyle.Detailed,
+        icon = icon,
+        iconColor = color,
+        title = expense.description,
+        categoryName = categoryName,
+        paymentSource = paymentSource,
+        type = typeLabel,
+        date = formattedDate,
+        value = "- $formattedAmount",
+        notes = expense.notes,
+        onView = onView,
+        onEdit = onEdit,
+        onDelete = onDelete
+    )
 }
