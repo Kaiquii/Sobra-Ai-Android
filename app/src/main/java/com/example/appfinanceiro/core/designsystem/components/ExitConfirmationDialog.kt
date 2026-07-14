@@ -1,14 +1,11 @@
 package com.example.appfinanceiro.core.designsystem.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import com.example.appfinanceiro.core.designsystem.theme.BackgroundDark
-import com.example.appfinanceiro.core.designsystem.theme.BackgroundLight
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 
@@ -17,9 +14,8 @@ fun ExitConfirmationDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
-    val backgroundColor = if (isDark) BackgroundDark else BackgroundLight
-    val textColor = if (isDark) Color.White else Color.Black
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val textColor = MaterialTheme.colorScheme.onBackground
 
     AlertDialog(
         onDismissRequest = onDismiss,

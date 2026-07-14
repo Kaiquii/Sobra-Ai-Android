@@ -2,7 +2,6 @@ package com.example.appfinanceiro.feature.perfil.components
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,8 +48,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.appfinanceiro.core.data.SessionManager
-import com.example.appfinanceiro.core.designsystem.theme.BackgroundDark
-import com.example.appfinanceiro.core.designsystem.theme.BackgroundLight
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Category
 import com.example.appfinanceiro.core.network.CategoryRequest
@@ -96,11 +93,9 @@ fun CategoriasScreen(onNavigateBack: () -> Unit) {
     }
 
     if (editingCategory != null) {
-        val isDark = isSystemInDarkTheme()
-        val dialogBackgroundColor = if (isDark) BackgroundDark else BackgroundLight
-        val dialogTextColor = if (isDark) Color.White else Color.Black
-        val dialogSecondaryTextColor =
-            if (isDark) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.8f)
+        val dialogBackgroundColor = MaterialTheme.colorScheme.background
+        val dialogTextColor = MaterialTheme.colorScheme.onBackground
+        val dialogSecondaryTextColor = dialogTextColor.copy(alpha = 0.8f)
 
         AlertDialog(
             onDismissRequest = { editingCategory = null },

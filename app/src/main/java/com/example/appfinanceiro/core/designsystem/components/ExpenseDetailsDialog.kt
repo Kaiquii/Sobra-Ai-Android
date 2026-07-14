@@ -1,7 +1,6 @@
 package com.example.appfinanceiro.core.designsystem.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,9 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.appfinanceiro.core.designsystem.theme.BackgroundDark
-import com.example.appfinanceiro.core.designsystem.theme.BackgroundLight
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
+import com.example.appfinanceiro.core.designsystem.theme.expenseDetailBlock
 import com.example.appfinanceiro.core.network.Expense
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -41,9 +39,8 @@ fun ExpenseDetailsDialog(
     categoryName: String,
     onDismiss: () -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
-    val dialogBackgroundColor = if (isDark) BackgroundDark else BackgroundLight
-    val dialogTextColor = if (isDark) Color.White else Color.Black
+    val dialogBackgroundColor = MaterialTheme.colorScheme.background
+    val dialogTextColor = MaterialTheme.colorScheme.onBackground
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("pt", "BR")) }
     val formattedAmount = remember(expense.amount) { currencyFormatter.format(expense.amount) }
     val formattedDate = remember(expense.date) { formatExpenseDetailsDate(expense.date) }
@@ -173,8 +170,7 @@ private fun DetailChip(text: String) {
 
 @Composable
 private fun DetailsGroup(paymentSource: String, date: String, textColor: Color) {
-    val isDark = isSystemInDarkTheme()
-    val blockColor = if (isDark) Color(0xFF18222E) else Color(0xFFF2F4F7)
+    val blockColor = MaterialTheme.colorScheme.expenseDetailBlock
 
     Column(
         modifier = Modifier
@@ -223,8 +219,7 @@ private fun DetailLine(label: String, value: String, textColor: Color) {
 @Composable
 private fun NotesDetailBox(value: String, textColor: Color) {
     val colorScheme = MaterialTheme.colorScheme
-    val isDark = isSystemInDarkTheme()
-    val blockColor = if (isDark) Color(0xFF18222E) else Color(0xFFF2F4F7)
+    val blockColor = colorScheme.expenseDetailBlock
     val scrollState = rememberScrollState()
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

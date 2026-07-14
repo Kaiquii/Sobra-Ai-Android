@@ -1,13 +1,13 @@
 package com.example.appfinanceiro.feature.home.components.income
 
 import android.widget.Toast
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -17,13 +17,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.appfinanceiro.core.designsystem.theme.BackgroundDark
-import com.example.appfinanceiro.core.designsystem.theme.BackgroundLight
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Income
@@ -42,14 +39,12 @@ fun IncomeDeleteDialog(
     onDismiss: () -> Unit,
     onSuccess: () -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val dialogBackgroundColor = if (isDark) BackgroundDark else BackgroundLight
-    val dialogTextColor = if (isDark) Color.White else Color.Black
-    val dialogSecondaryTextColor =
-        if (isDark) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.8f)
+    val dialogBackgroundColor = MaterialTheme.colorScheme.background
+    val dialogTextColor = MaterialTheme.colorScheme.onBackground
+    val dialogSecondaryTextColor = dialogTextColor.copy(alpha = 0.8f)
 
     var deleteFuture by remember { mutableStateOf(false) }
 

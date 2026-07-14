@@ -1,7 +1,6 @@
 package com.example.appfinanceiro.feature.despesas.components
 
 import android.widget.Toast
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,8 +22,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,8 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.appfinanceiro.core.data.SessionManager
-import com.example.appfinanceiro.core.designsystem.theme.BackgroundDark
-import com.example.appfinanceiro.core.designsystem.theme.BackgroundLight
+import com.example.appfinanceiro.core.designsystem.components.AppDatePickerDialog
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Category
@@ -105,9 +101,8 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
     var installments by remember { mutableIntStateOf(1) }
     var isLoading by remember { mutableStateOf(false) }
 
-    val isDark = isSystemInDarkTheme()
-    val dialogBackgroundColor = if (isDark) BackgroundDark else BackgroundLight
-    val dialogTextColor = if (isDark) Color.White else Color.Black
+    val dialogBackgroundColor = MaterialTheme.colorScheme.background
+    val dialogTextColor = MaterialTheme.colorScheme.onBackground
 
     var showCreateCategoryDialog by remember { mutableStateOf(false) }
     var newCategoryName by remember { mutableStateOf("") }
@@ -218,20 +213,24 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
     }
 
     if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { millis ->
-                        val selectedCal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = millis }
-                        calendar.set(selectedCal.get(Calendar.YEAR), selectedCal.get(Calendar.MONTH), selectedCal.get(Calendar.DAY_OF_MONTH))
-                        dateText = displayFormat.format(calendar.time)
+        AppDatePickerDialog(
+            state = datePickerState,
+            onConfirm = { selectedDateMillis ->
+                selectedDateMillis?.let { millis ->
+                    val selectedCal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                        timeInMillis = millis
                     }
-                    showDatePicker = false
-                }) { Text("OK", color = PrimaryBlue) }
+                    calendar.set(
+                        selectedCal.get(Calendar.YEAR),
+                        selectedCal.get(Calendar.MONTH),
+                        selectedCal.get(Calendar.DAY_OF_MONTH)
+                    )
+                    dateText = displayFormat.format(calendar.time)
+                }
+                showDatePicker = false
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancelar", color = TextMuted) } }
-        ) { DatePicker(state = datePickerState) }
+            onDismiss = { showDatePicker = false }
+        )
     }
 
     Scaffold(
