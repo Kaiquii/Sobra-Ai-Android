@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Chat
@@ -31,6 +32,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -73,15 +75,20 @@ fun HomeScreen(
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
+    val listState = rememberLazyListState()
 
-    var currentMonthIndex by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
-    var currentYear by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
+    var currentMonthIndex by rememberSaveable {
+        mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))
+    }
+    var currentYear by rememberSaveable {
+        mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR))
+    }
 
     var showCategoryFilterModal by remember { mutableStateOf(false) }
     var showPaymentSourceFilterModal by remember { mutableStateOf(false) }
     var expenseToView by remember { mutableStateOf<Expense?>(null) }
-    var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
-    var selectedPaymentSource by remember { mutableStateOf<String?>(null) }
+    var selectedCategoryId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var selectedPaymentSource by rememberSaveable { mutableStateOf<String?>(null) }
     var showExitDialog by remember { mutableStateOf(false) }
 
     var refreshIncomeActions by remember { mutableIntStateOf(0) }
@@ -202,6 +209,7 @@ fun HomeScreen(
         }
     ) { paddingValues ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)

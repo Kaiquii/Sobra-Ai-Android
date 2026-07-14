@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -45,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -85,6 +87,7 @@ fun DespesasScreen(
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
+    val listState = rememberLazyListState()
     val colorScheme = MaterialTheme.colorScheme
 
     val backgroundColor = colorScheme.background
@@ -95,12 +98,16 @@ fun DespesasScreen(
 
     var refreshTrigger by remember { mutableIntStateOf(0) }
 
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("Todas") }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var selectedFilter by rememberSaveable { mutableStateOf("Todas") }
 
     val calendar = remember { Calendar.getInstance() }
-    var currentMonthIndex by remember { mutableIntStateOf(calendar.get(Calendar.MONTH)) }
-    var currentYear by remember { mutableIntStateOf(calendar.get(Calendar.YEAR)) }
+    var currentMonthIndex by rememberSaveable {
+        mutableIntStateOf(calendar.get(Calendar.MONTH))
+    }
+    var currentYear by rememberSaveable {
+        mutableIntStateOf(calendar.get(Calendar.YEAR))
+    }
 
     var expenseToDelete by remember { mutableStateOf<Expense?>(null) }
     var expenseToView by remember { mutableStateOf<Expense?>(null) }
@@ -315,10 +322,14 @@ fun DespesasScreen(
                 }
             } else {
                 LazyColumn(
+                    state = listState,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(filteredExpenses) { expense ->
+                    items(
+                        items = filteredExpenses,
+                        key = { expense -> expense.id }
+                    ) { expense ->
                         DespesaListItem(
                             expense = expense,
                             categoriesMap = uiState.categoriesMap,

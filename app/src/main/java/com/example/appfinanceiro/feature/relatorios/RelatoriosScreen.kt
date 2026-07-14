@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CreditCard
@@ -31,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,21 +64,26 @@ fun RelatoriosScreen(
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
+    val listState = rememberLazyListState()
 
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColor = MaterialTheme.colorScheme.onBackground
 
-    var currentMonthIndex by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
-    var currentYear by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
-    var compareMonthIndex by remember {
+    var currentMonthIndex by rememberSaveable {
+        mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))
+    }
+    var currentYear by rememberSaveable {
+        mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR))
+    }
+    var compareMonthIndex by rememberSaveable {
         val previousMonth = Calendar.getInstance().apply { add(Calendar.MONTH, -1) }
         mutableIntStateOf(previousMonth.get(Calendar.MONTH))
     }
-    var compareYear by remember {
+    var compareYear by rememberSaveable {
         val previousMonth = Calendar.getInstance().apply { add(Calendar.MONTH, -1) }
         mutableIntStateOf(previousMonth.get(Calendar.YEAR))
     }
-    var selectedRange by remember { mutableStateOf(ReportRange.ONE_MONTH) }
+    var selectedRange by rememberSaveable { mutableStateOf(ReportRange.ONE_MONTH) }
 
     val currentMonthNumber = currentMonthIndex + 1
     val compareMonthNumber = compareMonthIndex + 1
@@ -197,6 +204,7 @@ fun RelatoriosScreen(
             }
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = 16.dp,

@@ -124,6 +124,26 @@ class MainActivity : FragmentActivity() {
                         else -> "login"
                     }
 
+                    fun navigateToMainTab(tabIndex: Int) {
+                        val route = when (tabIndex) {
+                            0 -> "home"
+                            1 -> "despesas"
+                            2 -> "relatorios"
+                            3 -> "perfil"
+                            else -> return
+                        }
+
+                        if (navController.currentDestination?.route == route) return
+
+                        navController.navigate(route) {
+                            popUpTo("home") {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+
                     NavHost(navController = navController, startDestination = destination) {
 
                         composable("login") {
@@ -163,13 +183,7 @@ class MainActivity : FragmentActivity() {
 
                         composable("home") {
                             HomeScreen(
-                                onNavigate = { tabIndex ->
-                                    when (tabIndex) {
-                                        1 -> navController.navigate("despesas") { launchSingleTop = true }
-                                        2 -> navController.navigate("relatorios") { launchSingleTop = true }
-                                        3 -> navController.navigate("perfil") { launchSingleTop = true }
-                                    }
-                                },
+                                onNavigate = ::navigateToMainTab,
                                 onAddClick = {
                                     navController.navigate("nova_despesa")
                                 },
@@ -194,16 +208,7 @@ class MainActivity : FragmentActivity() {
                                         popUpTo(0) { inclusive = true }
                                     }
                                 },
-                                onNavigate = { tabIndex ->
-                                    when (tabIndex) {
-                                        0 -> navController.navigate("home") {
-                                            popUpTo("home") { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                        1 -> navController.navigate("despesas") { launchSingleTop = true }
-                                        2 -> navController.navigate("relatorios") { launchSingleTop = true }
-                                    }
-                                },
+                                onNavigate = ::navigateToMainTab,
                                 onAddClick = {
                                     navController.navigate("nova_despesa")
                                 },
@@ -233,16 +238,7 @@ class MainActivity : FragmentActivity() {
 
                         composable("despesas") {
                             DespesasScreen(
-                                onNavigate = { tabIndex ->
-                                    when (tabIndex) {
-                                        0 -> navController.navigate("home") {
-                                            popUpTo("home") { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                        2 -> navController.navigate("relatorios") { launchSingleTop = true }
-                                        3 -> navController.navigate("perfil") { launchSingleTop = true }
-                                    }
-                                },
+                                onNavigate = ::navigateToMainTab,
                                 onAddClick = {
                                     navController.navigate("nova_despesa")
                                 },
@@ -283,16 +279,7 @@ class MainActivity : FragmentActivity() {
 
                         composable("relatorios") {
                             RelatoriosScreen(
-                                onNavigate = { tabIndex ->
-                                    when (tabIndex) {
-                                        0 -> navController.navigate("home") {
-                                            popUpTo("home") { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                        1 -> navController.navigate("despesas") { launchSingleTop = true }
-                                        3 -> navController.navigate("perfil") { launchSingleTop = true }
-                                    }
-                                },
+                                onNavigate = ::navigateToMainTab,
                                 onAddClick = {
                                     navController.navigate("nova_despesa")
                                 },
