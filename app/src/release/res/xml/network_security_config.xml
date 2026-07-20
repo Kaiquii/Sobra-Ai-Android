@@ -1,8 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <base-config cleartextTrafficPermitted="false" />
-    <domain-config cleartextTrafficPermitted="true">
-        <!-- Temporary exception until the API endpoint is migrated to HTTPS. -->
-        <domain includeSubdomains="false">137.131.247.103</domain>
-    </domain-config>
 </network-security-config>

@@ -8,6 +8,14 @@ if (localPropertiesFile.exists()) {
 }
 
 val apiUrl = localProperties.getProperty("API_BASE_URL")
+    ?.trim()
+    ?.trimEnd('/')
+    ?.plus("/")
+    ?: error("API_BASE_URL must be configured in local.properties")
+
+require(apiUrl.startsWith("https://")) {
+    "API_BASE_URL must use HTTPS"
+}
 
 plugins {
     alias(libs.plugins.android.application)
@@ -26,8 +34,8 @@ android {
         applicationId = "br.com.sobraai.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 113
-        versionName = "1.1.3"
+        versionCode = 114
+        versionName = "1.1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
