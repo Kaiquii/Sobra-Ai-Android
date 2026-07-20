@@ -47,18 +47,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appfinanceiro.core.data.FinanceActionsViewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Category
 import com.example.appfinanceiro.core.network.CategoryRequest
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import kotlinx.coroutines.launch
-import org.json.JSONObject
-import retrofit2.HttpException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoriasScreen(onNavigateBack: () -> Unit) {
+fun CategoriasScreen(
+    onNavigateBack: () -> Unit,
+    actionsViewModel: FinanceActionsViewModel = viewModel()
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val userToken by remember { SessionManager(context) }.token.collectAsState(initial = null)
@@ -82,10 +85,14 @@ fun CategoriasScreen(onNavigateBack: () -> Unit) {
         if (userToken != null) {
             isLoading = true
             try {
-                val response = RetrofitClient.financeApi.getCategories("Bearer $userToken")
+                val response = actionsViewModel.getCategories(userToken!!)
                 categories = response.categories
             } catch (e: Exception) {
-                Toast.makeText(context, "Erro ao carregar categorias", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    e.userMessageOr("Erro ao carregar categorias"),
+                    Toast.LENGTH_SHORT
+                ).show()
             } finally {
                 isLoading = false
             }
@@ -135,8 +142,8 @@ fun CategoriasScreen(onNavigateBack: () -> Unit) {
                         if (editingCategoryName.isBlank()) return@TextButton
                         coroutineScope.launch {
                             try {
-                                RetrofitClient.financeApi.updateCategory(
-                                    "Bearer $userToken",
+                                actionsViewModel.updateCategory(
+                                    userToken ?: return@launch,
                                     editingCategory!!.id,
                                     CategoryRequest(editingCategoryName.trim())
                                 )
@@ -187,28 +194,15 @@ fun CategoriasScreen(onNavigateBack: () -> Unit) {
 
                         coroutineScope.launch {
                             try {
-                                RetrofitClient.financeApi.deleteCategory(
-                                    "Bearer $userToken",
+                                actionsViewModel.deleteCategory(
+                                    userToken ?: return@launch,
                                     selectedCategory.id
                                 )
                                 Toast.makeText(context, "Categoria removida!", Toast.LENGTH_SHORT).show()
                                 categoryToDelete = null
                                 refreshTrigger++
-                            } catch (e: HttpException) {
-                                val errorBody = e.response()?.errorBody()?.string()
-                                val message = try {
-                                    JSONObject(errorBody ?: "").optString(
-                                        "error",
-                                        "Erro ao remover categoria"
-                                    )
-                                } catch (_: Exception) {
-                                    "Erro ao remover categoria"
-                                }
-
-                                deleteErrorMessage = message
-                                categoryToDelete = null
                             } catch (e: Exception) {
-                                deleteErrorMessage = "Erro ao remover categoria"
+                                deleteErrorMessage = e.userMessageOr("Erro ao remover categoria")
                                 categoryToDelete = null
                             }
                         }
@@ -302,8 +296,8 @@ fun CategoriasScreen(onNavigateBack: () -> Unit) {
                                 if (newCategoryName.isBlank()) return@Button
                                 coroutineScope.launch {
                                     try {
-                                        RetrofitClient.financeApi.createCategory(
-                                            "Bearer $userToken",
+                                        actionsViewModel.createCategory(
+                                            userToken ?: return@launch,
                                             CategoryRequest(newCategoryName.trim())
                                         )
                                         Toast.makeText(context, "Categoria criada!", Toast.LENGTH_SHORT).show()

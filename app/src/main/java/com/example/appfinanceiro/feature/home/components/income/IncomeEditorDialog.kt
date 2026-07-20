@@ -26,11 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appfinanceiro.core.data.FinanceActionsViewModel
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Income
 import com.example.appfinanceiro.core.network.IncomeRequest
 import com.example.appfinanceiro.core.network.IncomeUpdateRequest
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import kotlinx.coroutines.launch
 
 data class IncomeEditorState(
@@ -46,7 +48,8 @@ fun IncomeEditorDialog(
     month: Int,
     year: Int,
     onDismiss: () -> Unit,
-    onSuccess: () -> Unit
+    onSuccess: () -> Unit,
+    actionsViewModel: FinanceActionsViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -139,8 +142,8 @@ fun IncomeEditorDialog(
                     coroutineScope.launch {
                         try {
                             if (state.existingIncome == null) {
-                                RetrofitClient.financeApi.createIncome(
-                                    "Bearer $token",
+                                actionsViewModel.createIncome(
+                                    token ?: return@launch,
                                     IncomeRequest(
                                         source = state.source,
                                         amount = amount,
@@ -157,8 +160,8 @@ fun IncomeEditorDialog(
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } else {
-                                RetrofitClient.financeApi.updateIncome(
-                                    "Bearer $token",
+                                actionsViewModel.updateIncome(
+                                    token ?: return@launch,
                                     state.existingIncome.id,
                                     IncomeUpdateRequest(
                                         amount = amount,
@@ -177,7 +180,7 @@ fun IncomeEditorDialog(
                         } catch (e: Exception) {
                             Toast.makeText(
                                 context,
-                                "Erro ao salvar ${state.title}",
+                                e.userMessageOr("Erro ao salvar ${state.title}"),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }

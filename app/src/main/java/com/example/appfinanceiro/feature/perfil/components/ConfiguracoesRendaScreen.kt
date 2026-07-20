@@ -53,14 +53,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appfinanceiro.core.data.FinanceActionsViewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Income
 import com.example.appfinanceiro.core.network.IncomeRequest
 import com.example.appfinanceiro.core.network.IncomeUpdateRequest
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,7 +71,10 @@ import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConfiguracoesRendaScreen(onNavigateBack: () -> Unit) {
+fun ConfiguracoesRendaScreen(
+    onNavigateBack: () -> Unit,
+    actionsViewModel: FinanceActionsViewModel = viewModel()
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val userToken by remember { SessionManager(context) }.token.collectAsState(initial = null)
@@ -110,7 +115,7 @@ fun ConfiguracoesRendaScreen(onNavigateBack: () -> Unit) {
         if (userToken != null) {
             isLoading = true
             try {
-                val incomesResponse = RetrofitClient.financeApi.getIncomes("Bearer $userToken")
+                val incomesResponse = actionsViewModel.getIncomes(userToken!!)
                 incomes = incomesResponse.incomes
             } catch (e: Exception) {
                 Toast.makeText(context, "Erro ao carregar configurações", Toast.LENGTH_SHORT).show()
@@ -203,8 +208,8 @@ fun ConfiguracoesRendaScreen(onNavigateBack: () -> Unit) {
                         isDeleting = true
                         coroutineScope.launch {
                             try {
-                                val response = RetrofitClient.financeApi.deleteIncome(
-                                    token = "Bearer $userToken",
+                                val response = actionsViewModel.deleteIncome(
+                                    token = userToken ?: return@launch,
                                     id = selectedIncome.id,
                                     deleteFuture = if (deleteFutureSelected) true else null
                                 )
@@ -221,7 +226,7 @@ fun ConfiguracoesRendaScreen(onNavigateBack: () -> Unit) {
                             } catch (e: Exception) {
                                 Toast.makeText(
                                     context,
-                                    "Erro ao remover $incomeDeleteLabel",
+                                    e.userMessageOr("Erro ao remover $incomeDeleteLabel"),
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } finally {
@@ -347,6 +352,7 @@ fun ConfiguracoesRendaScreen(onNavigateBack: () -> Unit) {
                         onUpdateFutureChange = { salarioUpdateFuture = it },
                         onSave = {
                             saveIncome(
+                                actionsViewModel = actionsViewModel,
                                 context = context,
                                 source = "Salario",
                                 amountText = salarioAmount,
@@ -379,6 +385,7 @@ fun ConfiguracoesRendaScreen(onNavigateBack: () -> Unit) {
                         onUpdateFutureChange = { adiantamentoUpdateFuture = it },
                         onSave = {
                             saveIncome(
+                                actionsViewModel = actionsViewModel,
                                 context = context,
                                 source = "Adiantamento",
                                 amountText = adiantamentoAmount,
@@ -414,6 +421,7 @@ fun ConfiguracoesRendaScreen(onNavigateBack: () -> Unit) {
                         onRepeatFutureChange = { rendaExtraRepeatFuture = it },
                         onSave = {
                             saveIncome(
+                                actionsViewModel = actionsViewModel,
                                 context = context,
                                 source = "Renda Extra",
                                 amountText = rendaExtraAmount,
@@ -459,6 +467,7 @@ private fun currentIncome(
 
 
 private fun saveIncome(
+    actionsViewModel: FinanceActionsViewModel,
     context: Context,
     source: String,
     amountText: String,
@@ -482,8 +491,8 @@ private fun saveIncome(
             if (existingIncome == null) {
                 val isRendaExtra = source.equals("Renda Extra", ignoreCase = true)
 
-                RetrofitClient.financeApi.createIncome(
-                    "Bearer $token",
+                actionsViewModel.createIncome(
+                    token ?: return@launch,
                     IncomeRequest(
                         source = source,
                         amount = amount,
@@ -497,8 +506,8 @@ private fun saveIncome(
                 Toast.makeText(context, "$source cadastrado!", Toast.LENGTH_SHORT).show()
             }
             else {
-                RetrofitClient.financeApi.updateIncome(
-                    "Bearer $token",
+                actionsViewModel.updateIncome(
+                    token ?: return@launch,
                     existingIncome.id,
                     IncomeUpdateRequest(
                         amount = amount,
@@ -509,7 +518,11 @@ private fun saveIncome(
             }
             refresh()
         } catch (e: Exception) {
-            Toast.makeText(context, "Erro ao salvar $source", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                e.userMessageOr("Erro ao salvar $source"),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 }

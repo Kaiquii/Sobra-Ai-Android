@@ -111,7 +111,6 @@ fun DespesasScreen(
 
     var expenseToDelete by remember { mutableStateOf<Expense?>(null) }
     var expenseToView by remember { mutableStateOf<Expense?>(null) }
-    val searchCurrencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("pt", "BR")) }
 
     LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshTrigger) {
         userToken?.let { token ->
@@ -139,41 +138,17 @@ fun DespesasScreen(
         }
     }
 
-    fun matchesExpenseType(expense: Expense, filter: String): Boolean {
-        return when (filter) {
-            "Parceladas" -> expense.type.equals("Parcelada", ignoreCase = true)
-            "Únicas" -> expense.type.equals("Única", ignoreCase = true) ||
-                    expense.type.equals("Unica", ignoreCase = true)
-            "Fixas" -> expense.type.equals("Fixa", ignoreCase = true)
-            else -> true
-        }
-    }
-
-    val searchMatchedExpenses = uiState.expensesData.filter { expense ->
-        val trimmedQuery = searchQuery.trim()
-        val normalizedQuery = normalizeAmountSearchText(trimmedQuery)
-        val normalizedCurrencyAmount = normalizeAmountSearchText(
-            searchCurrencyFormatter.format(expense.amount)
-        )
-        val normalizedRawAmount = normalizeAmountSearchText(expense.amount.toString())
-
-        trimmedQuery.isBlank() ||
-                expense.description.contains(trimmedQuery, ignoreCase = true) ||
-                (
-                        normalizedQuery.isNotBlank() &&
-                                (
-                                        normalizedCurrencyAmount.contains(normalizedQuery) ||
-                                                normalizedRawAmount.contains(normalizedQuery)
-                                        )
-                        )
-    }
     val expenseFilters = listOf("Todas", "Parceladas", "Únicas", "Fixas")
-    val expenseCountsByFilter = expenseFilters.associateWith { filter ->
-        searchMatchedExpenses.count { expense -> matchesExpenseType(expense, filter) }
-    }
-    val filteredExpenses = searchMatchedExpenses.filter { expense ->
-        matchesExpenseType(expense, selectedFilter)
-    }
+    val expenseCountsByFilter = expenseCountsByFilter(
+        expenses = uiState.expensesData,
+        searchQuery = searchQuery,
+        filters = expenseFilters
+    )
+    val filteredExpenses = filterExpenses(
+        expenses = uiState.expensesData,
+        searchQuery = searchQuery,
+        selectedFilter = selectedFilter
+    )
     val selectedFilterCount = expenseCountsByFilter[selectedFilter] ?: filteredExpenses.size
 
     Scaffold(
@@ -446,14 +421,6 @@ fun DespesasScreen(
             onDismiss = { expenseToView = null }
         )
     }
-}
-
-private fun normalizeAmountSearchText(value: String): String {
-    return value
-        .lowercase(Locale("pt", "BR"))
-        .replace("r$", "")
-        .filter { it.isDigit() || it == ',' || it == '.' }
-        .replace(',', '.')
 }
 
 @Composable

@@ -32,17 +32,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.appfinanceiro.core.network.parseApiErrorMessage
-import com.example.appfinanceiro.core.network.auth.ForgotPasswordRequest
-import com.example.appfinanceiro.core.network.auth.ResetPasswordRequest
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appfinanceiro.core.data.ApiRequestException
+import com.example.appfinanceiro.core.data.AuthViewModel
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.feature.login.components.AuthErrorMessage
 import com.example.appfinanceiro.feature.login.components.AuthHeader
 import com.example.appfinanceiro.feature.login.components.AuthPasswordField
 import com.example.appfinanceiro.feature.login.components.AuthPrimaryButton
 import com.example.appfinanceiro.feature.login.components.AuthTextField
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 private enum class ForgotPasswordStep {
     Email,
@@ -51,7 +50,8 @@ private enum class ForgotPasswordStep {
 
 @Composable
 fun EsqueciSenhaScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
 ) {
     var step by remember { mutableStateOf(ForgotPasswordStep.Email) }
 
@@ -88,22 +88,19 @@ fun EsqueciSenhaScreen(
             clearError()
 
             try {
-                val response = RetrofitClient.authApi.forgotPassword(
-                    ForgotPasswordRequest(email.trim())
-                )
+                val response = authViewModel.forgotPassword(email.trim())
 
                 Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
                 step = ForgotPasswordStep.ResetPassword
-            } catch (e: HttpException) {
-                val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
-                errorMessage = if (e.code() == 429) {
+            } catch (e: ApiRequestException) {
+                errorMessage = if (e.statusCode == 429) {
                     "Muitas tentativas. Aguarde alguns minutos antes de solicitar outro código."
                 } else {
-                    apiMessage ?: "Não foi possível solicitar o código. Tente novamente."
+                    e.apiMessage ?: "Não foi possível solicitar o código. Tente novamente."
                 }
                 android.util.Log.e("API_ERRO", "Falha ao solicitar codigo", e)
             } catch (e: Exception) {
-                errorMessage = "Não foi possível solicitar o código. Tente novamente."
+                errorMessage = e.userMessageOr("Não foi possível solicitar o código. Tente novamente.")
                 android.util.Log.e("API_ERRO", "Falha ao solicitar codigo", e)
             } finally {
                 isLoading = false
@@ -135,18 +132,16 @@ fun EsqueciSenhaScreen(
                     clearError()
 
                     try {
-                        val response = RetrofitClient.authApi.resetPassword(
-                            ResetPasswordRequest(
-                                email = email.trim(),
-                                code = code,
-                                new_password = newPassword
-                            )
+                        val response = authViewModel.resetPassword(
+                            email = email.trim(),
+                            code = code,
+                            newPassword = newPassword
                         )
 
                         Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
                         onNavigateBack()
                     } catch (e: Exception) {
-                        errorMessage = "Código inválido ou expirado."
+                        errorMessage = e.userMessageOr("Código inválido ou expirado.")
                         android.util.Log.e("API_ERRO", "Falha ao redefinir senha", e)
                     } finally {
                         isLoading = false

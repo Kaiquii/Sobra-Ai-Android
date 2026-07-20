@@ -41,11 +41,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.com.sobraai.app.BuildConfig
+import com.example.appfinanceiro.core.data.AppVersionRepository
 import com.example.appfinanceiro.core.network.AppVersionResponse
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
-import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 private data class AppUpdateState(
     val version: AppVersionResponse,
@@ -57,14 +54,16 @@ private data class AppUpdateState(
 @Composable
 fun AppUpdateGate() {
     val context = LocalContext.current
+    val repository = remember { AppVersionRepository() }
     var updateState by remember { mutableStateOf<AppUpdateState?>(null) }
 
     LaunchedEffect(Unit) {
         try {
-            val response = RetrofitClient.financeApi.getAppVersion(platform = "android")
+            val response = repository.getAndroidVersion()
             val installedVersionCode = BuildConfig.VERSION_CODE
             val hasUpdate = installedVersionCode < response.latestVersionCode
-            val mustUpdate = installedVersionCode < response.minRequiredVersionCode
+            val mustUpdate = response.forceUpdate ||
+                installedVersionCode < response.minRequiredVersionCode
 
             if (mustUpdate || hasUpdate) {
                 updateState = AppUpdateState(
@@ -296,9 +295,9 @@ private fun UpdateInfoRow(
 
 private fun String.toBrazilianDateLabel(): String? {
     return runCatching {
-        val date = OffsetDateTime.parse(this)
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.forLanguageTag("pt-BR"))
-        date.format(formatter)
+        val parts = substringBefore('T').split('-')
+        require(parts.size == 3)
+        "${parts[2]}/${parts[1]}/${parts[0]}"
     }.getOrNull()
 }
 

@@ -51,17 +51,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appfinanceiro.core.data.FinanceActionsViewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.designsystem.components.AppDatePickerDialog
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Category
 import com.example.appfinanceiro.core.network.CategoryRequest
 import com.example.appfinanceiro.core.network.ExpenseRequest
-import com.example.appfinanceiro.core.network.parseApiErrorMessage
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
+import com.example.appfinanceiro.feature.despesas.validateExpenseForm
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -69,7 +70,10 @@ import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
+fun NovaDespesaScreen(
+    onNavigateBack: () -> Unit,
+    actionsViewModel: FinanceActionsViewModel = viewModel()
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val userToken by remember { SessionManager(context) }.token.collectAsState(initial = null)
@@ -111,9 +115,15 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
     LaunchedEffect(userToken) {
         if (userToken != null) {
             try {
-                categories = RetrofitClient.financeApi.getCategories("Bearer $userToken").categories
+                categories = actionsViewModel.getCategories(userToken!!).categories
                 if (categories.isNotEmpty()) selectedCategory = categories[0]
             } catch (e: Exception) { }
+        }
+    }
+
+    LaunchedEffect(showCreateCategoryDialog) {
+        if (showCreateCategoryDialog) {
+            expandedCategory = false
         }
     }
 
@@ -168,8 +178,8 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
                         isCreatingCategory = true
                         coroutineScope.launch {
                             try {
-                                val response = RetrofitClient.financeApi.createCategory(
-                                    "Bearer $userToken",
+                                val response = actionsViewModel.createCategory(
+                                    userToken ?: return@launch,
                                     CategoryRequest(name = categoryName)
                                 )
 
@@ -293,6 +303,7 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
                     expandedCategory = false
                 },
                 onAddCategoryClick = {
+                    expandedCategory = false
                     showCreateCategoryDialog = true
                 }
             )
@@ -362,12 +373,15 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
 
             Button(
                 onClick = {
-                    if (amountText.isEmpty() || description.isEmpty() || selectedCategory == null) {
-                        Toast.makeText(context, "Preencha todos os campos obrigatórios!", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (notes.length > 500) {
-                        Toast.makeText(context, "Observações devem ter no máximo 500 caracteres.", Toast.LENGTH_SHORT).show()
+                    val validationMessage = validateExpenseForm(
+                        amountText = amountText,
+                        description = description,
+                        categoryId = selectedCategory?.id,
+                        notes = notes,
+                        requiredFieldsMessage = "Preencha todos os campos obrigatórios!"
+                    )
+                    if (validationMessage != null) {
+                        Toast.makeText(context, validationMessage, Toast.LENGTH_SHORT).show()
                         return@Button
                     }
                     isLoading = true
@@ -387,13 +401,11 @@ fun NovaDespesaScreen(onNavigateBack: () -> Unit) {
                             )
 
 
-                            RetrofitClient.financeApi.createExpense("Bearer $userToken", request)
+                            actionsViewModel.createExpense(userToken ?: return@launch, request)
                             Toast.makeText(context, "Despesa salva com sucesso!", Toast.LENGTH_SHORT).show()
                             onNavigateBack()
-                        } catch (e: HttpException) {
-                            val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
-                            Toast.makeText(context, apiMessage ?: "Erro ao salvar", Toast.LENGTH_SHORT).show()
-                        } catch (e: Exception) { Toast.makeText(context, "Erro ao salvar", Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(context, e.userMessageOr("Erro ao salvar"), Toast.LENGTH_SHORT).show()
                         } finally { isLoading = false }
                     }
                 },

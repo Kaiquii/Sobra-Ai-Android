@@ -39,15 +39,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appfinanceiro.core.data.FinanceActionsViewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.UpdateProfileRequest
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditarPerfilScreen(onNavigateBack: () -> Unit) {
+fun EditarPerfilScreen(
+    onNavigateBack: () -> Unit,
+    actionsViewModel: FinanceActionsViewModel = viewModel()
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val sessionManager = remember { SessionManager(context) }
@@ -131,8 +136,8 @@ fun EditarPerfilScreen(onNavigateBack: () -> Unit) {
                     isLoading = true
                     coroutineScope.launch {
                         try {
-                            RetrofitClient.financeApi.updateProfile(
-                                "Bearer $token",
+                            actionsViewModel.updateProfile(
+                                token,
                                 UpdateProfileRequest(
                                     name = name.trim(),
                                     email = email.trim()
@@ -150,7 +155,11 @@ fun EditarPerfilScreen(onNavigateBack: () -> Unit) {
                             Toast.makeText(context, "Perfil atualizado com sucesso!", Toast.LENGTH_SHORT).show()
                             onNavigateBack()
                         } catch (e: Exception) {
-                            Toast.makeText(context, "Erro ao atualizar perfil", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                e.userMessageOr("Erro ao atualizar perfil"),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         } finally {
                             isLoading = false
                         }

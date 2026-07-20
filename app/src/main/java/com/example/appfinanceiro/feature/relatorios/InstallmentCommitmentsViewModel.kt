@@ -4,13 +4,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanceiro.core.data.FinanceRepository
+import com.example.appfinanceiro.core.data.ReportsDataSource
 import com.example.appfinanceiro.core.data.SessionExpiredException
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.network.InstallmentCommitmentsResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.net.SocketTimeoutException
 
 data class InstallmentCommitmentsUiState(
     val data: InstallmentCommitmentsResponse? = null,
@@ -20,7 +21,7 @@ data class InstallmentCommitmentsUiState(
 )
 
 class InstallmentCommitmentsViewModel(
-    private val repository: FinanceRepository = FinanceRepository()
+    private val repository: ReportsDataSource = FinanceRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InstallmentCommitmentsUiState())
@@ -53,20 +54,12 @@ class InstallmentCommitmentsViewModel(
                 _uiState.update {
                     it.copy(isSessionExpired = true)
                 }
-            } catch (e: SocketTimeoutException) {
-                Log.e("API_ERRO", "Timeout ao carregar compromissos parcelados", e)
-                _uiState.update {
-                    it.copy(
-                        data = null,
-                        errorMessage = "O servidor demorou para responder. Tente novamente em alguns instantes."
-                    )
-                }
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao carregar compromissos parcelados", e)
                 _uiState.update {
                     it.copy(
                         data = null,
-                        errorMessage = "Erro ao carregar compromissos parcelados"
+                        errorMessage = e.userMessageOr("Erro ao carregar compromissos parcelados")
                     )
                 }
             } finally {

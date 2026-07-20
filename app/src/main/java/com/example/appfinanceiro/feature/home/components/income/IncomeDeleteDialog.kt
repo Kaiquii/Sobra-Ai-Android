@@ -21,10 +21,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appfinanceiro.core.data.FinanceActionsViewModel
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Income
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import kotlinx.coroutines.launch
 
 data class IncomeDeleteState(
@@ -37,7 +39,8 @@ fun IncomeDeleteDialog(
     state: IncomeDeleteState,
     token: String?,
     onDismiss: () -> Unit,
-    onSuccess: () -> Unit
+    onSuccess: () -> Unit,
+    actionsViewModel: FinanceActionsViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -86,8 +89,8 @@ fun IncomeDeleteDialog(
                 onClick = {
                     coroutineScope.launch {
                         try {
-                            RetrofitClient.financeApi.deleteIncome(
-                                token = "Bearer $token",
+                            actionsViewModel.deleteIncome(
+                                token = token ?: return@launch,
                                 id = state.income.id,
                                 deleteFuture = if (deleteFuture) true else null
                             )
@@ -102,7 +105,7 @@ fun IncomeDeleteDialog(
                         } catch (e: Exception) {
                             Toast.makeText(
                                 context,
-                                "Erro ao remover ${state.label}",
+                                e.userMessageOr("Erro ao remover ${state.label}"),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }

@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanceiro.core.data.FinanceRepository
+import com.example.appfinanceiro.core.data.HomeDataSource
 import com.example.appfinanceiro.core.data.SessionExpiredException
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.network.Expense
 import com.example.appfinanceiro.core.network.Income
 import com.example.appfinanceiro.core.network.SummaryResponse
@@ -28,7 +30,7 @@ data class HomeUiState(
 )
 
 class HomeViewModel(
-    private val repository: FinanceRepository = FinanceRepository()
+    private val repository: HomeDataSource = FinanceRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -58,7 +60,7 @@ class HomeViewModel(
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao carregar resumo", e)
                 _uiState.update {
-                    it.copy(summaryError = "Não foi possível carregar o resumo financeiro.")
+                    it.copy(summaryError = e.userMessageOr("Não foi possível carregar o resumo financeiro."))
                 }
             } finally {
                 _uiState.update {
@@ -77,28 +79,15 @@ class HomeViewModel(
             try {
                 val response = repository.getIncomes(token, month, year)
 
-                val salarioFromIncomes = response.incomes
-                    .filter {
-                        it.source.equals("Salario", ignoreCase = true) ||
-                                it.source.equals("Salário", ignoreCase = true)
-                    }
-                    .sumOf { it.amount }
-
-                val adiantamentoFromIncomes = response.incomes
-                    .filter { it.source.equals("Adiantamento", ignoreCase = true) }
-                    .sumOf { it.amount }
-
-                val rendaExtraFromIncomes = response.incomes
-                    .filter { it.source.equals("Renda Extra", ignoreCase = true) }
-                    .sumOf { it.amount }
+                val totals = calculateIncomeTotals(response.incomes)
 
                 _uiState.update { state ->
                     state.copy(
                         incomesData = response.incomes,
                         summaryData = state.summaryData?.copy(
-                            salario = salarioFromIncomes,
-                            adiantamento = adiantamentoFromIncomes,
-                            renda_extra_amt = rendaExtraFromIncomes
+                            salario = totals.salary,
+                            adiantamento = totals.advance,
+                            renda_extra_amt = totals.extraIncome
                         )
                     )
                 }
@@ -109,7 +98,7 @@ class HomeViewModel(
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao carregar rendas", e)
                 _uiState.update {
-                    it.copy(incomesError = "Não foi possível carregar as rendas.")
+                    it.copy(incomesError = e.userMessageOr("Não foi possível carregar as rendas."))
                 }
             } finally {
                 _uiState.update {
@@ -144,7 +133,7 @@ class HomeViewModel(
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao carregar despesas", e)
                 _uiState.update {
-                    it.copy(expensesError = "Não foi possível carregar as despesas.")
+                    it.copy(expensesError = e.userMessageOr("Não foi possível carregar as despesas."))
                 }
             } finally {
                 _uiState.update {

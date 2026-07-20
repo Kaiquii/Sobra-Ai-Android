@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanceiro.core.data.FinanceRepository
+import com.example.appfinanceiro.core.data.ReportsDataSource
 import com.example.appfinanceiro.core.data.SessionExpiredException
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.network.CategoryReportResponse
 import com.example.appfinanceiro.core.network.ChartReportResponse
 import com.example.appfinanceiro.core.network.MonthComparisonResponse
@@ -30,7 +32,7 @@ data class RelatoriosUiState(
 )
 
 class RelatoriosViewModel(
-    private val repository: FinanceRepository = FinanceRepository()
+    private val repository: ReportsDataSource = FinanceRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RelatoriosUiState())
@@ -70,7 +72,7 @@ class RelatoriosViewModel(
                         chartData = emptyList(),
                         yearlySummary = null,
                         monthComparison = null,
-                        errorMessage = "Erro ao carregar relatórios"
+                        errorMessage = e.userMessageOr("Erro ao carregar relatórios")
                     )
                 }
             } finally {
@@ -117,7 +119,9 @@ class RelatoriosViewModel(
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao carregar comparativo mensal", e)
                 _uiState.update {
-                    it.copy(comparisonErrorMessage = "Erro ao carregar comparativo mensal")
+                    it.copy(
+                        comparisonErrorMessage = e.userMessageOr("Erro ao carregar comparativo mensal")
+                    )
                 }
             } finally {
                 _uiState.update {

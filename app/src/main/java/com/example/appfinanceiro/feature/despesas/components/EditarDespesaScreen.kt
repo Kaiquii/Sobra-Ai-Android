@@ -54,15 +54,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appfinanceiro.core.data.FinanceActionsViewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.designsystem.components.AppDatePickerDialog
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Category
 import com.example.appfinanceiro.core.network.ExpenseUpdateRequest
-import com.example.appfinanceiro.core.network.parseApiErrorMessage
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
+import com.example.appfinanceiro.feature.despesas.validateExpenseForm
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -70,7 +71,11 @@ import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
+fun EditarDespesaScreen(
+    expenseId: Int,
+    onNavigateBack: () -> Unit,
+    actionsViewModel: FinanceActionsViewModel = viewModel()
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val userToken by remember { SessionManager(context) }.token.collectAsState(initial = null)
@@ -109,8 +114,8 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
     LaunchedEffect(userToken, expenseId) {
         if (userToken != null) {
             try {
-                categories = RetrofitClient.financeApi.getCategories("Bearer $userToken").categories
-                val expense = RetrofitClient.financeApi.getExpenseById("Bearer $userToken", expenseId)
+                categories = actionsViewModel.getCategories(userToken!!).categories
+                val expense = actionsViewModel.getExpense(userToken!!, expenseId)
 
                 amountText = expense.amount.toString().replace(".", ",")
                 description = expense.description
@@ -134,7 +139,7 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                     Log.e("API_DATE", "Erro ao converter a data", e)
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Erro ao carregar despesa", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, e.userMessageOr("Erro ao carregar despesa"), Toast.LENGTH_SHORT).show()
                 onNavigateBack()
             } finally {
                 isLoading = false
@@ -339,12 +344,15 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
 
                 Button(
                     onClick = {
-                        if (amountText.isEmpty() || description.isEmpty() || selectedCategory == null) {
-                            Toast.makeText(context, "Preencha os campos!", Toast.LENGTH_SHORT).show()
-                            return@Button
-                        }
-                        if (notes.length > 500) {
-                            Toast.makeText(context, "Observações devem ter no máximo 500 caracteres.", Toast.LENGTH_SHORT).show()
+                        val validationMessage = validateExpenseForm(
+                            amountText = amountText,
+                            description = description,
+                            categoryId = selectedCategory?.id,
+                            notes = notes,
+                            requiredFieldsMessage = "Preencha os campos!"
+                        )
+                        if (validationMessage != null) {
+                            Toast.makeText(context, validationMessage, Toast.LENGTH_SHORT).show()
                             return@Button
                         }
 
@@ -380,14 +388,11 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                                     }
                                 )
 
-                                RetrofitClient.financeApi.updateExpense("Bearer $userToken", expenseId, request)
+                                actionsViewModel.updateExpense(userToken ?: return@launch, expenseId, request)
                                 Toast.makeText(context, "Despesa atualizada!", Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
-                            } catch (e: HttpException) {
-                                val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
-                                Toast.makeText(context, apiMessage ?: "Erro ao atualizar", Toast.LENGTH_SHORT).show()
                             } catch (e: Exception) {
-                                Toast.makeText(context, "Erro ao atualizar", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, e.userMessageOr("Erro ao atualizar"), Toast.LENGTH_SHORT).show()
                             } finally {
                                 isLoading = false
                             }
@@ -451,14 +456,11 @@ fun EditarDespesaScreen(expenseId: Int, onNavigateBack: () -> Unit) {
                                             update_future = true
                                         )
 
-                                        RetrofitClient.financeApi.updateExpense("Bearer $userToken", expenseId, request)
+                                        actionsViewModel.updateExpense(userToken ?: return@launch, expenseId, request)
                                         Toast.makeText(context, "Despesa atualizada!", Toast.LENGTH_SHORT).show()
                                         onNavigateBack()
-                                    } catch (e: HttpException) {
-                                        val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
-                                        Toast.makeText(context, apiMessage ?: "Erro ao atualizar", Toast.LENGTH_SHORT).show()
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Erro ao atualizar", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, e.userMessageOr("Erro ao atualizar"), Toast.LENGTH_SHORT).show()
                                     } finally {
                                         isLoading = false
                                     }

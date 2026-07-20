@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanceiro.core.data.FinanceRepository
+import com.example.appfinanceiro.core.data.AssistantDataSource
 import com.example.appfinanceiro.core.data.SessionExpiredException
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.network.AssistantConversation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +36,7 @@ data class AssistantUiState(
 )
 
 class AssistantViewModel(
-    private val repository: FinanceRepository = FinanceRepository()
+    private val repository: AssistantDataSource = FinanceRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AssistantUiState())
@@ -95,7 +97,7 @@ class AssistantViewModel(
                 _uiState.update {
                     it.copy(
                         isSending = false,
-                        errorMessage = "Nao foi possivel falar com o assistente."
+                        errorMessage = e.userMessageOr("Nao foi possivel falar com o assistente.")
                     )
                 }
             }
@@ -141,7 +143,7 @@ class AssistantViewModel(
                 _uiState.update {
                     it.copy(
                         isLoadingConversations = false,
-                        errorMessage = "Não foi possível carregar as conversas."
+                        errorMessage = e.userMessageOr("Não foi possível carregar as conversas.")
                     )
                 }
             }
@@ -181,7 +183,7 @@ class AssistantViewModel(
                 _uiState.update {
                     it.copy(
                         isLoadingMessages = false,
-                        errorMessage = "Não foi possível abrir essa conversa."
+                        errorMessage = e.userMessageOr("Não foi possível abrir essa conversa.")
                     )
                 }
             }
@@ -214,7 +216,7 @@ class AssistantViewModel(
             } catch (e: Exception) {
                 Log.e("ASSISTANT_ERRO", "Falha ao apagar conversa", e)
                 _uiState.update {
-                    it.copy(errorMessage = "Não foi possível apagar essa conversa.")
+                    it.copy(errorMessage = e.userMessageOr("Não foi possível apagar essa conversa."))
                 }
             }
         }

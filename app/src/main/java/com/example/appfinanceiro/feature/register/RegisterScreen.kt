@@ -42,18 +42,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appfinanceiro.core.data.ApiRequestException
+import com.example.appfinanceiro.core.data.AuthViewModel
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextSecondary
-import com.example.appfinanceiro.core.network.parseApiErrorMessage
-import com.example.appfinanceiro.core.network.auth.RegisterRequest
-import com.example.appfinanceiro.core.network.auth.RequestRegisterCodeRequest
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import com.example.appfinanceiro.feature.login.components.AuthErrorMessage
 import com.example.appfinanceiro.feature.login.components.AuthPasswordField
 import com.example.appfinanceiro.feature.login.components.AuthPrimaryButton
 import com.example.appfinanceiro.feature.login.components.AuthTextField
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 private enum class RegisterStep {
     Details,
@@ -63,7 +62,8 @@ private enum class RegisterStep {
 @Composable
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
-    onRegisterSuccess: () -> Unit
+    onRegisterSuccess: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
 ) {
     var step by remember { mutableStateOf(RegisterStep.Details) }
     var name by remember { mutableStateOf("") }
@@ -93,27 +93,24 @@ fun RegisterScreen(
                 clearError()
 
                 try {
-                    val response = RetrofitClient.authApi.requestRegisterCode(
-                        RequestRegisterCodeRequest(email.trim())
-                    )
+                    val response = authViewModel.requestRegisterCode(email.trim())
                     code = ""
                     step = RegisterStep.Confirmation
                     Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
-                } catch (e: HttpException) {
-                    val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
-                    errorMessage = when (e.code()) {
-                        400 -> apiMessage ?: "Informe um e-mail válido."
+                } catch (e: ApiRequestException) {
+                    errorMessage = when (e.statusCode) {
+                        400 -> e.apiMessage ?: "Informe um e-mail válido."
                         409 -> "Este e-mail já possui uma conta. Faça login para continuar."
                         429 -> {
                             resendBlocked = true
                             "Muitas tentativas. Aguarde alguns minutos antes de solicitar outro código."
                         }
                         500 -> "Não foi possível enviar o código. Tente novamente."
-                        else -> apiMessage ?: "Não foi possível enviar o código. Tente novamente."
+                        else -> e.apiMessage ?: "Não foi possível enviar o código. Tente novamente."
                     }
                     Log.e("API_ERRO", "Falha ao solicitar código de cadastro", e)
                 } catch (e: Exception) {
-                    errorMessage = "Não foi possível enviar o código. Verifique sua conexão e tente novamente."
+                    errorMessage = e.userMessageOr("Não foi possível enviar o código. Verifique sua conexão e tente novamente.")
                     Log.e("API_ERRO", "Falha ao solicitar código de cadastro", e)
                 } finally {
                     isLoading = false
@@ -133,28 +130,25 @@ fun RegisterScreen(
             clearError()
 
             try {
-                val response = RetrofitClient.authApi.register(
-                    RegisterRequest(
-                        name = name.trim(),
-                        email = email.trim(),
-                        password = password,
-                        code = code
-                    )
+                val response = authViewModel.register(
+                    name = name.trim(),
+                    email = email.trim(),
+                    password = password,
+                    code = code
                 )
                 Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
                 onRegisterSuccess()
-            } catch (e: HttpException) {
-                val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
-                errorMessage = when (e.code()) {
-                    400 -> apiMessage ?: "Confira os dados informados."
+            } catch (e: ApiRequestException) {
+                errorMessage = when (e.statusCode) {
+                    400 -> e.apiMessage ?: "Confira os dados informados."
                     401 -> "Código inválido ou expirado. Solicite um novo código e tente novamente."
                     409 -> "Este e-mail já possui uma conta. Faça login para continuar."
                     500 -> "Não foi possível criar sua conta. Tente novamente."
-                    else -> apiMessage ?: "Não foi possível criar sua conta. Tente novamente."
+                    else -> e.apiMessage ?: "Não foi possível criar sua conta. Tente novamente."
                 }
                 Log.e("API_ERRO", "Falha ao criar conta", e)
             } catch (e: Exception) {
-                errorMessage = "Não foi possível criar sua conta. Verifique sua conexão e tente novamente."
+                errorMessage = e.userMessageOr("Não foi possível criar sua conta. Verifique sua conexão e tente novamente.")
                 Log.e("API_ERRO", "Falha ao criar conta", e)
             } finally {
                 isLoading = false

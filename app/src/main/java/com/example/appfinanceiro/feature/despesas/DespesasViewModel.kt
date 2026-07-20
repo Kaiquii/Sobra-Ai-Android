@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanceiro.core.data.FinanceRepository
+import com.example.appfinanceiro.core.data.ExpensesDataSource
 import com.example.appfinanceiro.core.data.SessionExpiredException
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.network.Expense
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +25,7 @@ data class DespesasUiState(
 )
 
 class DespesasViewModel(
-    private val repository: FinanceRepository = FinanceRepository()
+    private val repository: ExpensesDataSource = FinanceRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DespesasUiState())
@@ -56,7 +58,7 @@ class DespesasViewModel(
                 _uiState.update {
                     it.copy(
                         expensesData = emptyList(),
-                        errorMessage = "Erro ao carregar despesas"
+                        errorMessage = e.userMessageOr("Erro ao carregar despesas")
                     )
                 }
             } finally {
@@ -95,7 +97,7 @@ class DespesasViewModel(
             } catch (e: Exception) {
                 Log.e("API_ERRO", "Falha ao excluir despesa", e)
                 _uiState.update {
-                    it.copy(deleteErrorMessage = "Erro ao excluir")
+                    it.copy(deleteErrorMessage = e.userMessageOr("Erro ao excluir"))
                 }
             } finally {
                 _uiState.update {

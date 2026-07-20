@@ -41,13 +41,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.biometric.BiometricAuth
+import com.example.appfinanceiro.core.data.ApiRequestException
+import com.example.appfinanceiro.core.data.AuthViewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextSecondary
-import com.example.appfinanceiro.core.network.auth.LoginRequest
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
-import com.example.appfinanceiro.core.network.parseApiErrorMessage
 import com.example.appfinanceiro.feature.login.components.AuthErrorMessage
 import com.example.appfinanceiro.feature.login.components.AuthHeader
 import com.example.appfinanceiro.feature.login.components.AuthPasswordField
@@ -55,13 +56,13 @@ import com.example.appfinanceiro.feature.login.components.AuthPrimaryButton
 import com.example.appfinanceiro.feature.login.components.AuthTextField
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
-import retrofit2.HttpException
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
-    onNavigateToForgot: () -> Unit
+    onNavigateToForgot: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val activity = LocalActivity.current as? FragmentActivity
@@ -160,9 +161,7 @@ fun LoginScreen(
             clearError()
 
             try {
-                val response = RetrofitClient.authApi.login(
-                    LoginRequest(email.trim(), senha)
-                )
+                val response = authViewModel.login(email.trim(), senha)
 
                 pendingToken = response.token
                 pendingUserName = response.user.name
@@ -181,24 +180,22 @@ fun LoginScreen(
                         userAvatarUrl = pendingUserAvatarUrl
                     )
                 }
-            } catch (e: HttpException) {
-                val apiMessage = parseApiErrorMessage(e.response()?.errorBody()?.string())
-
-                if (e.code() == 429) {
+            } catch (e: ApiRequestException) {
+                if (e.statusCode == 429) {
                     blockedEmail = normalizedEmail
                     loginBlockedUntilMillis = System.currentTimeMillis() + LOGIN_BLOCK_DURATION_MILLIS
                     currentTimeMillis = System.currentTimeMillis()
-                    errorMessage = apiMessage ?: "Muitas tentativas de login. Tente novamente em alguns minutos."
-                } else if (e.code() == 403 && !apiMessage.isNullOrBlank()) {
+                    errorMessage = e.apiMessage ?: "Muitas tentativas de login. Tente novamente em alguns minutos."
+                } else if (e.statusCode == 403 && !e.apiMessage.isNullOrBlank()) {
                     sessionManager.clearSession()
-                    errorMessage = apiMessage
+                    errorMessage = e.apiMessage
                 } else {
-                    errorMessage = apiMessage ?: "Credenciais invalidas ou erro no servidor."
+                    errorMessage = e.apiMessage ?: "Credenciais invalidas ou erro no servidor."
                 }
 
                 android.util.Log.e("API_ERRO", "Erro no login: ${e.message}", e)
             } catch (e: Exception) {
-                errorMessage = "Credenciais invalidas ou erro no servidor."
+                errorMessage = e.userMessageOr("Credenciais invalidas ou erro no servidor.")
                 android.util.Log.e("API_ERRO", "Erro no login: ${e.message}", e)
             } finally {
                 isLoading = false

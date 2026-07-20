@@ -76,18 +76,20 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.exifinterface.media.ExifInterface
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import br.com.sobraai.app.BuildConfig
+import com.example.appfinanceiro.core.data.FinanceActionsViewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
 import com.example.appfinanceiro.core.designsystem.components.swipeNavigation
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
-import com.example.appfinanceiro.core.network.auth.RetrofitClient
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -106,7 +108,8 @@ fun PerfilScreen(
     onIncomeSettingsClick: () -> Unit = {},
     onCategoriesClick: () -> Unit = {},
     onEditProfileClick: () -> Unit = {},
-    onHelpClick: () -> Unit = {}
+    onHelpClick: () -> Unit = {},
+    actionsViewModel: FinanceActionsViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -143,7 +146,7 @@ fun PerfilScreen(
         val token = userToken ?: return@LaunchedEffect
 
         try {
-            val profile = RetrofitClient.financeApi.getProfile("Bearer $token").user
+            val profile = actionsViewModel.getProfile(token).user
             sessionManager.saveToken(
                 token = token,
                 name = profile.name,
@@ -171,8 +174,8 @@ fun PerfilScreen(
                 }
                 localAvatarPreviewUri = preparedPhoto.previewUri
                 val photoPart = createPhotoPart(preparedPhoto)
-                val response = RetrofitClient.financeApi.updateProfilePhoto(
-                    token = "Bearer $token",
+                val response = actionsViewModel.updateProfilePhoto(
+                    token = token,
                     photo = photoPart
                 )
                 sessionManager.saveAvatarUrl(
@@ -183,7 +186,11 @@ fun PerfilScreen(
             } catch (e: Exception) {
                 localAvatarPreviewUri = null
                 Log.e("PROFILE_ERRO", "Falha ao atualizar foto", e)
-                Toast.makeText(context, "Não foi possível atualizar a foto.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    e.userMessageOr("Não foi possível atualizar a foto."),
+                    Toast.LENGTH_SHORT
+                ).show()
             } finally {
                 isPhotoLoading = false
             }
@@ -200,13 +207,17 @@ fun PerfilScreen(
         isPhotoLoading = true
         coroutineScope.launch {
             try {
-                RetrofitClient.financeApi.deleteProfilePhoto("Bearer $token")
+                actionsViewModel.deleteProfilePhoto(token)
                 localAvatarPreviewUri = null
                 sessionManager.saveAvatarUrl(null)
                 Toast.makeText(context, "Foto removida com sucesso!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Log.e("PROFILE_ERRO", "Falha ao remover foto", e)
-                Toast.makeText(context, "Não foi possível remover a foto.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    e.userMessageOr("Não foi possível remover a foto."),
+                    Toast.LENGTH_SHORT
+                ).show()
             } finally {
                 isPhotoLoading = false
             }
