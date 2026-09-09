@@ -2,6 +2,14 @@
 
 Estas regras devem ser consideradas em toda mudança visual do aplicativo.
 
+## Validação do build de produção
+
+- Nunca considerar o funcionamento do build `debug` como validação suficiente do aplicativo publicado. O build `release` usa R8 e precisa ser validado separadamente.
+- Manter redução de código, otimização, ofuscação e redução de recursos habilitadas no `release`. Contratos acessados por reflexão devem possuir regras de preservação específicas e revisadas.
+- Antes de gerar uma versão para a Play Console, executar o lint de release, todos os testes automatizados e a geração do AAB sem erros.
+- Antes de promover uma versão para produção, instalar pela faixa de teste da Google Play o mesmo AAB que será promovido e validar os fluxos principais, integrações externas, persistência local, arquivos e comportamento offline.
+- Não enviar uma versão diretamente para produção com base apenas em testes pelo Android Studio ou em APK instalado manualmente.
+
 ## Responsividade e acessibilidade
 
 - Toda implementação visual deve considerar celulares com diferentes tamanhos, proporções e densidades de tela. O layout precisa se adaptar corretamente a telas compactas, convencionais e grandes, incluindo aparelhos dobráveis e uso em modo de tela dividida.

@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Retrofit reads service methods, generic return types and HTTP annotations at
+# runtime. Gson also reads DTO constructors and fields reflectively. Keep the
+# complete API contract stable; R8 remains enabled for the rest of the app.
+-keepattributes Signature
+-keepattributes RuntimeVisibleAnnotations,RuntimeVisibleParameterAnnotations,AnnotationDefault
+
+-keep class com.example.appfinanceiro.core.network.** { *; }
+-keep class com.example.appfinanceiro.feature.relatorios.export.** { *; }

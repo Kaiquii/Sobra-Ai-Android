@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -73,6 +74,7 @@ class ReportFileStore(private val context: Context) {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun createMediaStoreDestination(
         resolver: ContentResolver,
         requestedName: String,
@@ -101,6 +103,7 @@ class ReportFileStore(private val context: Context) {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun uniqueDownloadName(
         resolver: ContentResolver,
         requestedName: String,
@@ -122,6 +125,7 @@ class ReportFileStore(private val context: Context) {
         return candidate
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun downloadExists(
         resolver: ContentResolver,
         fileName: String,
