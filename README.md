@@ -1,5 +1,13 @@
 # 💰 SobraAi
 
+## Orientações para IA
+
+O ponto de entrada para agentes é [AGENTS.md](AGENTS.md), com regras do projeto,
+[mapa da arquitetura](docs/ai-project-map.md) e
+[fluxo de desenvolvimento e validação](docs/ai-workflow.md).
+Essas instruções orientam a IA ao trabalhar no código e usam o harness de testes
+documentado abaixo como ferramenta de validação.
+
 Um aplicativo moderno de gestão financeira desenvolvido nativamente para Android. Este projeto foca em uma interface de usuário elegante e responsiva, com integração segura a uma API RESTful.
 
 ## 🚀 Funcionalidades
