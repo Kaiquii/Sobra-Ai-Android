@@ -27,3 +27,16 @@ Para rodar este aplicativo no seu computador, você precisará do **Android Stud
 ### 1. Clonar o repositório
 ```bash
 git clone [https://github.com/Kaiquii/Sobra-Ai-Android.git]
+```
+
+## 🧪 Harness de testes
+
+O projeto possui um harness para testes unitarios, Android Lint e testes
+instrumentados:
+
+```powershell
+.\scripts\test-harness.ps1 -Mode verify
+```
+
+Consulte [a documentacao do harness](docs/test-harness.md) para conhecer todos os
+modos e relatorios.

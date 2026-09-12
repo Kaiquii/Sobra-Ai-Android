@@ -7,11 +7,16 @@ if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
 
-val apiUrl = localProperties.getProperty("API_BASE_URL")
+val apiUrl = (providers.gradleProperty("API_BASE_URL").orNull
+    ?: localProperties.getProperty("API_BASE_URL")
+    ?: providers.environmentVariable("API_BASE_URL").orNull)
     ?.trim()
     ?.trimEnd('/')
     ?.plus("/")
-    ?: error("API_BASE_URL must be configured in local.properties")
+    ?: error(
+        "API_BASE_URL must be configured with -PAPI_BASE_URL, " +
+            "in local.properties, or as an environment variable"
+    )
 
 require(apiUrl.startsWith("https://")) {
     "API_BASE_URL must use HTTPS"
