@@ -18,6 +18,14 @@
 
 ## Ambiente e comandos
 
+O usuário é responsável por iniciar o emulador e testar visualmente o aplicativo.
+A IA não deve iniciar emuladores, instalar/abrir o app ou executar testes
+instrumentados sem um pedido explícito para isso. As instruções de dispositivo
+abaixo são referência para esse caso; não são autorização automática.
+Na entrega usual, concluir build, Lint e testes JVM e indicar os cenários visuais
+que o usuário deve conferir. A compilação dos testes instrumentados pode ser feita
+sem iniciar um dispositivo.
+
 Use a raiz do projeto como diretório de trabalho. No Windows, use PowerShell e
 `gradlew.bat`; em Linux/macOS, use `./gradlew` com as mesmas tarefas. Prefira o
 Wrapper ao Gradle instalado globalmente. Confira a JVM em
@@ -44,7 +52,7 @@ para validar integrações ou gerar um artefato destinado ao usuário.
 | Apenas documentação | Conferir caminhos, conteúdo, links locais e `git diff --check` |
 | Lógica Kotlin/estado/API | `./gradlew.bat harnessVerify` e testes relevantes ao comportamento |
 | Teste JVM específico durante investigação | `./gradlew.bat :app:testDebugUnitTest --tests "com.example.appfinanceiro.feature.home.HomeViewModelTest"` |
-| Interface ou integração Android | Validação anterior, `./gradlew.bat :app:assembleDebug` e inspeção em dispositivo/emulador; aplicar regras visuais |
+| Interface ou integração Android | Validação anterior e `./gradlew.bat :app:assembleDebug`; inspeção em dispositivo/emulador pelo usuário, conforme regras visuais |
 | Testes instrumentados existentes | `./scripts/test-harness.ps1 -Mode device` com dispositivo pronto |
 | Todos os testes existentes e Lint debug | `./scripts/test-harness.ps1 -Mode all` |
 | Preparação de release | `./gradlew.bat :app:lintRelease :app:testReleaseUnitTest :app:bundleRelease`, além de todos os testes automatizados aplicáveis |

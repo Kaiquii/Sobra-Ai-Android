@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
@@ -37,7 +36,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -60,6 +58,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -83,6 +82,8 @@ import com.example.appfinanceiro.core.network.Expense
 import com.example.appfinanceiro.core.network.paymentCardSourceLabel
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import com.example.appfinanceiro.feature.home.utils.getCategoryIconAndColor
+import com.example.appfinanceiro.feature.despesas.components.ExpenseFilterButton
+import com.example.appfinanceiro.feature.despesas.components.ExpenseFiltersDialog
 import com.example.appfinanceiro.feature.despesas.components.AdvanceExpenseDialog
 import com.example.appfinanceiro.feature.despesas.components.RemoveAdvanceDialog
 import java.text.NumberFormat
@@ -100,6 +101,7 @@ fun DespesasScreen(
     viewModel: DespesasViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
@@ -117,7 +119,9 @@ fun DespesasScreen(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedFilter by rememberSaveable { mutableStateOf("Todas") }
     var selectedPaymentStatus by rememberSaveable { mutableStateOf<String?>(null) }
-    var showPaymentStatusFilterModal by remember { mutableStateOf(false) }
+    var selectedCategoryId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var selectedPaymentSource by rememberSaveable { mutableStateOf<String?>(null) }
+    var showFiltersDialog by rememberSaveable { mutableStateOf(false) }
 
     val calendar = remember { Calendar.getInstance() }
     var currentMonthIndex by rememberSaveable {
@@ -139,13 +143,12 @@ fun DespesasScreen(
     var expenseToAdvance by remember { mutableStateOf<Expense?>(null) }
     var expenseToRemoveAdvance by remember { mutableStateOf<Expense?>(null) }
 
-    LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshTrigger, selectedPaymentStatus) {
+    LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshTrigger) {
         userToken?.let { token ->
             viewModel.loadExpenses(
                 token,
                 currentMonthIndex + 1,
-                currentYear,
-                selectedPaymentStatus
+                currentYear
             )
         }
     }
@@ -196,13 +199,17 @@ fun DespesasScreen(
     }
 
     val expenseFilters = listOf("Todas", "Parceladas", "Únicas", "Fixas")
+    val modalFilteredExpenses = filterExpenses(
+        uiState.expensesData, "", "Todas",
+        selectedCategoryId, selectedPaymentSource, selectedPaymentStatus
+    )
     val expenseCountsByFilter = expenseCountsByFilter(
-        expenses = uiState.expensesData,
+        expenses = modalFilteredExpenses,
         searchQuery = searchQuery,
         filters = expenseFilters
     )
     val filteredExpenses = filterExpenses(
-        expenses = uiState.expensesData,
+        expenses = modalFilteredExpenses,
         searchQuery = searchQuery,
         selectedFilter = selectedFilter
     )
@@ -214,7 +221,10 @@ fun DespesasScreen(
     val filteredIncomingAdvanced = filterExpenses(
         expenses = incomingAdvanced,
         searchQuery = searchQuery,
-        selectedFilter = selectedFilter
+        selectedFilter = selectedFilter,
+        categoryId = selectedCategoryId,
+        paymentSource = selectedPaymentSource,
+        paymentStatus = selectedPaymentStatus
     )
     val selectedFilterCount = expenseCountsByFilter[selectedFilter] ?: filteredExpenses.size
     val selectedFilterTotal = totalExpenseAmount(filteredExpenses)
@@ -278,60 +288,53 @@ fun DespesasScreen(
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = {
-                    Text("Buscar despesa...", color = secondaryTextColor)
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        tint = secondaryTextColor,
-                        contentDescription = null
-                    )
-                },
-                trailingIcon = {
-                    IconButton(onClick = { showPaymentStatusFilterModal = true }) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .weight(1f),
+                    placeholder = {
+                        Text("Buscar despesa...", color = secondaryTextColor)
+                    },
+                    leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Filtrar status de pagamento: ${
-                                when (selectedPaymentStatus) {
-                                    "paid" -> "Pagas"
-                                    "pending" -> "Pendentes"
-                                    else -> "Todas"
-                                }
-                            }",
-                            tint = if (selectedPaymentStatus == null) {
-                                secondaryTextColor
-                            } else if (selectedPaymentStatus == "paid") {
-                                GreenPositive
-                            } else {
-                                PrimaryBlue
-                            }
+                            Icons.Default.Search,
+                            tint = secondaryTextColor,
+                            contentDescription = null
                         )
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = inputBgColor,
+                        unfocusedContainerColor = inputBgColor,
+                        disabledContainerColor = inputBgColor,
+                        focusedTextColor = surfaceTextColor,
+                        unfocusedTextColor = surfaceTextColor,
+                        cursorColor = PrimaryBlue,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedPlaceholderColor = secondaryTextColor,
+                        unfocusedPlaceholderColor = secondaryTextColor,
+                        focusedLeadingIconColor = secondaryTextColor,
+                        unfocusedLeadingIconColor = secondaryTextColor
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+
+                ExpenseFilterButton(
+                    active = selectedCategoryId != null || selectedPaymentSource != null ||
+                        selectedPaymentStatus != null,
+                    onClick = {
+                        focusManager.clearFocus()
+                        showFiltersDialog = true
                     }
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = inputBgColor,
-                    unfocusedContainerColor = inputBgColor,
-                    disabledContainerColor = inputBgColor,
-                    focusedTextColor = surfaceTextColor,
-                    unfocusedTextColor = surfaceTextColor,
-                    cursorColor = PrimaryBlue,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedPlaceholderColor = secondaryTextColor,
-                    unfocusedPlaceholderColor = secondaryTextColor,
-                    focusedLeadingIconColor = secondaryTextColor,
-                    unfocusedLeadingIconColor = secondaryTextColor
-                ),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
-            )
+                )
+            }
 
             val filterChipBg = TextMuted.copy(alpha = 0.2f)
 
@@ -416,8 +419,7 @@ fun DespesasScreen(
                             viewModel.loadExpenses(
                                 token,
                                 currentMonthIndex + 1,
-                                currentYear,
-                                selectedPaymentStatus
+                                currentYear
                             )
                         }
                     },
@@ -504,6 +506,8 @@ fun DespesasScreen(
                                         searchQuery = ""
                                         selectedFilter = "Todas"
                                         selectedPaymentStatus = null
+                                        selectedCategoryId = null
+                                        selectedPaymentSource = null
                                         currentMonthIndex = month - 1
                                         currentYear = year
                                     }
@@ -673,50 +677,24 @@ fun DespesasScreen(
         )
     }
 
-    if (showPaymentStatusFilterModal) {
-        ModalBottomSheet(
-            onDismissRequest = { showPaymentStatusFilterModal = false },
-            containerColor = backgroundColor
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp, start = 24.dp, end = 24.dp)
-            ) {
-                Text(
-                    text = "Filtrar por Status",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                PaymentStatusFilterOption(
-                    label = "Todas",
-                    isSelected = selectedPaymentStatus == null,
-                    onClick = {
-                        selectedPaymentStatus = null
-                        showPaymentStatusFilterModal = false
-                    }
-                )
-                PaymentStatusFilterOption(
-                    label = "Pendentes",
-                    isSelected = selectedPaymentStatus == "pending",
-                    onClick = {
-                        selectedPaymentStatus = "pending"
-                        showPaymentStatusFilterModal = false
-                    }
-                )
-                PaymentStatusFilterOption(
-                    label = "Pagas",
-                    isSelected = selectedPaymentStatus == "paid",
-                    onClick = {
-                        selectedPaymentStatus = "paid"
-                        showPaymentStatusFilterModal = false
-                    }
-                )
+    if (showFiltersDialog) {
+        ExpenseFiltersDialog(
+            categories = uiState.categoriesMap,
+            categoryOptions = expenseCategoryOptions(
+                categories = uiState.categoriesMap,
+                expenses = uiState.expensesData + incomingAdvanced
+            ),
+            categoryId = selectedCategoryId,
+            paymentSource = selectedPaymentSource,
+            paymentStatus = selectedPaymentStatus,
+            onDismiss = { showFiltersDialog = false },
+            onApply = { category, source, status ->
+                selectedCategoryId = category
+                selectedPaymentSource = source
+                selectedPaymentStatus = status
+                showFiltersDialog = false
             }
-        }
+        )
     }
 
     expenseToView?.let { expense ->
@@ -786,30 +764,6 @@ fun DespesasScreen(
                     }
                 )
             }
-        )
-    }
-}
-
-@Composable
-private fun PaymentStatusFilterOption(
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = if (isSelected) PrimaryBlue.copy(alpha = 0.16f) else Color.Transparent,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp)
-    ) {
-        Text(
-            text = label,
-            color = if (isSelected) PrimaryBlue else MaterialTheme.colorScheme.onBackground,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
     }
 }

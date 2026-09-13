@@ -1,6 +1,7 @@
 package com.example.appfinanceiro.feature.despesas
 
 import com.example.appfinanceiro.core.network.Expense
+import com.example.appfinanceiro.core.network.paymentSources
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -17,7 +18,10 @@ fun matchesExpenseType(expense: Expense, filter: String): Boolean {
 fun filterExpenses(
     expenses: List<Expense>,
     searchQuery: String,
-    selectedFilter: String
+    selectedFilter: String,
+    categoryId: Int? = null,
+    paymentSource: String? = null,
+    paymentStatus: String? = null
 ): List<Expense> {
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"))
     val trimmedQuery = searchQuery.trim()
@@ -38,7 +42,15 @@ fun filterExpenses(
                         )
                 )
 
-        matchesSearch && matchesExpenseType(expense, selectedFilter)
+        matchesSearch && matchesExpenseType(expense, selectedFilter) &&
+            (categoryId == null || expense.category_id == categoryId) &&
+            (paymentSource == null || expense.paymentSources().any {
+                it.equals(paymentSource, ignoreCase = true)
+            }) && when (paymentStatus) {
+                "paid" -> expense.is_paid
+                "pending" -> !expense.is_paid
+                else -> true
+            }
     }
 }
 
@@ -55,6 +67,14 @@ fun expenseCountsByFilter(
 
 fun totalExpenseAmount(expenses: List<Expense>): Double =
     expenses.sumOf { expense -> expense.amount }
+
+fun expenseCategoryOptions(
+    categories: Map<Int, String>,
+    expenses: List<Expense>
+): Map<Int, String> {
+    val usedCategoryIds = expenses.mapTo(mutableSetOf()) { it.category_id }
+    return categories.filterKeys { it in usedCategoryIds }
+}
 
 private fun normalizeAmountSearchText(value: String): String {
     return value

@@ -56,6 +56,12 @@ declare testes, interface ou release aprovados sem ter feito essa validação.
 
 ## Validação rápida
 
+O usuário inicia o emulador e realiza os testes visuais/manuais do aplicativo.
+Não iniciar emuladores, instalar ou abrir o app, nem executar testes instrumentados
+por iniciativa própria. Só realizar essas ações se o usuário solicitar explicitamente.
+Por padrão, validar com build, Lint e testes unitários; informar o que ficou para
+o usuário conferir no emulador. É permitido compilar os testes instrumentados sem executá-los.
+
 Execute os comandos a partir da raiz, com o Gradle Wrapper:
 
 ```powershell

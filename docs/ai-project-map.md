@@ -26,6 +26,18 @@ a base é `app/src/main/java/com/example/appfinanceiro/`.
 declarações e imports antes de mover arquivos; não assuma correspondência perfeita
 entre pacote e diretório.
 
+Em Despesas, `components/ExpenseFiltersDialog.kt` contém o botão e o modal de
+categoria, origem e status. O modal mantém um rascunho até aplicar;
+usa `ModalBottomSheet` e campos `ExposedDropdownMenuBox`, seguindo o padrão de
+`feature/relatorios/export/ReportExportSheet.kt`.
+`DespesasScreen.kt` guarda os valores aplicados e `ExpenseFilters.kt` combina os
+critérios localmente com busca e tipo nos dados carregados do mês. Origens de
+pagamentos divididos são resolvidas por `Expense.paymentSources()`.
+O seletor de categoria oferece apenas categorias com despesas nos dados do mês,
+incluindo adiantadas recebidas nesse período, sem restringir opções pela busca ou
+pelos demais filtros. Uma categoria já aplicada é preservada ao mudar de mês;
+o modal informa quando ela ficou sem despesas e permite trocar ou limpar.
+
 ## Fluxo de dados
 
 Em Home e Despesas, a tela consome o estado do ViewModel, que recebe uma interface
