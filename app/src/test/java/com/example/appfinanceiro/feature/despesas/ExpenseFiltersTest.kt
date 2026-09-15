@@ -52,6 +52,45 @@ class ExpenseFiltersTest {
     }
 
     @Test
+    fun totalsUseEffectiveMonthAfterAdvancingSingleAndInstallmentExpenses() {
+        val scheduledSingle = expense(10, "Pizza na Padaria", 59.95, "Única")
+            .copy(isAdvanced = true, advancedAt = "2026-09-15T00:00:00-03:00")
+        val scheduledInstallment = expense(11, "Notebook", 250.00, "Parcelada")
+            .copy(isAdvanced = true, advancedAt = "2026-09-15T00:00:00-03:00")
+        val regularSingle = expense(12, "Mercado", 100.00, "Única")
+        val incomingInstallment = expense(13, "Celular", 80.00, "Parcelada")
+            .copy(
+                date = "2026-10-20T00:00:00-03:00",
+                isAdvanced = true,
+                advancedAt = "2026-09-15T00:00:00-03:00"
+            )
+
+        val scheduledExpenses = listOf(
+            scheduledSingle,
+            scheduledInstallment,
+            regularSingle
+        )
+        val effectiveExpenses = listOf(regularSingle, incomingInstallment)
+
+        assertEquals(409.95, totalExpenseAmount(scheduledExpenses), 0.001)
+        assertEquals(
+            100.00,
+            filteredExpenseTotal(effectiveExpenses, "", "Únicas"),
+            0.001
+        )
+        assertEquals(
+            80.00,
+            filteredExpenseTotal(effectiveExpenses, "", "Parceladas"),
+            0.001
+        )
+        assertEquals(
+            180.00,
+            filteredExpenseTotal(effectiveExpenses, "", "Todas"),
+            0.001
+        )
+    }
+
+    @Test
     fun combinesCategorySourceStatusSearchAndType() {
         val matching = expenses[1].copy(category_id = 7, is_paid = true)
         val candidates = listOf(matching, matching.copy(id = 4, category_id = 8),

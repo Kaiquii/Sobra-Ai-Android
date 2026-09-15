@@ -227,12 +227,19 @@ fun DespesasScreen(
         paymentStatus = selectedPaymentStatus
     )
     val selectedFilterCount = expenseCountsByFilter[selectedFilter] ?: filteredExpenses.size
-    val selectedFilterTotal = totalExpenseAmount(filteredExpenses)
+    val selectedFilterTotal = filteredExpenseTotal(
+        effectiveExpenses = uiState.effectiveExpensesData,
+        searchQuery = searchQuery,
+        selectedFilter = selectedFilter,
+        categoryId = selectedCategoryId,
+        paymentSource = selectedPaymentSource,
+        paymentStatus = selectedPaymentStatus
+    )
     val selectedFilterTotalLabel = when (selectedFilter) {
         "Parceladas" -> "Total em Parceladas"
         "Únicas" -> "Total em Únicas"
         "Fixas" -> "Total em Fixas"
-        else -> null
+        else -> "Total"
     }
     val formattedSelectedFilterTotal = remember(selectedFilterTotal) {
         NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"))
@@ -381,35 +388,6 @@ fun DespesasScreen(
                 }
             )
 
-            if (
-                selectedFilterTotalLabel != null &&
-                (uiState.hasLoadedOnce || uiState.expensesData.isNotEmpty()) &&
-                !(uiState.errorMessage != null && uiState.expensesData.isEmpty())
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = selectedFilterTotalLabel,
-                        color = secondaryTextColor,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = formattedSelectedFilterTotal,
-                        color = PrimaryBlue,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1
-                    )
-                }
-            }
-
             expensesErrorBannerMessage?.let { message ->
                 AppDataErrorBanner(
                     message = message,
@@ -454,14 +432,39 @@ fun DespesasScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    if (filteredExpenses.isNotEmpty()) {
-                        item(key = "scheduled_header") {
-                            Text(
-                                text = "Despesas previstas para ${monthName(currentMonthIndex + 1)}",
-                                color = textColor,
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleMedium
-                            )
+                    item(key = "expenses_summary") {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = selectedFilterTotalLabel,
+                                    color = secondaryTextColor,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = formattedSelectedFilterTotal,
+                                    color = PrimaryBlue,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1
+                                )
+                            }
+
+                            if (filteredExpenses.isNotEmpty()) {
+                                Text(
+                                    text = "Despesas previstas para ${monthName(currentMonthIndex + 1)}",
+                                    color = textColor,
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
                         }
                     }
                     items(

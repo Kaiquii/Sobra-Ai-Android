@@ -68,6 +68,24 @@ fun expenseCountsByFilter(
 fun totalExpenseAmount(expenses: List<Expense>): Double =
     expenses.sumOf { expense -> expense.amount }
 
+fun filteredExpenseTotal(
+    effectiveExpenses: List<Expense>,
+    searchQuery: String,
+    selectedFilter: String,
+    categoryId: Int? = null,
+    paymentSource: String? = null,
+    paymentStatus: String? = null
+): Double = totalExpenseAmount(
+    filterExpenses(
+        expenses = effectiveExpenses,
+        searchQuery = searchQuery,
+        selectedFilter = selectedFilter,
+        categoryId = categoryId,
+        paymentSource = paymentSource,
+        paymentStatus = paymentStatus
+    )
+)
+
 fun expenseCategoryOptions(
     categories: Map<Int, String>,
     expenses: List<Expense>
