@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.designsystem.components.FinancialPrivacyButton
+import com.example.appfinanceiro.feature.home.utils.formatCurrency
 import com.example.appfinanceiro.core.date.shiftMonth
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
 import com.example.appfinanceiro.core.designsystem.components.AppDataErrorBanner
@@ -58,7 +60,6 @@ import com.example.appfinanceiro.feature.home.components.ExpenseItem
 import com.example.appfinanceiro.feature.home.components.FilterOptionItem
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import com.example.appfinanceiro.feature.home.components.ResumoFinanceiroSection
-import com.example.appfinanceiro.feature.home.utils.formatCurrency
 import com.example.appfinanceiro.feature.home.utils.formatExpenseDate
 import com.example.appfinanceiro.feature.home.utils.getCategoryIconAndColor
 import com.example.appfinanceiro.feature.despesas.formatAdvancedDate
@@ -247,6 +248,7 @@ fun HomeScreen(
                     if (isLoadingMonth && hasLoadedHome) {
                         AppLoadingIndicator(modifier = Modifier.padding(end = 4.dp))
                     }
+                    FinancialPrivacyButton()
                     IconButton(onClick = onAssistantClick) {
                         Icon(
                             imageVector = Icons.Default.Chat,

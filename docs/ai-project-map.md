@@ -40,6 +40,18 @@ o modal informa quando ela ficou sem despesas e permite trocar ou limpar.
 
 ## Fluxo de dados
 
+`core/designsystem/components/FinancialPrivacy.kt` centraliza o estado de privacidade,
+salvo com `rememberSaveable` acima do `NavHost` em `MainActivity.kt`. Início, Despesas,
+Relatórios e Compromissos Parcelados compartilham o botão de olho e a mesma escolha.
+`FinancialValue` substitui valores monetários por barras neutras, inclusive nos
+detalhes e rateios de despesas; a edição de renda fica desabilitada neste modo.
+`FinancialValue` mantém a medição e baseline do texto original e desenha apenas a
+máscara quando oculto, removendo o texto das semânticas de acessibilidade.
+`PrivateReportContent` substitui os relatórios ocultos por cards compactos com
+skeletons, sem compor gráficos ou expor os valores e proporções à acessibilidade.
+Essa compactação é específica dos relatórios; os demais valores mantêm seu espaço.
+O card de saldo disponível não abre diálogo.
+
 Em Home e Despesas, a tela consome o estado do ViewModel, que recebe uma interface
 de fonte de dados. `FinanceRepository` implementa `HomeDataSource`,
 `ExpensesDataSource`, `ReportsDataSource` e `AssistantDataSource`, definidos em

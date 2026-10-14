@@ -32,6 +32,7 @@ import com.example.appfinanceiro.core.designsystem.theme.GreenPositive
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Income
+import com.example.appfinanceiro.core.designsystem.components.FinancialValue
 
 @Composable
 fun EditableIncomeSummaryCard(
@@ -45,7 +46,8 @@ fun EditableIncomeSummaryCard(
     icon: ImageVector? = null,
     onCreate: () -> Unit,
     onEdit: (Income) -> Unit,
-    onDelete: (Income) -> Unit
+    onDelete: (Income) -> Unit,
+    actionsEnabled: Boolean = true
 ) {
     Box(
         modifier = modifier
@@ -81,6 +83,7 @@ fun EditableIncomeSummaryCard(
                     ) {
                         IconButton(
                             onClick = { onEdit(existingIncome) },
+                            enabled = actionsEnabled,
                             modifier = Modifier.size(22.dp)
                         ) {
                             Icon(
@@ -93,6 +96,7 @@ fun EditableIncomeSummaryCard(
 
                         IconButton(
                             onClick = { onDelete(existingIncome) },
+                            enabled = actionsEnabled,
                             modifier = Modifier.size(22.dp)
                         ) {
                             Icon(
@@ -106,6 +110,7 @@ fun EditableIncomeSummaryCard(
                 } else {
                     IconButton(
                         onClick = onCreate,
+                        enabled = actionsEnabled,
                         modifier = Modifier.size(22.dp)
                     ) {
                         Icon(
@@ -119,7 +124,7 @@ fun EditableIncomeSummaryCard(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
+                FinancialValue(
                     value,
                     color = valueColor,
                     fontSize = valueSize,

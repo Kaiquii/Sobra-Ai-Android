@@ -23,6 +23,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.appfinanceiro.core.biometric.BiometricAuth
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.designsystem.theme.AppFinanceiroTheme
+import com.example.appfinanceiro.core.designsystem.components.FinancialPrivacyProvider
 import com.example.appfinanceiro.core.network.SessionAccessEvents
 import com.example.appfinanceiro.core.security.PlayIntegrityProtection
 import com.example.appfinanceiro.core.update.AppUpdateGate
@@ -151,169 +152,171 @@ class MainActivity : FragmentActivity() {
                         }
                     }
 
-                    NavHost(navController = navController, startDestination = destination) {
+                    FinancialPrivacyProvider {
+                        NavHost(navController = navController, startDestination = destination) {
 
-                        composable("login") {
-                            LoginScreen(
-                                onLoginSuccess = {
-                                    navController.navigate("home") {
-                                        popUpTo("login") { inclusive = true }
+                            composable("login") {
+                                LoginScreen(
+                                    onLoginSuccess = {
+                                        navController.navigate("home") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    },
+                                    onNavigateToRegister = {
+                                        navController.navigate("register")
+                                    },
+                                    onNavigateToForgot = {
+                                        navController.navigate("esqueci_senha")
                                     }
-                                },
-                                onNavigateToRegister = {
-                                    navController.navigate("register")
-                                },
-                                onNavigateToForgot = {
-                                    navController.navigate("esqueci_senha")
-                                }
-                            )
-                        }
+                                )
+                            }
 
-                        composable("register") {
-                            RegisterScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                },
-                                onRegisterSuccess = {
-                                    navController.popBackStack()
-                                }
-                            )
-                        }
-
-                        composable("esqueci_senha") {
-                            EsqueciSenhaScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                }
-                            )
-                        }
-
-                        composable("home") {
-                            HomeScreen(
-                                onNavigate = ::navigateToMainTab,
-                                onAddClick = {
-                                    navController.navigate("nova_despesa")
-                                },
-                                onAssistantClick = {
-                                    navController.navigate("assistant") { launchSingleTop = true }
-                                },
-                                onSessionExpired = { navigateToLogin() }
-                            )
-                        }
-
-                        composable("assistant") {
-                            AssistantScreen(
-                                onNavigateBack = { navController.popBackStack() },
-                                onSessionExpired = { navigateToLogin() }
-                            )
-                        }
-
-                        composable("perfil") {
-                            PerfilScreen(
-                                onLogoutClick = {
-                                    navController.navigate("login") {
-                                        popUpTo(0) { inclusive = true }
+                            composable("register") {
+                                RegisterScreen(
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                    },
+                                    onRegisterSuccess = {
+                                        navController.popBackStack()
                                     }
-                                },
-                                onNavigate = ::navigateToMainTab,
-                                onAddClick = {
-                                    navController.navigate("nova_despesa")
-                                },
-                                onIncomeSettingsClick = {
-                                    navController.navigate("configuracoes_renda")
-                                },
-                                onCategoriesClick = {
-                                    navController.navigate("categorias")
-                                },
-                                onEditProfileClick = {
-                                    navController.navigate("editar_perfil")
-                                },
-                                onHelpClick = {
-                                    navController.navigate("ajuda")
+                                )
+                            }
+
+                            composable("esqueci_senha") {
+                                EsqueciSenhaScreen(
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            composable("home") {
+                                HomeScreen(
+                                    onNavigate = ::navigateToMainTab,
+                                    onAddClick = {
+                                        navController.navigate("nova_despesa")
+                                    },
+                                    onAssistantClick = {
+                                        navController.navigate("assistant") { launchSingleTop = true }
+                                    },
+                                    onSessionExpired = { navigateToLogin() }
+                                )
+                            }
+
+                            composable("assistant") {
+                                AssistantScreen(
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onSessionExpired = { navigateToLogin() }
+                                )
+                            }
+
+                            composable("perfil") {
+                                PerfilScreen(
+                                    onLogoutClick = {
+                                        navController.navigate("login") {
+                                            popUpTo(0) { inclusive = true }
+                                        }
+                                    },
+                                    onNavigate = ::navigateToMainTab,
+                                    onAddClick = {
+                                        navController.navigate("nova_despesa")
+                                    },
+                                    onIncomeSettingsClick = {
+                                        navController.navigate("configuracoes_renda")
+                                    },
+                                    onCategoriesClick = {
+                                        navController.navigate("categorias")
+                                    },
+                                    onEditProfileClick = {
+                                        navController.navigate("editar_perfil")
+                                    },
+                                    onHelpClick = {
+                                        navController.navigate("ajuda")
+                                    }
+                                )
+                            }
+
+
+                            composable("nova_despesa") {
+                                NovaDespesaScreen(
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            composable("despesas") {
+                                DespesasScreen(
+                                    onNavigate = ::navigateToMainTab,
+                                    onAddClick = {
+                                        navController.navigate("nova_despesa")
+                                    },
+                                    onEditClick = { expenseId ->
+                                        navController.navigate("editar_despesa/$expenseId")
+                                    },
+                                    onSessionExpired = { navigateToLogin() }
+                                )
+                            }
+
+                            composable("editar_despesa/{expenseId}") { backStackEntry ->
+                                val expenseId = backStackEntry.arguments?.getString("expenseId")?.toIntOrNull()
+                                if (expenseId != null) {
+                                    EditarDespesaScreen(
+                                        expenseId = expenseId,
+                                        onNavigateBack = { navController.popBackStack() }
+                                    )
                                 }
-                            )
-                        }
+                            }
 
-
-                        composable("nova_despesa") {
-                            NovaDespesaScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                }
-                            )
-                        }
-
-                        composable("despesas") {
-                            DespesasScreen(
-                                onNavigate = ::navigateToMainTab,
-                                onAddClick = {
-                                    navController.navigate("nova_despesa")
-                                },
-                                onEditClick = { expenseId ->
-                                    navController.navigate("editar_despesa/$expenseId")
-                                },
-                                onSessionExpired = { navigateToLogin() }
-                            )
-                        }
-
-                        composable("editar_despesa/{expenseId}") { backStackEntry ->
-                            val expenseId = backStackEntry.arguments?.getString("expenseId")?.toIntOrNull()
-                            if (expenseId != null) {
-                                EditarDespesaScreen(
-                                    expenseId = expenseId,
+                            composable("configuracoes_renda") {
+                                ConfiguracoesRendaScreen(
                                     onNavigateBack = { navController.popBackStack() }
                                 )
                             }
-                        }
 
-                        composable("configuracoes_renda") {
-                            ConfiguracoesRendaScreen(
-                                onNavigateBack = { navController.popBackStack() }
-                            )
-                        }
+                            composable("categorias") {
+                                CategoriasScreen(
+                                    onNavigateBack = { navController.popBackStack() }
+                                )
+                            }
 
-                        composable("categorias") {
-                            CategoriasScreen(
-                                onNavigateBack = { navController.popBackStack() }
-                            )
-                        }
+                            composable("editar_perfil") {
+                                EditarPerfilScreen(
+                                    onNavigateBack = { navController.popBackStack() }
+                                )
+                            }
 
-                        composable("editar_perfil") {
-                            EditarPerfilScreen(
-                                onNavigateBack = { navController.popBackStack() }
-                            )
-                        }
+                            composable("relatorios") {
+                                RelatoriosScreen(
+                                    onNavigate = ::navigateToMainTab,
+                                    onAddClick = {
+                                        navController.navigate("nova_despesa")
+                                    },
+                                    onInstallmentsClick = {
+                                        navController.navigate("compromissos_parcelados") {
+                                            launchSingleTop = true
+                                        }
+                                    },
+                                    onSessionExpired = { navigateToLogin() }
+                                )
+                            }
 
-                        composable("relatorios") {
-                            RelatoriosScreen(
-                                onNavigate = ::navigateToMainTab,
-                                onAddClick = {
-                                    navController.navigate("nova_despesa")
-                                },
-                                onInstallmentsClick = {
-                                    navController.navigate("compromissos_parcelados") {
-                                        launchSingleTop = true
-                                    }
-                                },
-                                onSessionExpired = { navigateToLogin() }
-                            )
-                        }
+                            composable("compromissos_parcelados") {
+                                InstallmentCommitmentsScreen(
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onSessionExpired = { navigateToLogin() }
+                                )
+                            }
 
-                        composable("compromissos_parcelados") {
-                            InstallmentCommitmentsScreen(
-                                onNavigateBack = { navController.popBackStack() },
-                                onSessionExpired = { navigateToLogin() }
-                            )
-                        }
+                            composable("ajuda") {
+                                AjudaScreen(
+                                    onNavigateBack = { navController.popBackStack() }
+                                )
+                            }
 
-                        composable("ajuda") {
-                            AjudaScreen(
-                                onNavigateBack = { navController.popBackStack() }
-                            )
                         }
 
                     }
-
                     AppUpdateGate()
                 }
             }

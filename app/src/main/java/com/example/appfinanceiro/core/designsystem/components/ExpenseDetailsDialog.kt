@@ -47,8 +47,7 @@ fun ExpenseDetailsDialog(
 ) {
     val dialogBackgroundColor = MaterialTheme.colorScheme.background
     val dialogTextColor = MaterialTheme.colorScheme.onBackground
-    val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("pt", "BR")) }
-    val formattedAmount = remember(expense.amount) { currencyFormatter.format(expense.amount) }
+    val formattedAmount = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR")).format(expense.amount)
     val formattedDate = remember(expense.date) { formatExpenseDetailsDate(expense.date) }
     val paidAtLabel = remember(expense.is_paid, expense.paid_at) {
         expense.paid_at
@@ -234,7 +233,7 @@ private fun ExpenseSummaryHeader(
             overflow = TextOverflow.Ellipsis
         )
 
-        Text(
+        FinancialValue(
             text = amount,
             color = textColor,
             fontSize = 28.sp,
@@ -303,7 +302,8 @@ private fun DetailsGroup(
             paymentSplits.forEach { split ->
                 DetailLine(
                     label = split.payment_source,
-                    value = NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(split.amount),
+                    value = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR")).format(split.amount),
+                    sensitive = true,
                     textColor = textColor
                 )
             }
@@ -318,7 +318,7 @@ private fun DetailsGroup(
 }
 
 @Composable
-private fun DetailLine(label: String, value: String, textColor: Color) {
+private fun DetailLine(label: String, value: String, textColor: Color, sensitive: Boolean = false) {
     val colorScheme = MaterialTheme.colorScheme
 
     Row(
@@ -333,15 +333,27 @@ private fun DetailLine(label: String, value: String, textColor: Color) {
             modifier = Modifier.weight(0.7f)
         )
         Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = value,
-            color = textColor,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1.3f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        if (sensitive) {
+            FinancialValue(
+                text = value,
+                color = textColor,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1.3f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        } else {
+            Text(
+                text = value,
+                color = textColor,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1.3f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 

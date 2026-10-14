@@ -69,6 +69,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.date.shiftMonth
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
+import com.example.appfinanceiro.core.designsystem.components.FinancialPrivacyButton
+import com.example.appfinanceiro.core.designsystem.components.PrivateReportContent
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.GreenPositive
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
@@ -142,6 +144,7 @@ fun InstallmentCommitmentsScreen(
                     }
                 },
                 actions = {
+                    FinancialPrivacyButton()
                     if (uiState.isLoading && uiState.data != null) {
                         AppLoadingIndicator(modifier = Modifier.padding(end = 16.dp))
                     }
@@ -262,7 +265,9 @@ fun InstallmentCommitmentsScreen(
                         }
 
                         item {
-                            SummarySection(data)
+                            PrivateReportContent("Resumo dos compromissos") {
+                                SummarySection(data)
+                            }
                         }
 
                         item {
@@ -286,7 +291,9 @@ fun InstallmentCommitmentsScreen(
 
                         if (selectedTab == 0) {
                             items(data.compras, key = { it.serie_id }) { purchase ->
-                                PurchaseCard(purchase)
+                                PrivateReportContent("Compra parcelada") {
+                                    PurchaseCard(purchase)
+                                }
                             }
                         } else {
                             item {
@@ -298,7 +305,9 @@ fun InstallmentCommitmentsScreen(
                             }
 
                             items(data.linha_do_tempo) { month ->
-                                TimelineMonthCard(month)
+                                PrivateReportContent("Compromissos do mês") {
+                                    TimelineMonthCard(month)
+                                }
                             }
                         }
                     }

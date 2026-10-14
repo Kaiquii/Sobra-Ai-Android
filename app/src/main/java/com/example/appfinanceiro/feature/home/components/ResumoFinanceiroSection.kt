@@ -44,12 +44,14 @@ import com.example.appfinanceiro.core.designsystem.theme.SurfaceCardPurpleLight
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Income
 import com.example.appfinanceiro.core.network.SummaryResponse
+import com.example.appfinanceiro.core.designsystem.components.FinancialValue
+import com.example.appfinanceiro.core.designsystem.components.LocalFinancialPrivacy
+import com.example.appfinanceiro.feature.home.utils.formatCurrency
 import com.example.appfinanceiro.feature.home.components.income.EditableIncomeSummaryCard
 import com.example.appfinanceiro.feature.home.components.income.IncomeDeleteDialog
 import com.example.appfinanceiro.feature.home.components.income.IncomeDeleteState
 import com.example.appfinanceiro.feature.home.components.income.IncomeEditorDialog
 import com.example.appfinanceiro.feature.home.components.income.IncomeEditorState
-import com.example.appfinanceiro.feature.home.utils.formatCurrency
 
 @Composable
 fun ResumoFinanceiroSection(
@@ -71,6 +73,7 @@ fun ResumoFinanceiroSection(
     val cardPurple = if (isDark) SurfaceCardPurple else SurfaceCardPurpleLight
     val cardBlue = if (isDark) SurfaceCardBlue else SurfaceCardBlueLight
     val alertColor = Color(0xFFFF6B6B)
+    val valuesHidden = LocalFinancialPrivacy.current.valuesHidden
 
     var editorState by remember { mutableStateOf<IncomeEditorState?>(null) }
     var deleteState by remember { mutableStateOf<IncomeDeleteState?>(null) }
@@ -156,10 +159,11 @@ fun ResumoFinanceiroSection(
 
                 HighlightSummaryCard(
                     title = "Total Geral Disponível",
-                    subtitle = if (totalDisp < 0) "Atenção: saldo negativo no mês" else "Saldo livre no mês",
+                    subtitle = if (totalDisp < 0)
+                        "Atenção: saldo negativo no mês" else "Saldo livre no mês",
                     value = formatCurrency(totalDisp),
                     bgColor = cardBlue,
-                    valueColor = if (totalDisp < 0) alertColor else PrimaryBlue
+                    valueColor = if (!valuesHidden && totalDisp < 0) alertColor else PrimaryBlue
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -189,6 +193,7 @@ fun ResumoFinanceiroSection(
                         bgColor = cardBg,
                         valueColor = textColor,
                         existingIncome = salarioIncome,
+                        actionsEnabled = !valuesHidden,
                         modifier = Modifier.weight(1f),
                         onCreate = {
                             editorState = IncomeEditorState(
@@ -217,6 +222,7 @@ fun ResumoFinanceiroSection(
                         bgColor = cardBg,
                         valueColor = textColor,
                         existingIncome = adiantamentoIncome,
+                        actionsEnabled = !valuesHidden,
                         modifier = Modifier.weight(1f),
                         onCreate = {
                             editorState = IncomeEditorState(
@@ -246,6 +252,7 @@ fun ResumoFinanceiroSection(
                     bgColor = cardBg,
                     valueColor = GreenPositive,
                     existingIncome = rendaExtraIncome,
+                    actionsEnabled = !valuesHidden,
                     icon = Icons.Default.TrendingUp,
                     onCreate = {
                         editorState = IncomeEditorState(
@@ -273,7 +280,7 @@ fun ResumoFinanceiroSection(
                         title = "Restante Salário",
                         value = formatCurrency(restSalario),
                         bgColor = cardPurple,
-                        valueColor = if (restSalario < 0) alertColor else textColor,
+                        valueColor = if (!valuesHidden && restSalario < 0) alertColor else textColor,
                         modifier = Modifier.weight(1f)
                     )
 
@@ -281,7 +288,7 @@ fun ResumoFinanceiroSection(
                         title = "Restante Adiant.",
                         value = formatCurrency(restAdiant),
                         bgColor = cardPurple,
-                        valueColor = if (restAdiant < 0) alertColor else textColor,
+                        valueColor = if (!valuesHidden && restAdiant < 0) alertColor else textColor,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -290,7 +297,7 @@ fun ResumoFinanceiroSection(
                     title = "Restante Renda Extra",
                     value = formatCurrency(restRendaExtra),
                     bgColor = cardPurple,
-                    valueColor = if (restRendaExtra < 0) alertColor else textColor,
+                    valueColor = if (!valuesHidden && restRendaExtra < 0) alertColor else textColor,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -342,14 +349,14 @@ private fun HighlightSummaryCard(
         Column(modifier = Modifier.weight(1f)) {
             Text(title, color = TextMuted, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(6.dp))
-            Text(
+            FinancialValue(
                 text = value,
                 color = valueColor,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(subtitle, color = TextMuted, fontSize = 11.sp)
+            FinancialValue(subtitle, color = TextMuted, fontSize = 11.sp)
         }
 
         Icon(
@@ -382,7 +389,7 @@ private fun SummaryCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
+                FinancialValue(
                     text = value,
                     color = valueColor,
                     fontSize = valueSize,

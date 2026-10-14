@@ -203,7 +203,7 @@ private fun CompactExpenseCard(
 
         Column(horizontalAlignment = Alignment.End) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
+                FinancialValue(
                     text = value,
                     color = textColor,
                     fontWeight = FontWeight.Bold,
@@ -432,7 +432,7 @@ private fun DetailedExpenseCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Text(
+                FinancialValue(
                     text = value,
                     color = titleColor,
                     fontWeight = FontWeight.Bold,

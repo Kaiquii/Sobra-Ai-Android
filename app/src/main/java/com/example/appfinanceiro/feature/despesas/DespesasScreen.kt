@@ -68,6 +68,8 @@ import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.date.shiftMonth
 import com.example.appfinanceiro.core.designsystem.components.AppDataErrorBanner
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
+import com.example.appfinanceiro.core.designsystem.components.FinancialPrivacyButton
+import com.example.appfinanceiro.core.designsystem.components.FinancialValue
 import com.example.appfinanceiro.core.designsystem.components.ExpenseDetailsDialog
 import com.example.appfinanceiro.core.designsystem.components.ExpenseCard
 import com.example.appfinanceiro.core.designsystem.components.ExpenseCardStyle
@@ -275,6 +277,7 @@ fun DespesasScreen(
                     }
                 },
                 actions = {
+                    FinancialPrivacyButton()
                     if (uiState.isLoading && uiState.hasLoadedOnce) {
                         AppLoadingIndicator(modifier = Modifier.padding(end = 16.dp))
                     }
@@ -448,7 +451,7 @@ fun DespesasScreen(
                                     modifier = Modifier.weight(1f)
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
-                                Text(
+                                FinancialValue(
                                     text = formattedSelectedFilterTotal,
                                     color = PrimaryBlue,
                                     style = MaterialTheme.typography.titleMedium,
@@ -924,7 +927,7 @@ private fun AdvancedExpenseImpactCard(
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(
+                FinancialValue(
                     text = "- $formattedAmount",
                     color = colorScheme.onSurface,
                     style = MaterialTheme.typography.titleMedium,

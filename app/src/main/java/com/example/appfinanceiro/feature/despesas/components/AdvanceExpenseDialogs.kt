@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.appfinanceiro.core.designsystem.components.AppDatePickerDialog
+import com.example.appfinanceiro.core.designsystem.components.FinancialValue
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Expense
@@ -99,7 +100,7 @@ fun AdvanceExpenseDialog(
                     text = "${expense.description} está prevista para $scheduledPeriod.",
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Text(
+                FinancialValue(
                     text = "$formattedAmount entrarão no cálculo de $selectedMonthLabel. A despesa continuará visível em $scheduledPeriod e não será descontada novamente nesse período.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -204,7 +205,7 @@ fun RemoveAdvanceDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
+                FinancialValue(
                     "$formattedAmount deixarão de ser considerados em $advancedPeriod e voltarão para o cálculo de $scheduledPeriod.",
                     color = MaterialTheme.colorScheme.onBackground
                 )

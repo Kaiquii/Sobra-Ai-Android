@@ -59,6 +59,8 @@ import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.date.shiftMonth
 import com.example.appfinanceiro.core.designsystem.components.AppDataErrorBanner
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
+import com.example.appfinanceiro.core.designsystem.components.FinancialPrivacyButton
+import com.example.appfinanceiro.core.designsystem.components.PrivateReportContent
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
 import com.example.appfinanceiro.core.designsystem.components.swipeNavigation
 import com.example.appfinanceiro.core.designsystem.components.dataRequestErrorMessage
@@ -243,6 +245,7 @@ fun RelatoriosScreen(
                     }
                 },
                 actions = {
+                    FinancialPrivacyButton()
                     if (uiState.isLoading && uiState.hasLoadedOnce) {
                         AppLoadingIndicator(modifier = Modifier.padding(end = 16.dp))
                     }
@@ -360,38 +363,46 @@ fun RelatoriosScreen(
                     }
 
                     item(key = "category_expenses", contentType = "card") {
-                        CategoryExpensesCard(
-                            totalExpense = uiState.summaryData?.total_expense ?: 0.0,
-                            categories = uiState.categoryData
-                        )
+                        PrivateReportContent("Gastos por Categoria") {
+                            CategoryExpensesCard(
+                                totalExpense = uiState.summaryData?.total_expense ?: 0.0,
+                                categories = uiState.categoryData
+                            )
+                        }
                     }
 
                 item(key = "month_comparison", contentType = "card") {
-                    MonthComparisonSection(
-                        data = uiState.monthComparison,
-                        isLoading = uiState.isComparisonLoading,
-                        errorMessage = uiState.comparisonErrorMessage,
-                        currentMonthIndex = currentMonthIndex,
-                        currentYear = currentYear,
-                        compareMonthIndex = compareMonthIndex,
-                        compareYear = compareYear,
-                        onPrevCompareClick = { changeCompareMonth(-1) },
-                        onNextCompareClick = { changeCompareMonth(1) }
-                    )
+                    PrivateReportContent("Comparativo Mensal") {
+                        MonthComparisonSection(
+                            data = uiState.monthComparison,
+                            isLoading = uiState.isComparisonLoading,
+                            errorMessage = uiState.comparisonErrorMessage,
+                            currentMonthIndex = currentMonthIndex,
+                            currentYear = currentYear,
+                            compareMonthIndex = compareMonthIndex,
+                            compareYear = compareYear,
+                            onPrevCompareClick = { changeCompareMonth(-1) },
+                            onNextCompareClick = { changeCompareMonth(1) }
+                        )
+                    }
                 }
 
                 item(key = "income_vs_expense", contentType = "card") {
-                    IncomeVsExpenseCard(
-                        summaryData = uiState.summaryData,
-                        chartData = uiState.chartData,
-                        selectedRange = selectedRange,
-                        currentMonth = currentMonthNumber,
-                        onRangeSelected = { selectedRange = it }
-                    )
+                    PrivateReportContent("Receitas e Despesas") {
+                        IncomeVsExpenseCard(
+                            summaryData = uiState.summaryData,
+                            chartData = uiState.chartData,
+                            selectedRange = selectedRange,
+                            currentMonth = currentMonthNumber,
+                            onRangeSelected = { selectedRange = it }
+                        )
+                    }
                 }
 
                 item(key = "year_summary", contentType = "section") {
-                    YearSummarySection(yearlySummary = uiState.yearlySummary)
+                    PrivateReportContent("Resumo Anual") {
+                        YearSummarySection(yearlySummary = uiState.yearlySummary)
+                    }
                 }
 
                 item(key = "bottom_space", contentType = "spacer") {
