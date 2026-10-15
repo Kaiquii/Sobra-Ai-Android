@@ -3,6 +3,7 @@ package com.example.appfinanceiro.core.network.auth
 import android.util.Log
 import br.com.sobraai.app.BuildConfig
 import com.example.appfinanceiro.core.network.FinanceApi
+import com.example.appfinanceiro.core.network.createFinanceGson
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -105,7 +106,7 @@ object RetrofitClient {
         Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL)
             .client(authenticatedClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(createFinanceGson()))
             .build()
             .create(FinanceApi::class.java)
     }

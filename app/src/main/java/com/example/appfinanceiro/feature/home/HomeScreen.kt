@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.FinanceDataChanges
+import com.example.appfinanceiro.core.network.displayDescription
 import com.example.appfinanceiro.core.designsystem.components.FinancialPrivacyButton
 import com.example.appfinanceiro.feature.home.utils.formatCurrency
 import com.example.appfinanceiro.core.date.shiftMonth
@@ -83,6 +85,7 @@ fun HomeScreen(
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
+    val financeRevision by FinanceDataChanges.revision.collectAsState()
     val listState = rememberLazyListState()
     val isLoadingMonth = uiState.isSummaryLoading ||
             uiState.isIncomesLoading ||
@@ -204,7 +207,7 @@ fun HomeScreen(
         currentYear = target.year
     }
 
-    LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshIncomeActions) {
+    LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshIncomeActions, financeRevision) {
         userToken?.let { token ->
             viewModel.loadAll(
                 token,
@@ -388,7 +391,7 @@ fun HomeScreen(
                 ExpenseItem(
                     icon = icon,
                     iconColor = color,
-                    title = expense.description,
+                    title = expense.displayDescription,
                     categoryName = categoryName,
                     paymentSource = expense.paymentCardSourceLabel(),
                     type = typeText,

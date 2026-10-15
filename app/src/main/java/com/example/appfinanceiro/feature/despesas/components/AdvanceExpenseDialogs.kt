@@ -33,6 +33,7 @@ import com.example.appfinanceiro.core.designsystem.components.FinancialValue
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Expense
+import com.example.appfinanceiro.core.network.displayDescription
 import com.example.appfinanceiro.feature.despesas.monthName
 import com.example.appfinanceiro.feature.despesas.scheduledMonthYear
 import java.text.NumberFormat
@@ -97,7 +98,7 @@ fun AdvanceExpenseDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = "${expense.description} está prevista para $scheduledPeriod.",
+                    text = "${expense.displayDescription} está prevista para $scheduledPeriod.",
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 FinancialValue(

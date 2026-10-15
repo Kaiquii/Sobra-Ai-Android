@@ -32,6 +32,7 @@ import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.expenseDetailBlock
 import com.example.appfinanceiro.core.network.Expense
 import com.example.appfinanceiro.core.network.PaymentSplit
+import com.example.appfinanceiro.core.network.displayDescription
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -48,7 +49,7 @@ fun ExpenseDetailsDialog(
     val dialogBackgroundColor = MaterialTheme.colorScheme.background
     val dialogTextColor = MaterialTheme.colorScheme.onBackground
     val formattedAmount = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR")).format(expense.amount)
-    val formattedDate = remember(expense.date) { formatExpenseDetailsDate(expense.date) }
+    val formattedDate = remember(expense.date) { formatExpenseDetailsDate(expense.date.orEmpty()) }
     val paidAtLabel = remember(expense.is_paid, expense.paid_at) {
         expense.paid_at
             ?.takeIf { expense.is_paid }
@@ -67,7 +68,7 @@ fun ExpenseDetailsDialog(
                 "Parcelada (${expense.current_installment}/${expense.installments})"
             }
 
-            else -> expense.type
+            else -> expense.type.orEmpty().ifBlank { "Não informado" }
         }
     }
 
@@ -90,7 +91,7 @@ fun ExpenseDetailsDialog(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 ExpenseSummaryHeader(
-                    description = expense.description,
+                    description = expense.displayDescription,
                     amount = formattedAmount,
                     categoryName = categoryName,
                     typeLabel = typeLabel,
@@ -98,7 +99,9 @@ fun ExpenseDetailsDialog(
                 )
 
                 DetailsGroup(
-                    paymentSplits = expense.payment_splits.ifEmpty {
+                    paymentSplits = expense.payment_splits.orEmpty().filterNotNull().map {
+                        it.copy(payment_source = it.payment_source.orEmpty().ifBlank { "Não informado" })
+                    }.ifEmpty {
                         expense.payment_source?.let { source ->
                             listOf(PaymentSplit(payment_source = source, amount = expense.amount))
                         }.orEmpty()

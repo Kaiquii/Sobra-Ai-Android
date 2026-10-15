@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.FinanceDataChanges
 import com.example.appfinanceiro.core.date.shiftMonth
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
 import com.example.appfinanceiro.core.designsystem.components.FinancialPrivacyButton
@@ -93,6 +94,7 @@ fun InstallmentCommitmentsScreen(
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
+    val financeRevision by FinanceDataChanges.revision.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
     var includeCurrentMonthAsPaid by remember { mutableStateOf(false) }
     var selectedCalendarMonths by remember { mutableIntStateOf(12) }
@@ -103,7 +105,7 @@ fun InstallmentCommitmentsScreen(
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColor = MaterialTheme.colorScheme.onBackground
 
-    LaunchedEffect(userToken, selectedMonth, selectedYear, selectedCalendarMonths, includeCurrentMonthAsPaid) {
+    LaunchedEffect(userToken, selectedMonth, selectedYear, selectedCalendarMonths, includeCurrentMonthAsPaid, financeRevision) {
         userToken?.let { token ->
             viewModel.loadCommitments(
                 token = token,
@@ -144,10 +146,10 @@ fun InstallmentCommitmentsScreen(
                     }
                 },
                 actions = {
-                    FinancialPrivacyButton()
                     if (uiState.isLoading && uiState.data != null) {
-                        AppLoadingIndicator(modifier = Modifier.padding(end = 16.dp))
+                        AppLoadingIndicator(modifier = Modifier.padding(end = 4.dp))
                     }
+                    FinancialPrivacyButton()
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )

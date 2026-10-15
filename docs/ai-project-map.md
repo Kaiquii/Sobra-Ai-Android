@@ -57,6 +57,20 @@ de fonte de dados. `FinanceRepository` implementa `HomeDataSource`,
 `ExpensesDataSource`, `ReportsDataSource` e `AssistantDataSource`, definidos em
 `core/data/FinanceDataSources.kt`, e chama `RetrofitClient.financeApi`.
 
+`core/network/FinanceJson.kt` configura o Gson financeiro para normalizar campos
+textuais e rateios nulos/omitidos de despesas legadas, sem alterar valores, IDs ou
+status. `Expense.displayDescription` fornece um aviso apenas visual para descrição
+ausente; o aviso não é usado em cadastros/edições. Busca e origens de pagamento
+também toleram campos nulos defensivamente.
+
+`AssistantChatResponse.tool_result` informa o estado da operação. Apenas
+`tool_call=create_expense` com `status=created` incrementa a revisão de
+`core/data/FinanceDataChanges.kt`. Home, Despesas, Relatórios (inclusive comparação)
+e Compromissos Parcelados observam essa revisão para recarregar o período vigente.
+A revisão permanece disponível enquanto a tela está fora da composição. Perguntas,
+confirmações pendentes, cancelamentos e respostas antigas sem resultado estruturado
+não sinalizam cadastro concluído. O chat mantém o `conversation_id` entre respostas.
+
 `HomeViewModel` usa `StateFlow` para publicar seu estado. Antes de replicar esse
 padrão em outra funcionalidade, leia seu ViewModel: a organização não é idêntica
 em todas as telas.

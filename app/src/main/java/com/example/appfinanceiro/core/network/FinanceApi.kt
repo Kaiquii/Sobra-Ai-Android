@@ -70,9 +70,13 @@ data class PaymentSplitRequest(
     val amount: Double
 )
 
-fun Expense.paymentSources(): List<String> = payment_splits
-    .map { it.payment_source }
-    .ifEmpty { listOfNotNull(payment_source) }
+val Expense.displayDescription: String
+    get() = description.orEmpty().ifBlank { "Despesa sem descrição" }
+
+fun Expense.paymentSources(): List<String> = payment_splits.orEmpty()
+    .filterNotNull()
+    .mapNotNull { it.payment_source?.takeIf(String::isNotBlank) }
+    .ifEmpty { listOfNotNull(payment_source?.takeIf(String::isNotBlank)) }
 
 fun Expense.paymentSourceLabel(): String = paymentSources()
     .joinToString(" + ")
@@ -126,7 +130,13 @@ data class AssistantChatResponse(
     val reply: String,
     val tool_call: String? = null,
     val error_code: String? = null,
-    val retry_after_seconds: Int? = null
+    val retry_after_seconds: Int? = null,
+    val tool_result: AssistantToolResult? = null
+)
+
+data class AssistantToolResult(
+    val status: String? = null,
+    val missing_fields: List<String> = emptyList()
 )
 
 data class AssistantConversation(

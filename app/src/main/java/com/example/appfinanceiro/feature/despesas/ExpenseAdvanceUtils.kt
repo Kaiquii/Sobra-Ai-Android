@@ -18,7 +18,7 @@ fun incomingAdvancedExpenses(
     .distinctBy { it.id }
 
 fun Expense.scheduledMonthYear(): Pair<Int, Int>? {
-    val datePart = date.substringBefore('T').substringBefore(' ')
+    val datePart = date.orEmpty().substringBefore('T').substringBefore(' ')
     val parts = datePart.split('-')
     if (parts.size == 3) {
         val year = parts[0].toIntOrNull()

@@ -56,6 +56,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.FinanceDataChanges
 import com.example.appfinanceiro.core.date.shiftMonth
 import com.example.appfinanceiro.core.designsystem.components.AppDataErrorBanner
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
@@ -92,6 +93,7 @@ fun RelatoriosScreen(
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
+    val financeRevision by FinanceDataChanges.revision.collectAsState()
     val exportState by exportViewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
 
@@ -163,7 +165,7 @@ fun RelatoriosScreen(
         compareYear = target.year
     }
 
-    LaunchedEffect(currentMonthIndex, currentYear, userToken) {
+    LaunchedEffect(currentMonthIndex, currentYear, userToken, financeRevision) {
         userToken?.let { token ->
             viewModel.loadReports(
                 token = token,
@@ -173,7 +175,7 @@ fun RelatoriosScreen(
         }
     }
 
-    LaunchedEffect(currentMonthIndex, currentYear, compareMonthIndex, compareYear, userToken) {
+    LaunchedEffect(currentMonthIndex, currentYear, compareMonthIndex, compareYear, userToken, financeRevision) {
         if (compareMonthIndex == currentMonthIndex && compareYear == currentYear) {
             val previousMonth = shiftMonth(currentMonthIndex, currentYear, -1)
             compareMonthIndex = previousMonth.monthIndex
@@ -245,10 +247,10 @@ fun RelatoriosScreen(
                     }
                 },
                 actions = {
-                    FinancialPrivacyButton()
                     if (uiState.isLoading && uiState.hasLoadedOnce) {
-                        AppLoadingIndicator(modifier = Modifier.padding(end = 16.dp))
+                        AppLoadingIndicator(modifier = Modifier.padding(end = 4.dp))
                     }
+                    FinancialPrivacyButton()
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )

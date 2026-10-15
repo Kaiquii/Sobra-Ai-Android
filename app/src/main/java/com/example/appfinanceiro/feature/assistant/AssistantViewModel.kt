@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanceiro.core.data.FinanceRepository
+import com.example.appfinanceiro.core.data.FinanceDataChanges
 import com.example.appfinanceiro.core.data.AssistantDataSource
 import com.example.appfinanceiro.core.data.SessionExpiredException
 import com.example.appfinanceiro.core.data.userMessageOr
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 data class AssistantMessage(
@@ -36,7 +38,8 @@ data class AssistantUiState(
 )
 
 class AssistantViewModel(
-    private val repository: AssistantDataSource = FinanceRepository()
+    private val repository: AssistantDataSource = FinanceRepository(),
+    private val onExpenseCreated: () -> Unit = FinanceDataChanges::notifyExpenseCreated
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AssistantUiState())
@@ -70,6 +73,10 @@ class AssistantViewModel(
                     conversationId = conversationId
                 )
 
+                if (response.tool_call == "create_expense" && response.tool_result?.status == "created") {
+                    onExpenseCreated()
+                }
+
                 _uiState.update {
                     it.copy(
                         currentConversationId = response.conversation_id,
@@ -88,6 +95,8 @@ class AssistantViewModel(
                 }
 
                 loadConversations(token)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: SessionExpiredException) {
                 _uiState.update {
                     it.copy(isSending = false, isSessionExpired = true)

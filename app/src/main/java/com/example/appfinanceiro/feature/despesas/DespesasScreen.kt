@@ -65,6 +65,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.SessionManager
+import com.example.appfinanceiro.core.data.FinanceDataChanges
+import com.example.appfinanceiro.core.network.displayDescription
+import com.example.appfinanceiro.core.network.paymentSources
 import com.example.appfinanceiro.core.date.shiftMonth
 import com.example.appfinanceiro.core.designsystem.components.AppDataErrorBanner
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
@@ -107,6 +110,7 @@ fun DespesasScreen(
     val sessionManager = remember { SessionManager(context) }
     val userToken by sessionManager.token.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
+    val financeRevision by FinanceDataChanges.revision.collectAsState()
     val listState = rememberLazyListState()
     val colorScheme = MaterialTheme.colorScheme
 
@@ -145,7 +149,7 @@ fun DespesasScreen(
     var expenseToAdvance by remember { mutableStateOf<Expense?>(null) }
     var expenseToRemoveAdvance by remember { mutableStateOf<Expense?>(null) }
 
-    LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshTrigger) {
+    LaunchedEffect(currentMonthIndex, currentYear, userToken, refreshTrigger, financeRevision) {
         userToken?.let { token ->
             viewModel.loadExpenses(
                 token,
@@ -277,10 +281,10 @@ fun DespesasScreen(
                     }
                 },
                 actions = {
-                    FinancialPrivacyButton()
                     if (uiState.isLoading && uiState.hasLoadedOnce) {
-                        AppLoadingIndicator(modifier = Modifier.padding(end = 16.dp))
+                        AppLoadingIndicator(modifier = Modifier.padding(end = 4.dp))
                     }
+                    FinancialPrivacyButton()
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
@@ -549,7 +553,7 @@ fun DespesasScreen(
             text = {
                 Column {
                     Text(
-                        "Tem certeza que deseja excluir '${expenseToDelete?.description}'?",
+                        "Tem certeza que deseja excluir '${expenseToDelete?.displayDescription}'?",
                         color = textColor
                     )
 
@@ -639,9 +643,9 @@ fun DespesasScreen(
             text = {
                 Text(
                     text = if (markingAsPaid) {
-                        "Confirma que \"${expense.description}\" foi paga?"
+                        "Confirma que \"${expense.displayDescription}\" foi paga?"
                     } else {
-                        "Confirma que deseja desmarcar \"${expense.description}\" como paga?"
+                        "Confirma que deseja desmarcar \"${expense.displayDescription}\" como paga?"
                     },
                     color = secondaryTextColor
                 )
@@ -804,7 +808,7 @@ fun DespesaListItem(
     val formattedAmount = formatter.format(expense.amount)
 
     val categoryName = categoriesMap[expense.category_id] ?: "Outros"
-    val paymentSource = if (expense.payment_splits.size > 1) {
+    val paymentSource = if (expense.paymentSources().distinct().size > 1) {
         "Pag. dividido"
     } else {
         expense.paymentCardSourceLabel()
@@ -815,7 +819,7 @@ fun DespesaListItem(
         style = ExpenseCardStyle.Detailed,
         icon = icon,
         iconColor = color,
-        title = expense.description,
+        title = expense.displayDescription,
         categoryName = categoryName,
         paymentSource = paymentSource,
         type = typeLabel,
@@ -911,7 +915,7 @@ private fun AdvancedExpenseImpactCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = expense.description,
+                        text = expense.displayDescription,
                         color = colorScheme.onSurface,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,

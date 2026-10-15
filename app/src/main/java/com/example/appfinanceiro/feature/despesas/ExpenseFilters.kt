@@ -33,7 +33,7 @@ fun filterExpenses(
         )
         val normalizedRawAmount = normalizeAmountSearchText(expense.amount.toString())
         val matchesSearch = trimmedQuery.isBlank() ||
-            expense.description.contains(trimmedQuery, ignoreCase = true) ||
+            expense.description.orEmpty().contains(trimmedQuery, ignoreCase = true) ||
             (
                 normalizedQuery.isNotBlank() &&
                     (
