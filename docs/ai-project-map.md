@@ -26,6 +26,22 @@ a base é `app/src/main/java/com/example/appfinanceiro/`.
 declarações e imports antes de mover arquivos; não assuma correspondência perfeita
 entre pacote e diretório.
 
+As telas Configurações de Renda, Categorias, Ajuda e Suporte e Editar Perfil
+compartilham cabeçalho, cards, títulos com ícones e botão principal em
+`feature/perfil/components/ProfileSettingsComponents.kt`. Esses componentes são
+internos à funcionalidade e usam o tema do app e `AppLoadingIndicator`.
+Categorias e Renda usam a variante compacta de cards e ícones; Ajuda e Editar
+Perfil preservam os espaçamentos padrão. O cadastro de categoria combina o campo
+de nome e o botão de adicionar em uma linha.
+Renda reutiliza `MonthSelector`; os tópicos de ajuda são expansíveis e preservam
+o estado de expansão com `rememberSaveable`.
+O seletor de mês de Renda fica diretamente na tela, como nos demais painéis.
+Os campos de Renda, Editar Perfil e cadastro de categoria reutilizam
+`feature/despesas/components/CustomInput.kt`, com fundo `expenseDetailBlock` dentro
+dos cards. `SettingsTextField` agrupa rótulo externo e campo; o `CustomInput`
+aceita prefixo opcional e estado habilitado, preservando os padrões dos demais
+consumidores.
+
 Em Despesas, `components/ExpenseFiltersDialog.kt` contém o botão e o modal de
 categoria, origem e status. O modal mantém um rascunho até aplicar;
 usa `ModalBottomSheet` e campos `ExposedDropdownMenuBox`, seguindo o padrão de

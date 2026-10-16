@@ -2,10 +2,13 @@ package com.example.appfinanceiro.feature.perfil.components
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,12 +16,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,20 +31,19 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,6 +52,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanceiro.core.data.FinanceActionsViewModel
 import com.example.appfinanceiro.core.data.SessionManager
 import com.example.appfinanceiro.core.data.userMessageOr
+import com.example.appfinanceiro.core.designsystem.theme.expenseDetailBlock
+import com.example.appfinanceiro.feature.despesas.components.CustomInput
 import com.example.appfinanceiro.core.designsystem.components.AppDataErrorBanner
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
 import com.example.appfinanceiro.core.designsystem.components.dataRequestErrorMessage
@@ -69,7 +73,6 @@ fun CategoriasScreen(
     val userToken by remember { SessionManager(context) }.token.collectAsState(initial = null)
 
     val backgroundColor = MaterialTheme.colorScheme.background
-    val surfaceColor = MaterialTheme.colorScheme.surface
     val textColor = MaterialTheme.colorScheme.onBackground
 
     var categories by remember { mutableStateOf<List<Category>>(emptyList()) }
@@ -156,7 +159,7 @@ fun CategoriasScreen(
                             } catch (e: Exception) {
                                 Toast.makeText(context, "Erro ao atualizar categoria", Toast.LENGTH_SHORT).show()
                             }
-                        }
+                            }
                     }
                 ) {
                     Text("Salvar", color = PrimaryBlue, fontWeight = FontWeight.Medium)
@@ -207,10 +210,10 @@ fun CategoriasScreen(
                                 deleteErrorMessage = e.userMessageOr("Erro ao remover categoria")
                                 categoryToDelete = null
                             }
-                        }
+                            }
                     }
                 ) {
-                    Text("Sim", color = Color(0xFFFF7A7A), fontWeight = FontWeight.Medium)
+                    Text("Sim", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Medium)
                 }
             },
             dismissButton = {
@@ -251,20 +254,7 @@ fun CategoriasScreen(
     Scaffold(
         containerColor = backgroundColor,
         topBar = {
-            TopAppBar(
-                title = { Text("Categorias", color = textColor, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = textColor)
-                    }
-                },
-                actions = {
-                    if (isLoading && hasLoadedOnce) {
-                        AppLoadingIndicator(modifier = Modifier.padding(end = 16.dp))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
-            )
+            SettingsTopBar("Categorias", onNavigateBack, isLoading && hasLoadedOnce)
         }
     ) { paddingValues ->
         if (isLoading && !hasLoadedOnce) {
@@ -281,9 +271,10 @@ fun CategoriasScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
+                    .imePadding()
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(vertical = 16.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 12.dp)
             ) {
                 loadErrorMessage?.let { error ->
                     item(key = "categories_error") {
@@ -300,73 +291,102 @@ fun CategoriasScreen(
                 }
 
                 item {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedTextField(
-                            value = newCategoryName,
-                            onValueChange = { newCategoryName = it },
-                            modifier = Modifier.weight(1f),
-                            label = { Text("Nova categoria") },
-                            singleLine = true
-                        )
-
-                        Button(
-                            onClick = {
-                                if (newCategoryName.isBlank()) return@Button
-                                coroutineScope.launch {
-                                    try {
-                                        actionsViewModel.createCategory(
-                                            userToken ?: return@launch,
-                                            CategoryRequest(newCategoryName.trim())
-                                        )
-                                        Toast.makeText(context, "Categoria criada!", Toast.LENGTH_SHORT).show()
-                                        newCategoryName = ""
-                                        refreshTrigger++
-                                    } catch (e: Exception) {
-                                        Toast.makeText(context, "Erro ao criar categoria", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                    SettingsCard(compact = true) {
+                        Text("Nova categoria", style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("Adicionar")
+                            CustomInput(
+                                value = newCategoryName,
+                                onValueChange = { newCategoryName = it },
+                                modifier = Modifier.weight(1f).semantics {
+                                    contentDescription = "Nome da categoria"
+                                },
+                                icon = null,
+                                placeholder = "Nome da categoria",
+                                bgColor = MaterialTheme.colorScheme.expenseDetailBlock
+                            )
+                            FilledIconButton(
+                                modifier = Modifier.size(48.dp),
+                                colors = IconButtonDefaults.filledIconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = androidx.compose.ui.graphics.Color.White
+                                ),
+                                enabled = newCategoryName.isNotBlank(),
+                                onClick = {
+                                    if (newCategoryName.isBlank()) return@FilledIconButton
+                                    coroutineScope.launch {
+                                        try {
+                                            actionsViewModel.createCategory(
+                                                userToken ?: return@launch,
+                                                CategoryRequest(newCategoryName.trim())
+                                            )
+                                            Toast.makeText(context, "Categoria criada!", Toast.LENGTH_SHORT).show()
+                                            newCategoryName = ""
+                                            refreshTrigger++
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Erro ao criar categoria", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                },
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Adicionar categoria")
+                            }
                         }
                     }
                 }
-
-                items(categories) { category ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(surfaceColor, RoundedCornerShape(12.dp))
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = category.name,
-                            color = textColor,
-                            fontSize = 16.sp,
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        IconButton(
-                            onClick = {
-                                editingCategory = category
-                                editingCategoryName = category.name
-                            }
-                        ) {
-                            Icon(Icons.Default.Edit, contentDescription = "Editar", tint = PrimaryBlue)
+                item {
+                    Text(
+                        "Suas categorias · ${categories.size}",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                    )
+                }
+                if (categories.isEmpty() && loadErrorMessage == null) {
+                    item {
+                        SettingsCard(compact = true) {
+                            SettingsHeading(
+                                "Nenhuma categoria por aqui",
+                                "Adicione sua primeira categoria para começar a organizar as despesas.",
+                                Icons.Default.Category
+                            )
                         }
-
-                        IconButton(
-                            onClick = {
-                                categoryToDelete = category
-                            }
+                    }
+                }
+                items(categories, key = { it.id }) { category ->
+                    SettingsCard(compact = true) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Excluir", tint = Color(0xFFFF6B6B))
+                            SettingsIcon(Icons.Default.Category, compact = true)
+                            Text(
+                                text = category.name,
+                                color = textColor,
+                                fontSize = 16.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            IconButton(
+                                onClick = {
+                                    editingCategory = category
+                                    editingCategoryName = category.name
+                                }
+                            ) {
+                                Icon(Icons.Default.Edit, contentDescription = "Editar ${category.name}", tint = PrimaryBlue)
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    categoryToDelete = category
+                                }
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = "Excluir ${category.name}", tint = MaterialTheme.colorScheme.error)
+                            }
                         }
                     }
                 }

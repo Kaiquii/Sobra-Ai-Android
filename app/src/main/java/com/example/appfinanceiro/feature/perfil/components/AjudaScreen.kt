@@ -1,5 +1,12 @@
 package com.example.appfinanceiro.feature.perfil.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,26 +18,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
-import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,33 +42,11 @@ fun AjudaScreen(
     onNavigateBack: () -> Unit
 ) {
     val backgroundColor = MaterialTheme.colorScheme.background
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val textColor = MaterialTheme.colorScheme.onBackground
 
     Scaffold(
         containerColor = backgroundColor,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Central de Ajuda",
-                        color = textColor,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = textColor
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = backgroundColor
-                )
-            )
+            SettingsTopBar("Ajuda e Suporte", onNavigateBack)
         }
     ) { paddingValues ->
         Column(
@@ -76,23 +58,13 @@ fun AjudaScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(4.dp))
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = surfaceColor
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "Contato",
-                        color = textColor,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
+            SettingsHeading(
+                title = "Como podemos ajudar?",
+                subtitle = "Encontre orientações para aproveitar o SobraAi.",
+                icon = Icons.AutoMirrored.Filled.HelpOutline
+            )
+            SettingsCard {
+                    SettingsHeading("Fale com a gente", "Canais de atendimento")
                     ContactItem(
                         icon = Icons.Default.Phone,
                         label = "WhatsApp",
@@ -104,9 +76,9 @@ fun AjudaScreen(
                         label = "E-mail",
                         value = "kaiqui.lucaskaiquiluc@gmail.com"
                     )
-                }
             }
 
+            Text("Explore o aplicativo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             HelpSection(
                 title = "Como usar o app",
                 text = "O SobraAi ajuda você a organizar suas rendas, despesas e acompanhar o seu saldo mensal. Na tela inicial, você visualiza um resumo do mês selecionado, incluindo salário, adiantamento, renda extra, total gasto e valores restantes."
@@ -158,66 +130,60 @@ private fun ContactItem(
     label: String,
     value: String
 ) {
-    val textColor = MaterialTheme.colorScheme.onBackground
-
-    androidx.compose.foundation.layout.Row(
+    Row(
         modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = PrimaryBlue
-        )
-
-        Column(
-            modifier = Modifier.padding(start = 12.dp)
-        ) {
-            Text(
-                text = label,
-                color = TextMuted,
-                fontSize = 12.sp
-            )
-            Text(
-                text = value,
-                color = textColor,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium
-            )
+        SettingsIcon(icon)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(label, style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
-
 @Composable
 private fun HelpSection(
     title: String,
     text: String
 ) {
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val textColor = MaterialTheme.colorScheme.onBackground
-
+    var expanded by rememberSaveable(title) { mutableStateOf(false) }
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = surfaceColor
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = title,
-                color = textColor,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = text,
-                color = TextMuted,
-                fontSize = 14.sp,
-                lineHeight = 20.sp
-            )
+        Column {
+            Surface(
+                onClick = { expanded = !expanded },
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.fillMaxWidth().semantics {
+                    stateDescription = if (expanded) "Expandido" else "Recolhido"
+                },
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(title, modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Icon(
+                        if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Recolher tópico" else "Expandir tópico",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            AnimatedVisibility(visible = expanded) {
+                Text(text, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 20.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }

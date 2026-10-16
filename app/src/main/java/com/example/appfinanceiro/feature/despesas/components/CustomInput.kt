@@ -30,7 +30,9 @@ fun CustomInput(
     trailingContent: (@Composable (() -> Unit))? = null,
     singleLine: Boolean = true,
     minLines: Int = 1,
-    maxLines: Int = 1
+    maxLines: Int = 1,
+    enabled: Boolean = true,
+    prefix: (@Composable () -> Unit)? = null
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val secondaryColor = colorScheme.onSurfaceVariant
@@ -61,6 +63,8 @@ fun CustomInput(
         value = value,
         onValueChange = onValueChange,
         readOnly = readOnly,
+        enabled = enabled,
+        prefix = prefix,
         placeholder = {
             Text(
                 placeholder,

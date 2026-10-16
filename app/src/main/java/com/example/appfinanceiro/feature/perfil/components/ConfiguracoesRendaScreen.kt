@@ -2,8 +2,15 @@ package com.example.appfinanceiro.feature.perfil.components
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,35 +25,28 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -62,7 +62,6 @@ import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicato
 import com.example.appfinanceiro.core.designsystem.components.dataRequestErrorMessage
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
-import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Income
 import com.example.appfinanceiro.core.network.IncomeRequest
 import com.example.appfinanceiro.core.network.IncomeUpdateRequest
@@ -83,8 +82,6 @@ fun ConfiguracoesRendaScreen(
     val userToken by remember { SessionManager(context) }.token.collectAsState(initial = null)
 
     val backgroundColor = MaterialTheme.colorScheme.background
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val textColor = MaterialTheme.colorScheme.onBackground
 
     val dialogSurfaceColor = MaterialTheme.colorScheme.background
     val dialogTextColor = MaterialTheme.colorScheme.onBackground
@@ -276,29 +273,10 @@ fun ConfiguracoesRendaScreen(
     Scaffold(
         containerColor = backgroundColor,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Configurações de Renda",
-                        color = textColor,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = textColor
-                        )
-                    }
-                },
-                actions = {
-                    if (isLoading && hasLoadedOnce) {
-                        AppLoadingIndicator(modifier = Modifier.padding(end = 16.dp))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
+            SettingsTopBar(
+                title = "Configurações de Renda",
+                onBack = onNavigateBack,
+                refreshing = isLoading && hasLoadedOnce
             )
         }
     ) { paddingValues ->
@@ -316,9 +294,10 @@ fun ConfiguracoesRendaScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
+                    .imePadding()
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(vertical = 16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = 12.dp)
             ) {
                 loadErrorMessage?.let { error ->
                     item(key = "income_settings_error") {
@@ -335,31 +314,13 @@ fun ConfiguracoesRendaScreen(
                 }
 
                 item {
-                    Text(
-                        "Rendas Fixas",
-                        color = textColor,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
                     MonthSelector(
-                        monthIndex = selectedMonthIndex,
-                        currentYear = selectedYear,
-                        onPrevClick = { changeMonth(-1) },
-                        onNextClick = { changeMonth(1) }
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        "Referência selecionada: ${selectedMonth.toString().padStart(2, '0')}/$selectedYear",
-                        color = TextMuted,
-                        fontSize = 13.sp
+                            monthIndex = selectedMonthIndex,
+                            currentYear = selectedYear,
+                            onPrevClick = { changeMonth(-1) },
+                            onNextClick = { changeMonth(1) }
                     )
                 }
-
                 item {
                     IncomeCard(
                         title = "Salário",
@@ -389,7 +350,6 @@ fun ConfiguracoesRendaScreen(
                                 deleteFutureSelected = false
                             }
                         },
-                        surfaceColor = surfaceColor
                     )
                 }
 
@@ -422,7 +382,6 @@ fun ConfiguracoesRendaScreen(
                                 deleteFutureSelected = false
                             }
                         },
-                        surfaceColor = surfaceColor
                     )
                 }
 
@@ -459,7 +418,6 @@ fun ConfiguracoesRendaScreen(
                                 deleteFutureSelected = false
                             }
                         },
-                        surfaceColor = surfaceColor
                     )
 
                 }
@@ -555,84 +513,76 @@ private fun IncomeCard(
     onUpdateFutureChange: (Boolean) -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
-    surfaceColor: Color,
     showRepeatFutureOption: Boolean = false,
     repeatFuture: Boolean = false,
     onRepeatFutureChange: (Boolean) -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(surfaceColor, RoundedCornerShape(12.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text(
-            text = title,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
-        )
-
-        OutlinedTextField(
+    SettingsCard(compact = true, spacing = 12.dp) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            SettingsIcon(when (title) {
+                "Salário" -> Icons.Default.AccountBalanceWallet
+                "Adiantamento" -> Icons.Default.Payments
+                else -> Icons.Default.Savings
+            }, compact = true)
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+        SettingsTextField(
             value = amount,
             onValueChange = {
                 if (it.count { c -> c == ',' } <= 1 && it.all { c -> c.isDigit() || c == ',' }) {
                     onAmountChange(it)
                 }
             },
-            label = { Text("Valor") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            label = "Valor mensal",
+            prefix = { Text("R$", modifier = Modifier.padding(end = 8.dp)) },
+            placeholder = "0,00",
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
         )
-
         if (showRepeatFutureOption) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = repeatFuture,
-                    onCheckedChange = onRepeatFutureChange
-                )
-                Text(
-                    "Repetir nos próximos meses",
-                    fontSize = 13.sp,
-                    color = TextMuted
-                )
-            }
+            IncomeFutureOption("Repetir nos próximos meses", repeatFuture, onRepeatFutureChange)
         }
-
         if (existingIncome != null) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = updateFuture,
-                    onCheckedChange = onUpdateFutureChange
-                )
-                Text(
-                    "Atualizar este e os próximos meses",
-                    fontSize = 13.sp,
-                    color = TextMuted
-                )
-            }
+            IncomeFutureOption("Atualizar este e os próximos meses", updateFuture, onUpdateFutureChange)
         }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            SettingsPrimaryButton(
+                label = if (existingIncome == null) "Cadastrar renda" else "Salvar alterações",
                 onClick = onSave,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-            ) {
-                Text(if (existingIncome == null) "Cadastrar" else "Atualizar")
-            }
-
+                modifier = Modifier.weight(1f)
+            )
             if (existingIncome != null) {
-                OutlinedButton(
-                    onClick = onDelete,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Excluir")
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        Icons.Default.DeleteOutline,
+                        contentDescription = "Excluir ${title.lowercase()}",
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun IncomeFutureOption(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            .toggleable(value = checked, role = Role.Checkbox, onValueChange = onCheckedChange)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(checked = checked, onCheckedChange = null)
+        Text(
+            label,
+            modifier = Modifier.weight(1f).padding(start = 12.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
