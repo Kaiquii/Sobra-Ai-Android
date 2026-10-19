@@ -9,6 +9,14 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 
 fun createFinanceGson(): Gson = GsonBuilder()
+    .setFieldNamingStrategy { field ->
+        when (field.name) {
+            "isAdvanced" -> "is_advanced"
+            "advancedAt" -> "advanced_at"
+            "isPaid" -> "is_paid"
+            else -> field.name
+        }
+    }
     .registerTypeAdapterFactory(ExpenseAdapterFactory())
     .create()
 

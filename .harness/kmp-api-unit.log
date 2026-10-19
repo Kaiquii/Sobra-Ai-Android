@@ -1,0 +1,77 @@
+
+> Configure project :shared
+w: Native task 'iosSimulatorArm64Test' is disabled
+Task 'iosSimulatorArm64Test' for target 'ios_simulator_arm64' cannot run on the current host (windows-x86_64).
+Reason: simulator tests require macOS
+Solution: To suppress this warning, add 'kotlin.native.ignoreDisabledTargets=true' to gradle.properties.
+
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :shared:androidPreBuild UP-TO-DATE
+> Task :shared:preAndroidMainBuild UP-TO-DATE
+> Task :shared:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:generateDebugRFile UP-TO-DATE
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :shared:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:checkDebugAarMetadata
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :shared:androidJar UP-TO-DATE
+> Task :shared:preAndroidHostTestBuild UP-TO-DATE
+> Task :shared:processAndroidHostTestJavaRes NO-SOURCE
+> Task :app:javaPreCompileDebugUnitTest
+> Task :shared:processAndroidMainManifest
+> Task :app:mergeDebugResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+
+> Task :shared:compileAndroidMain
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/shared/src/commonMain/kotlin/com/example/appfinanceiro/core/network/FinanceModels.kt:78:36 Unnecessary safe call on a non-null receiver of type 'String'.
+
+> Task :shared:processAndroidMainJavaRes
+> Task :shared:bundleAndroidMainClassesToRuntimeJar
+> Task :shared:bundleAndroidMainClassesToCompileJar
+> Task :app:processDebugResources
+> Task :shared:compileAndroidHostTest
+> Task :shared:testAndroidHostTest
+
+> Task :app:compileDebugKotlin
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/DespesasScreen.kt:277:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/DespesasScreen.kt:790:59 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/DespesasScreen.kt:807:54 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/DespesasScreen.kt:976:53 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/components/EditarDespesaScreen.kt:147:45 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/home/HomeScreen.kt:244:57 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/home/HomeScreen.kt:257:57 'val Icons.Filled.Chat: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Chat.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/relatorios/InstallmentCommitmentsScreen.kt:142:57 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/relatorios/InstallmentCommitmentsScreen.kt:694:38 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/relatorios/RelatoriosScreen.kt:243:57 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/relatorios/RelatoriosScreen.kt:466:36 'val Icons.Filled.OpenInNew: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.OpenInNew.
+
+> Task :app:compileDebugJavaWithJavac
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:processDebugJavaRes
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+> Task :harnessUnit
+
+[Incubating] Problems report is available at: file:///C:/Users/kaiqu/Documents/App-Financeiro/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 1m 10s
+37 actionable tasks: 25 executed, 12 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

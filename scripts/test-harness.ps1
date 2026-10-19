@@ -118,6 +118,8 @@ finally {
 }
 
 $unitReport = Join-Path $projectRoot "app\build\reports\tests\testDebugUnitTest\index.html"
+$sharedUnitReport = Join-Path $projectRoot "shared\build\reports\tests\testAndroidHostTest\index.html"
+$sharedUiReport = Join-Path $projectRoot "sharedUi\build\reports\tests\testAndroidHostTest\index.html"
 $lintReport = Join-Path $projectRoot "app\build\reports\lint-results-debug.html"
 $deviceReport = Join-Path $projectRoot "app\build\reports\androidTests\connected\debug\index.html"
 
@@ -125,8 +127,14 @@ Write-Host "[harness] OK: modo '$Mode' concluido."
 if ($Mode -in @("unit", "verify", "all") -and (Test-Path -LiteralPath $unitReport)) {
     Write-Host "[harness] Testes unitarios: $unitReport"
 }
+if ($Mode -in @("unit", "verify", "all") -and (Test-Path -LiteralPath $sharedUnitReport)) {
+    Write-Host "[harness] Testes compartilhados (Android/JVM): $sharedUnitReport"
+}
 if ($Mode -in @("verify", "all") -and (Test-Path -LiteralPath $lintReport)) {
     Write-Host "[harness] Lint: $lintReport"
+}
+if ($Mode -in @("unit", "verify", "all") -and (Test-Path -LiteralPath $sharedUiReport)) {
+    Write-Host "[harness] Interface compartilhada (Android/JVM): $sharedUiReport"
 }
 if ($Mode -in @("device", "all") -and (Test-Path -LiteralPath $deviceReport)) {
     Write-Host "[harness] Testes instrumentados: $deviceReport"

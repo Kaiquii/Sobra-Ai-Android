@@ -1,0 +1,462 @@
+[
+  {
+    "path": "app\\src\\main\\AndroidManifest.xml",
+    "hash": "28056BBD13D1D9D023FBB42D05722EE3CF5E607EB97235CC86FAFBA955AA50A2"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\MainActivity.kt",
+    "hash": "FD4AF0EA4496136DBC1A6178D187BA3EB90D5CB13619D301844C5AB1306D8AD6"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\biometric\\BiometricAuth.kt",
+    "hash": "B72AEE1AD30863E106A051FBEF81C5849CCCA0D1F73C8545B5C106B524B215C8"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\data\\ApiRequestExecutor.kt",
+    "hash": "4C175004D6C88F3CF5CB035B38D391C0078DFDE5E68144FE7CABA1EEB6BAEABF"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\data\\AppVersionRepository.kt",
+    "hash": "E69F20DE437982C7273A2CB6F51AA2C086D9C596BFB014B273AED20AD6AF2FF1"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\data\\AuthRepository.kt",
+    "hash": "E676543466B701FE20251805BB20B3BFBDE2B1B4A8D5F707956BB1DB8AC0319F"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\data\\AuthViewModel.kt",
+    "hash": "0CBE7A09973348A3A76DC5624AED010426B74C7AEABB80E466C265696BD00DB0"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\data\\FinanceActionsViewModel.kt",
+    "hash": "3B0E6056C598D80ED395B3C72A860985DF0BAC495662803E1C2C991142FF4112"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\data\\FinanceDataChanges.kt",
+    "hash": "912CB55683F820330C0395216240302D13586001AC2C6E7A4EC2BF02900A86A8"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\data\\FinanceDataSources.kt",
+    "hash": "E7E82A2F605E9F149023399CA5B85139AD6C3C7E920460FFADEBE39A85032B47"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\data\\FinanceRepository.kt",
+    "hash": "DE6C95997B8C543B096F4EF3851094E7FC2668289093211463AA4266B9BF9D17"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\data\\SessionExpiredException.kt",
+    "hash": "8FE149AE47DE54F6798B0FC2657A259838846448DD1CE8B7D3091685DABF9F38"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\date\\MonthNavigation.kt",
+    "hash": "D4E3E8C45A5C1803AEA413B72B25ED547C0C6540D81BA95923D6FA0E5F29C4BF"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\AppDataErrorBanner.kt",
+    "hash": "1340C6B90694329EFFF706EDD8BA20AAA76159C147CC457F0B1C0F0DDC56783E"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\AppDatePickerDialog.kt",
+    "hash": "752F0A5FBA589B5354C092BB087FAC0F36F86F799FCB3D07B60472102C71C45E"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\AppLoadingIndicator.kt",
+    "hash": "F83A4F27076193E1EEBF8BD10E5A43A33CA9336BBDCD9B1BE13D509968167074"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\CustomInput.kt",
+    "hash": "AE893181DDAE2B11506C43CEA1551F2E27F4407738BF11962C387A008444B472"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\ExitConfirmationDialog.kt",
+    "hash": "FBDF1421A3AE98EC9F581498369F815BA1E658156C7BBA00E0DC6FFFE0E80649"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\ExpenseCard.kt",
+    "hash": "06FFEB6DBAB2568A17DDB0097788AE131F5B66071F57FC36E0CC9C6AF20DE160"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\ExpenseDetailsDialog.kt",
+    "hash": "FC57B81CD24513C5D56B03EC5E7337BD2AEF1B9A6D83545BF4FF624FDE177026"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\FinancialPrivacy.kt",
+    "hash": "0ACC867C16DFCED6311BE5D52A4B4E7D02DC83B7A6EC2801BAE40ACE993ED807"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\PrimaryButton.kt",
+    "hash": "AE893181DDAE2B11506C43CEA1551F2E27F4407738BF11962C387A008444B472"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\StandardBottomBar.kt",
+    "hash": "E9CDE2188DE50F27A92CA2FCFB36157E374D38E5D6BD5E28599D168F45B058D5"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\components\\SwipeNavigation.kt",
+    "hash": "152F3FE69E0E4538FDF5B3174AE00F801DA2ED33F02B0B9EB1248F80EDDBF475"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\theme\\Color.kt",
+    "hash": "A74563F92F443416625701196693090D93E50BAB6E093EBAEC9A73087DCDA28A"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\theme\\Theme.kt",
+    "hash": "FC1E28CED54E41A58002D44E554068F4AD264B0E11DDEA86F059B04871383443"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\designsystem\\theme\\Type.kt",
+    "hash": "5EA5B500E1D42A6A7C61C75474E2867545A24F5847E84452B76C14BE7A50B04E"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\network\\ApiErrorParser.kt",
+    "hash": "F5B833C3ACE29F0A7DB92036812546DA083A14AB0CB7FA9A922CA9E5BD65E901"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\network\\FinanceApi.kt",
+    "hash": "A70E7F1A7526BB417B96FD09BCD2501412FFB2CA9418CC739A165E40C2804980"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\network\\FinanceJson.kt",
+    "hash": "896BF948455C7417A4D009DE6E396314E2EC36683A7538D0D0A95321CC87D146"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\network\\SessionAccessEvents.kt",
+    "hash": "8CA25591544678834B47CA1B3DB5F44397B881C323F3F42177C166F0336776A9"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\network\\auth\\AuthApi.kt",
+    "hash": "54F93F66F467BF127C49BE1C4C8C57DA0196AB40E18D78CFA3BA6CEC39AFBE3B"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\network\\session\\SessionManager.kt",
+    "hash": "4D6E23FA7AC9028897EB1F39D498F48586B9586ECEB8017CFFFF8BAF7D6D3256"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\security\\PlayIntegrityProtection.kt",
+    "hash": "A8715946C6D3680A4C887848C842EEA7D92FD112A8B9B3F2B70C0BE547B27FFC"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\core\\update\\AppUpdateGate.kt",
+    "hash": "E8613A47A42B72B4CBD175E9E9A52DD0E793D20183E00927E023BEDFC0C43850"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\assistant\\AssistantScreen.kt",
+    "hash": "1EBA908BED6227AAA2CF657C89B3763D8FD8DD0A0D1DCFD29C3528F05BF6F3C8"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\assistant\\AssistantViewModel.kt",
+    "hash": "2AA26071EF0FC63F225D2EDC7C5447600E03DA2CBCBF30C768DB78B56C5D7797"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\DespesasScreen.kt",
+    "hash": "A2C76C04FCB730BE7FDF31A3B79FFDDF6E5E5BE8381DF32E9CB807B0041C4C44"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\DespesasViewModel.kt",
+    "hash": "651D3BAFF5C4BABE74E2A68AF585242BCA47EA15CA06ECD28B362E0296A5FA92"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\ExpenseAdvanceUtils.kt",
+    "hash": "1999DC5B1A81B974F27CB8D4E737C664D1F28E8E70F55FACC22386CF5AFF7C90"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\ExpenseFilters.kt",
+    "hash": "43F7154706B100DE8EF2C59726A1A657920B1E15CF6085A35E81BDA63CC14430"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\ExpenseFormValidator.kt",
+    "hash": "2D41D88D724DE98CFE6253151E7C40CEA80B46B68BA738D7AA340E34B6D66A6C"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\components\\AdvanceExpenseDialogs.kt",
+    "hash": "BBE8DEC13D65CE328CE8F763BAF0C9EA37452937B1C5C0DD2EB1CD457B4F5243"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\components\\CustomInput.kt",
+    "hash": "7FD2A55EF9440F7345C1F011E1268636B2B97A6F1072DD1A390D4DA4BA8FBDB8"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\components\\EditarDespesaScreen.kt",
+    "hash": "13B73BF4505965472412D70E5CF131143174526C05E217197F0D5E1F971F077C"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\components\\ExpenseFiltersDialog.kt",
+    "hash": "F73D22D965D06C4BB17ADBE6D4CDE94C9330EC525243F81D24819548EA19FF10"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\components\\FormComponents.kt",
+    "hash": "FEE68155BC84593F02029D55AF1ADE723AACB7EB1698FED606439A04C025E578"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\components\\FormLabel.kt",
+    "hash": "F964D4D0A5286C04F0D4CD1684CA4814BB2F67B6A21313F9A89CE4B18BAAEA1D"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\components\\NovaDespesaScreen.kt",
+    "hash": "8455986F0B6BA54DE120F9B22D3D832607E1B1B8F37753948C1CFBD6F310C87F"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\despesas\\components\\PaymentSplitSection.kt",
+    "hash": "574BC40B1B9C355990C44C0440DD7FC8B2EE07E5E51CBB4911DFD23C2FFB8BA8"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\HomeScreen.kt",
+    "hash": "29E0F94BE1CB1F1F82859D8D871B3456D922E25249E9A1D2529360E185C0269A"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\HomeViewModel.kt",
+    "hash": "173E33214906430A98AF8AF9983A95E9C9C3D91E25605BFD4082C3D6B7828C96"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\IncomeCalculations.kt",
+    "hash": "CF91F8E1D4A86FD4A46C8AE63088AD98007B2FEBFCCABE56F618A06B337297E8"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\components\\DespesasSection.kt",
+    "hash": "07D0AE417A23D6E800D6139BCB1F9E2B99EDA213E9BB781B4595C2CEF10C0BC7"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\components\\FilterOptionItem.kt",
+    "hash": "28C7DE519BE947950047E4411242D582A365D31FA649CE875FDEA4B175B5C07B"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\components\\MonthSelector.kt",
+    "hash": "9307CC8DF68A7BDA0AF7F2D4DCA515D7A16EEC4569BBC1BA1494E7E0EA7DC54D"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\components\\ResumoFinanceiroSection.kt",
+    "hash": "9C0C828102CCB844B304A9BEF67896B1300A5AE7D7F729A182E375B4F8B7EC75"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\components\\income\\EditableIncomeSummaryCard.kt",
+    "hash": "84E71271BF0E3BD770F5F01D33B537E7410CA3D685FF8F8E42DE9787DB5B0F5E"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\components\\income\\IncomeDeleteDialog.kt",
+    "hash": "67A593B95EE1B0AA7CE0678E6F2BF5EC83F1E6503657796E82E749330376AE54"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\components\\income\\IncomeEditorDialog.kt",
+    "hash": "7F9CCAF5204CE31728CCD96B00520420210EFC23BDE4E481F2AFF2D137C1F0C7"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\home\\utils\\HomeUtils.kt",
+    "hash": "3F3767D8CD07AFC922B396BE4419A25737E1461C6244A53C18C569D72411F70A"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\login\\EsqueciSenhaScreen.kt",
+    "hash": "B6D89FD44A7524F687FE3BD94E1694BC6E8930169163C6CFD4413F1CBD755D86"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\login\\LoginScreen.kt",
+    "hash": "830CB17C9A4EA4903A9B401DF7EC4D9760A4F6F5FC9646D02BD78A65DF468B9B"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\login\\components\\AuthComponents.kt",
+    "hash": "2DC53E3BC116352F32EA37768395A39EB252D476E20B1C04D37287B9CB3BDE7B"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\perfil\\PerfilScreen.kt",
+    "hash": "4BBB90FAF3CAB9F2B4B9A023361D82C2620F3CA58ADF456803F6DC0507B6AA73"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\perfil\\components\\AjudaScreen.kt",
+    "hash": "6B11A1CE100CB6E09AA32ACB2ACD66158EA913AFC16F97D1D33A2851440C18DD"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\perfil\\components\\CategoriasScreen.kt",
+    "hash": "6A759FF9422E8E315F08CD1D006D0F259514D014A42A3C11E7D9945049675A1D"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\perfil\\components\\ConfiguracoesRendaScreen.kt",
+    "hash": "9283118F116FFFF4275C7B87736B1FE7A290A4782ACC35D0B992162B43A62582"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\perfil\\components\\EditarPerfilScreen.kt",
+    "hash": "9CC14C39DD2D3FD1C391A43624EBEFECA293D338DDCABF29DF45C6DF0E7BCC91"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\perfil\\components\\ProfileSettingsComponents.kt",
+    "hash": "A77686C72F7475FD4D49EB1DBCB7592B99B0CD81E2DA7D9D01FE1E162CBBA1BF"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\register\\RegisterScreen.kt",
+    "hash": "3137E6C57790ECD8B118085B60545728C0A28C5F6BFCD1C45E5069DAE8B9A6A3"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\InstallmentCommitmentsScreen.kt",
+    "hash": "42A01A61B4921229B9171D28133CA27415B91B882D1FDFBFE4FAD3FC14E92A1E"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\InstallmentCommitmentsViewModel.kt",
+    "hash": "C871EE7335B3CF9B8908ECB872F57A52BA67866BCA8D8845F763CC3EE4430F3A"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\RelatoriosScreen.kt",
+    "hash": "AD3B77408184A4B5B34A1660F4F9AA6709E78184D095936D623D09DEA88F2C7B"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\RelatoriosViewModel.kt",
+    "hash": "D040AB229099EB8C4A236C5EA5B7BFBB2A8DCCFB21ACEA2239F25007EDB6F5B8"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\ReportRange.kt",
+    "hash": "F29D70863BBD41D8105CB9B83863EB91FF3CE4DC912683D886A5BCB06160CF62"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\components\\CategoryExpensesCard.kt",
+    "hash": "D7DB89CC5071E7A1B6D6B1CEF64FDDE673F3EC9B0FE473B6DC4C9E70D09FE23E"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\components\\IncomeVsExpenseCard.kt",
+    "hash": "78606999327DD3373D9709D214A554B229CD8244078390D4CBEFD94F4186A0E6"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\components\\LegendItem.kt",
+    "hash": "8748FFF3B24490D65CE5B1AF70F27C5A6E0295618A633B7E120D2999FD2153B0"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\components\\MonthComparisonSection.kt",
+    "hash": "C2E2B156AF0C83DB89B1BBDD9851181E24448913DEFF819F5A2BE1F20DE8A051"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\components\\ReportRangeSelector.kt",
+    "hash": "5E9946785653948E91195AED57FD39EC604FC5D39BC37A6632C6DBAD8BA3A1F8"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\components\\ReportsBarChart.kt",
+    "hash": "6654322ED5D051EF503A0B7B1CD8659586995F3BF07E5B5D61F7B121291E54E1"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\components\\YearSummarySection.kt",
+    "hash": "AFF300EC808ED7D34094818ECBA76BB17C66D6411A428125D700140349C95A95"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\export\\ReportExportModels.kt",
+    "hash": "6895E5D0F614016179A9897D995F67ACA1D00C38372160F33BC1163ADFA9B892"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\export\\ReportExportRepository.kt",
+    "hash": "F06F2502B223964B66B3908DC567686A6D9DC85D602F9A09A014991F7FC0964A"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\export\\ReportExportSheet.kt",
+    "hash": "F9CF70128998D669798D273E8FF4E6D59BBA368218C888B6C2BC7FC3161277D2"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\export\\ReportExportViewModel.kt",
+    "hash": "F49F021459BB11635298BEB43D783332874E1739C4994E8A371A3763AABBA43D"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\export\\ReportFileStore.kt",
+    "hash": "27255B0982CC5253C93B8EEFBAF53663BD9AE541B8A1489E74B74C41BC0017CE"
+  },
+  {
+    "path": "app\\src\\main\\java\\com\\example\\appfinanceiro\\feature\\relatorios\\utils\\ReportUtils.kt",
+    "hash": "230DB4DE8D17D47B9A39ACB4350520B1F5D313A06B74A9C22E4FCB3AD36E70F2"
+  },
+  {
+    "path": "app\\src\\main\\res\\drawable\\ic_launcher_background.xml",
+    "hash": "E32765639E1658427CB9821350571C37859D8A8F0A9D12C0D8F7C15913A20A93"
+  },
+  {
+    "path": "app\\src\\main\\res\\drawable\\ic_launcher_foreground.xml",
+    "hash": "6E3C1BB64D9BEC079CF0030D867C58B064D2FB19CA6C5A691543C43134F64A2A"
+  },
+  {
+    "path": "app\\src\\main\\res\\drawable\\ic_launcher_playstore.png",
+    "hash": "9C28303A97A9457A279EB9223DE0B06D40F162183B6B413967FAC7AB6F106C48"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-anydpi-v26\\ic_launcher_round.xml",
+    "hash": "C74E86233A543E9E03E93697CF01170E0CD7DFF7FF1B82532764AEDE79683EB0"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-anydpi-v26\\ic_launcher.xml",
+    "hash": "C74E86233A543E9E03E93697CF01170E0CD7DFF7FF1B82532764AEDE79683EB0"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-hdpi\\ic_launcher_foreground.webp",
+    "hash": "51D95F87DE33373F06E029A90A617A40925CD23C11B09E3C64797E53B0D9AB3C"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-hdpi\\ic_launcher_round.webp",
+    "hash": "D797C916F08DA7A2BD787A1DDF0E060C4E39E774BE6CA6887E7DA80F7E293D07"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-hdpi\\ic_launcher.webp",
+    "hash": "7A5EAE0ACD0A42AFEC633CDCA0B5F93F3B3DF704A2BDA9FCC9E1109C2E5DC1A7"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-mdpi\\ic_launcher_foreground.webp",
+    "hash": "314C010A16C3C18CC21D8EB3E6F1DF026AECB6FAA1293D89FE3AB4F66D5FFF31"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-mdpi\\ic_launcher_round.webp",
+    "hash": "3007AD8E5FD74D011661B602C58F2A44A13D36B69AA8714E8ABF9CD5B4FA8803"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-mdpi\\ic_launcher.webp",
+    "hash": "D92E2213DC60F01E60BE719E6F23D678D71481E57E3AA76DD0E08215FAF6490E"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-xhdpi\\ic_launcher_foreground.webp",
+    "hash": "FF53718A97A7A79C5CD3C7379DECD6484B2A348E604594DB466B2D096C33C427"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-xhdpi\\ic_launcher_round.webp",
+    "hash": "B8157B5B579D69B1CABD10891E8FBC867720AF5620C4C4979BE5CCF65E5207F9"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-xhdpi\\ic_launcher.webp",
+    "hash": "9C146FAF8685856C0ED1B3696F704BE12446270F43D5776A62CFC6AB23DD2E78"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-xxhdpi\\ic_launcher_foreground.webp",
+    "hash": "ED50B02A2CFC3B27C8B4BE70E1BC82BB8958318F1E7B36AF7B586E112591B352"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-xxhdpi\\ic_launcher_round.webp",
+    "hash": "9B70D911CE76A38AFDD73CF71B4DC6B4AA52DB6AE0C0C3F1FA9F50575A91F0D5"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-xxhdpi\\ic_launcher.webp",
+    "hash": "88E27A99458C3ECD434D84DC4BB176AE734F3934A67D6050D5CDE5DABBA29335"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher_foreground.webp",
+    "hash": "8CCF84314231F2B9F3EC9FA4730956C00F450D8E487D9810819BD1CAD240059F"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher_round.webp",
+    "hash": "DC37C45398874C952EB5BBD9A1CA67145FA6B5117B3F832AF91E86BC9ED249AB"
+  },
+  {
+    "path": "app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher.webp",
+    "hash": "54D5DF5A5ECAC2B85CBB36A71BACAA04EB92F7CB273D8CAF7F1E120830189552"
+  },
+  {
+    "path": "app\\src\\main\\res\\values\\colors.xml",
+    "hash": "4729D16D04774B2D281DE429723C82E654BA3FB489020E6E27D3A9D3F29F4D68"
+  },
+  {
+    "path": "app\\src\\main\\res\\values\\strings.xml",
+    "hash": "3EAFB042FD05207888ECFACA55306F1AFA9C147CD55E39F1009551A30A62E0EB"
+  },
+  {
+    "path": "app\\src\\main\\res\\values\\themes.xml",
+    "hash": "FCB411140BDB708A2209270355E447122CFE0FEC6F4F20BC59216087D13A4FF4"
+  },
+  {
+    "path": "app\\src\\main\\res\\values-night\\colors.xml",
+    "hash": "FCD169E3767B6023D26C6E6A4AE1C392B80F4DE919DB0FBD8501614D8A1CC292"
+  },
+  {
+    "path": "app\\src\\main\\res\\xml\\backup_rules.xml",
+    "hash": "DCBEEFCA4D73D1586DD38A6FF0BB53F5B6636F48685628679CE095ECC338CA95"
+  },
+  {
+    "path": "app\\src\\main\\res\\xml\\data_extraction_rules.xml",
+    "hash": "7C873EBF40BB8BF04C241BE4A43DC738C8DC0B66C9F8FFE788928B55C9AEAA28"
+  }
+]

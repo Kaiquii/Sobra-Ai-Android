@@ -1,0 +1,4 @@
+// Copie como Local.xcconfig (ignorado no Git) e configure a API real e sua equipe.
+// $() evita que o parser de xcconfig interprete // como comentário.
+API_BASE_URL = https:/$()/example.invalid/
+// DEVELOPMENT_TEAM = sua equipe Apple

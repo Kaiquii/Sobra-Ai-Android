@@ -1,0 +1,72 @@
+
+> Configure project :shared
+w: Native task 'iosSimulatorArm64Test' is disabled
+Task 'iosSimulatorArm64Test' for target 'ios_simulator_arm64' cannot run on the current host (windows-x86_64).
+Reason: simulator tests require macOS
+Solution: To suppress this warning, add 'kotlin.native.ignoreDisabledTargets=true' to gradle.properties.
+
+
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:androidPreBuild UP-TO-DATE
+> Task :shared:preAndroidMainBuild UP-TO-DATE
+
+> Task :shared:compileAndroidMain
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/shared/src/commonMain/kotlin/com/example/appfinanceiro/core/network/FinanceModels.kt:78:36 Unnecessary safe call on a non-null receiver of type 'String'.
+
+> Task :sharedUi:kmpPartiallyResolvedDependenciesChecker
+> Task :sharedUi:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForAndroidMain SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForCommonMain SKIPPED
+> Task :sharedUi:generateActualResourceCollectorsForAndroidMain SKIPPED
+> Task :sharedUi:generateComposeResClass SKIPPED
+> Task :sharedUi:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :shared:downloadKotlinNativeDistribution
+> Task :shared:bundleAndroidMainClassesToCompileJar
+> Task :shared:compileKotlinIosArm64
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/shared/src/commonMain/kotlin/com/example/appfinanceiro/core/network/FinanceModels.kt:78:36 Unnecessary safe call on a non-null receiver of type 'String'.
+
+> Task :shared:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :sharedUi:downloadKotlinNativeDistribution
+> Task :sharedUi:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForAppleMain SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForIosArm64Main SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForIosMain SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForNativeMain SKIPPED
+> Task :sharedUi:generateActualResourceCollectorsForIosArm64Main SKIPPED
+> Task :sharedUi:compileAndroidMain
+> Task :sharedUi:compileKotlinIosArm64
+
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/shared/src/commonMain/kotlin/com/example/appfinanceiro/core/network/FinanceModels.kt:78:36 Unnecessary safe call on a non-null receiver of type 'String'.
+> Task :shared:compileKotlinIosSimulatorArm64
+
+> Task :shared:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements
+> Task :sharedUi:convertXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForIosSimulatorArm64Main NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForIosSimulatorArm64Main SKIPPED
+> Task :sharedUi:generateActualResourceCollectorsForIosSimulatorArm64Main SKIPPED
+> Task :sharedUi:compileKotlinIosSimulatorArm64
+
+[Incubating] Problems report is available at: file:///C:/Users/kaiqu/Documents/App-Financeiro/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 3m 14s
+13 actionable tasks: 13 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

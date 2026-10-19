@@ -9,6 +9,11 @@
 /.idea/assetWizardSettings.xml
 .DS_Store
 /build
+/shared/build/
+/sharedUi/build/
+/iosApp/Configuration/Local.xcconfig
+/iosApp/build/
+**/xcuserdata/
 /captures
 .externalNativeBuild
 .cxx

@@ -51,11 +51,12 @@ para validar integrações ou gerar um artefato destinado ao usuário.
 | --- | --- |
 | Apenas documentação | Conferir caminhos, conteúdo, links locais e `git diff --check` |
 | Lógica Kotlin/estado/API | `./gradlew.bat harnessVerify` e testes relevantes ao comportamento |
+| Regras em `shared/src/commonMain/` | `./gradlew.bat harnessVerify :app:assembleDebug`; testes comuns também no Mac, conforme `../shared/README.md` |
 | Teste JVM específico durante investigação | `./gradlew.bat :app:testDebugUnitTest --tests "com.example.appfinanceiro.feature.home.HomeViewModelTest"` |
 | Interface ou integração Android | Validação anterior e `./gradlew.bat :app:assembleDebug`; inspeção em dispositivo/emulador pelo usuário, conforme regras visuais |
 | Testes instrumentados existentes | `./scripts/test-harness.ps1 -Mode device` com dispositivo pronto |
 | Todos os testes existentes e Lint debug | `./scripts/test-harness.ps1 -Mode all` |
-| Preparação de release | `./gradlew.bat :app:lintRelease :app:testReleaseUnitTest :app:bundleRelease`, além de todos os testes automatizados aplicáveis |
+| Preparação de release | `./gradlew.bat harnessUnit :app:lintRelease :app:bundleRelease`, além de todos os testes automatizados aplicáveis |
 
 Os exemplos com `./` também são aceitos no PowerShell. O script
 [test-harness.ps1](../scripts/test-harness.ps1) é específico de Windows; veja
@@ -67,7 +68,22 @@ promover para produção, valide pela faixa de teste da Google Play o mesmo AAB,
 conforme `frontend-rules.md`. Gerar o bundle não prova assinatura, instalação,
 aprovação na loja ou funcionamento em produção.
 
+Na configuração atual, `:app:tasks --all` registra `testDebugUnitTest`, mas não
+`testReleaseUnitTest`. O harness executa testes JVM debug e testes comuns; não
+apresentar isso como testes unitários de uma variante release. Para conferir
+somente a compatibilidade do código com R8, existe `:app:minifyReleaseWithR8`,
+sem empacotar nem publicar uma release.
+
 ## Como interpretar resultados
+
+`harnessUnit` inclui `:app:testDebugUnitTest`, `:shared:testAndroidHostTest` e
+`:sharedUi:testAndroidHostTest`. A interface comum e o host iOS têm verificações
+adicionais em [kmp-compose-ios.md](kmp-compose-ios.md).
+`harnessVerify` acrescenta `:app:lintDebug`. A suíte comum roda na JVM pelo target
+Android; ela não executa os targets Apple. O Gradle avisa sobre testes Native
+desabilitados no Windows; não suprimir o aviso nem contar tarefas ignoradas como
+aprovação iOS. Compilação de frameworks, testes Native e host Xcode são provas
+distintas, descritas em [shared/README.md](../shared/README.md).
 
 - Tarefa Gradle aprovada não prova que os fluxos visuais foram exercitados.
   O teste instrumentado de exemplo atual verifica somente o contexto do app.

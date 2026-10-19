@@ -1,0 +1,121 @@
+
+> Configure project :shared
+w: Native task 'iosSimulatorArm64Test' is disabled
+Task 'iosSimulatorArm64Test' for target 'ios_simulator_arm64' cannot run on the current host (windows-x86_64).
+Reason: simulator tests require macOS
+Solution: To suppress this warning, add 'kotlin.native.ignoreDisabledTargets=true' to gradle.properties.
+
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :shared:androidPreBuild UP-TO-DATE
+> Task :shared:preAndroidMainBuild UP-TO-DATE
+> Task :shared:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:generateDebugRFile UP-TO-DATE
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :shared:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :shared:processAndroidMainManifest UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :shared:androidJar UP-TO-DATE
+> Task :shared:preAndroidHostTestBuild UP-TO-DATE
+> Task :shared:processAndroidHostTestJavaRes NO-SOURCE
+> Task :shared:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :shared:extractAndroidMainAnnotations UP-TO-DATE
+> Task :app:preDebugAndroidTestBuild SKIPPED
+> Task :shared:prepareLintJarForPublish UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :app:generateDebugGlobalSynthetics UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+> Task :shared:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :shared:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :shared:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :app:mergeDebugNativeLibs UP-TO-DATE
+> Task :app:stripDebugDebugSymbols UP-TO-DATE
+> Task :app:validateSigningDebug UP-TO-DATE
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :shared:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :shared:compileKotlinIosArm64 UP-TO-DATE
+> Task :shared:compileKotlinIosSimulatorArm64 UP-TO-DATE
+> Task :shared:iosArm64ProcessResources NO-SOURCE
+> Task :shared:iosArm64MainKlibrary UP-TO-DATE
+> Task :shared:compileTestKotlinIosArm64 UP-TO-DATE
+> Task :shared:iosSimulatorArm64ProcessResources NO-SOURCE
+> Task :shared:iosSimulatorArm64MainKlibrary UP-TO-DATE
+
+> Task :shared:compileAndroidMain
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/shared/src/commonMain/kotlin/com/example/appfinanceiro/core/network/FinanceModels.kt:78:36 Unnecessary safe call on a non-null receiver of type 'String'.
+
+> Task :shared:compileTestKotlinIosSimulatorArm64
+> Task :shared:processAndroidMainJavaRes UP-TO-DATE
+> Task :shared:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :shared:bundleAndroidMainClassesToCompileJar
+> Task :shared:bundleAndroidMainClassesToRuntimeJar
+> Task :shared:syncAndroidMainLibJars
+> Task :shared:bundleAndroidMainLocalLintAar
+> Task :shared:createFullJarAndroidMain
+> Task :shared:bundleLibRuntimeToDirAndroidMain
+> Task :shared:generateAndroidHostTestLintModel
+> Task :app:compileDebugKotlin
+> Task :app:compileDebugJavaWithJavac UP-TO-DATE
+> Task :app:bundleDebugClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleDebugClassesToCompileJar UP-TO-DATE
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:generateDebugAndroidTestLintModel
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:generateDebugLintReportModel
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :shared:compileAndroidHostTest
+> Task :app:testDebugUnitTest
+> Task :shared:testAndroidHostTest
+> Task :harnessUnit
+> Task :app:generateDebugUnitTestLintModel
+> Task :shared:lintAnalyzeAndroidHostTest
+> Task :app:mergeDebugJavaResource UP-TO-DATE
+> Task :app:dexBuilderDebug UP-TO-DATE
+> Task :app:mergeProjectDexDebug UP-TO-DATE
+> Task :app:mergeLibDexDebug
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleDebug
+> Task :app:lintAnalyzeDebugAndroidTest
+> Task :app:lintAnalyzeDebug
+> Task :app:lintAnalyzeDebugUnitTest
+
+> Task :app:lintReportDebug
+Wrote HTML report to file:///C:/Users/kaiqu/Documents/App-Financeiro/app/build/reports/lint-results-debug.html
+
+> Task :app:lintDebug
+> Task :harnessVerify
+
+[Incubating] Problems report is available at: file:///C:/Users/kaiqu/Documents/App-Financeiro/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 4m 49s
+81 actionable tasks: 26 executed, 55 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

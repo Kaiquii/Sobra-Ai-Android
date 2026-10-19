@@ -1,0 +1,70 @@
+
+> Configure project :shared
+w: Native task 'iosSimulatorArm64Test' is disabled
+Task 'iosSimulatorArm64Test' for target 'ios_simulator_arm64' cannot run on the current host (windows-x86_64).
+Reason: simulator tests require macOS
+Solution: To suppress this warning, add 'kotlin.native.ignoreDisabledTargets=true' to gradle.properties.
+
+
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:compileAndroidMain UP-TO-DATE
+> Task :shared:androidPreBuild UP-TO-DATE
+> Task :shared:preAndroidMainBuild UP-TO-DATE
+> Task :shared:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :shared:processAndroidMainJavaRes UP-TO-DATE
+> Task :shared:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :sharedUi:kmpPartiallyResolvedDependenciesChecker
+> Task :sharedUi:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForAndroidMain SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForCommonMain SKIPPED
+> Task :sharedUi:generateActualResourceCollectorsForAndroidMain SKIPPED
+> Task :sharedUi:generateComposeResClass SKIPPED
+> Task :sharedUi:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :sharedUi:androidPreBuild UP-TO-DATE
+> Task :sharedUi:preAndroidMainBuild UP-TO-DATE
+> Task :sharedUi:androidJar UP-TO-DATE
+> Task :sharedUi:convertXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForAndroidHostTest NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForAndroidHostTest SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForCommonTest SKIPPED
+> Task :sharedUi:preAndroidHostTestBuild UP-TO-DATE
+> Task :sharedUi:processAndroidHostTestJavaRes NO-SOURCE
+> Task :sharedUi:compileAndroidMain
+> Task :sharedUi:processAndroidMainJavaRes UP-TO-DATE
+> Task :sharedUi:bundleAndroidMainClassesToRuntimeJar
+> Task :sharedUi:bundleAndroidMainClassesToCompileJar
+> Task :sharedUi:compileAndroidHostTest
+
+> Task :sharedUi:testAndroidHostTest
+
+FinanceEditingHttpTest > editorsUseTheRealRepositoryTransportAndJsonContracts FAILED
+    java.util.NoSuchElementException at FinanceEditingHttpTest.kt:18
+
+41 tests completed, 1 failed
+
+> Task :sharedUi:testAndroidHostTest FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/kaiqu/Documents/App-Financeiro/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':sharedUi:testAndroidHostTest'.
+> There were failing tests. See the report at: file:///C:/Users/kaiqu/Documents/App-Financeiro/sharedUi/build/reports/tests/testAndroidHostTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 14s
+13 actionable tasks: 7 executed, 6 up-to-date

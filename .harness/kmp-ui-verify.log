@@ -1,0 +1,233 @@
+
+> Configure project :shared
+w: Native task 'iosSimulatorArm64Test' is disabled
+Task 'iosSimulatorArm64Test' for target 'ios_simulator_arm64' cannot run on the current host (windows-x86_64).
+Reason: simulator tests require macOS
+Solution: To suppress this warning, add 'kotlin.native.ignoreDisabledTargets=true' to gradle.properties.
+
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :shared:androidPreBuild UP-TO-DATE
+> Task :shared:preAndroidMainBuild UP-TO-DATE
+> Task :shared:generateAndroidMainEmptyResourceFiles
+> Task :app:processDebugNavigationResources
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:parseDebugLocalResources
+> Task :shared:compileAndroidMain UP-TO-DATE
+> Task :shared:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :app:javaPreCompileDebug
+> Task :app:mapDebugSourceSetPaths
+> Task :shared:writeAndroidMainAarMetadata
+> Task :app:generateDebugRFile
+> Task :app:compileDebugNavigationResources
+> Task :app:checkDebugAarMetadata
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest
+> Task :shared:processAndroidMainJavaRes
+> Task :shared:androidJar UP-TO-DATE
+> Task :shared:processAndroidMainManifest
+> Task :shared:bundleAndroidMainClassesToRuntimeJar
+> Task :app:mergeDebugResources
+> Task :app:processDebugMainManifest
+> Task :app:compileDebugKotlin
+> Task :app:processDebugManifest
+> Task :shared:preAndroidHostTestBuild UP-TO-DATE
+> Task :shared:processAndroidHostTestJavaRes NO-SOURCE
+> Task :sharedUi:kmpPartiallyResolvedDependenciesChecker
+> Task :app:processDebugManifestForPackage
+> Task :shared:compileAndroidHostTest
+> Task :app:processDebugResources
+> Task :shared:testAndroidHostTest
+> Task :sharedUi:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForAndroidMain SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForCommonMain SKIPPED
+> Task :sharedUi:generateActualResourceCollectorsForAndroidMain SKIPPED
+> Task :sharedUi:generateComposeResClass SKIPPED
+> Task :sharedUi:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :sharedUi:androidPreBuild UP-TO-DATE
+> Task :sharedUi:preAndroidMainBuild UP-TO-DATE
+> Task :sharedUi:androidJar
+> Task :sharedUi:convertXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForAndroidHostTest NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForAndroidHostTest SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForCommonTest SKIPPED
+> Task :sharedUi:preAndroidHostTestBuild UP-TO-DATE
+> Task :sharedUi:processAndroidHostTestJavaRes NO-SOURCE
+> Task :shared:checkAndroidMainAarMetadata
+> Task :shared:extractAndroidMainAnnotations
+> Task :app:preDebugAndroidTestBuild SKIPPED
+> Task :shared:createFullJarAndroidMain
+> Task :shared:prepareLintJarForPublish
+> Task :app:extractProguardFiles
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :shared:mergeAndroidMainJavaResource
+> Task :app:mergeDebugAssets
+> Task :shared:syncAndroidMainLibJars
+> Task :shared:bundleAndroidMainLocalLintAar
+> Task :app:compressDebugAssets
+> Task :sharedUi:compileAndroidMain
+> Task :app:generateDebugGlobalSynthetics
+> Task :sharedUi:bundleAndroidMainClassesToRuntimeJar
+> Task :sharedUi:bundleAndroidMainClassesToCompileJar
+> Task :sharedUi:processAndroidMainJavaRes
+> Task :shared:generateAndroidHostTestLintModel
+
+> Task :app:compileDebugKotlin
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/core/designsystem/components/ExpenseDetailsDialog.kt:402:53 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/core/designsystem/theme/Theme.kt:110:20 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/DespesasScreen.kt:277:43 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/DespesasScreen.kt:790:59 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/DespesasScreen.kt:807:54 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/DespesasScreen.kt:976:53 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/components/EditarDespesaScreen.kt:147:45 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/components/FormComponents.kt:126:33 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/components/FormComponents.kt:181:33 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/components/PaymentSplitSection.kt:65:59 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/despesas/components/PaymentSplitSection.kt:69:65 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/home/HomeScreen.kt:244:57 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/home/HomeScreen.kt:257:57 'val Icons.Filled.Chat: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Chat.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/home/components/MonthSelector.kt:49:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/home/components/ResumoFinanceiroSection.kt:175:46 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/home/components/ResumoFinanceiroSection.kt:256:42 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/home/utils/HomeUtils.kt:17:51 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/relatorios/InstallmentCommitmentsScreen.kt:142:57 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/relatorios/InstallmentCommitmentsScreen.kt:694:38 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/relatorios/RelatoriosScreen.kt:243:57 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/relatorios/RelatoriosScreen.kt:466:36 'val Icons.Filled.OpenInNew: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.OpenInNew.
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/app/src/main/java/com/example/appfinanceiro/feature/relatorios/utils/ReportUtils.kt:9:45 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+
+> Task :sharedUi:compileAndroidHostTest
+> Task :app:checkDebugDuplicateClasses
+> Task :app:compileDebugJavaWithJavac
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:processDebugJavaRes
+> Task :shared:lintAnalyzeAndroidHostTest
+> Task :app:compileDebugUnitTestKotlin
+> Task :sharedUi:testAndroidHostTest
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+> Task :harnessUnit
+> Task :app:generateDebugAndroidTestLintModel
+> Task :app:generateDebugLintReportModel
+> Task :app:generateDebugUnitTestLintModel
+> Task :app:desugarDebugFileDependencies
+> Task :app:lintAnalyzeDebugAndroidTest
+> Task :app:lintAnalyzeDebug
+> Task :app:lintAnalyzeDebugUnitTest
+> Task :app:mergeDebugJavaResource
+> Task :app:mergeExtDexDebug
+> Task :shared:bundleLibRuntimeToDirAndroidMain
+> Task :app:dexBuilderDebug
+> Task :app:mergeDebugJniLibFolders
+> Task :shared:mergeAndroidMainJniLibFolders
+> Task :shared:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :shared:copyAndroidMainJniLibsProjectOnly
+> Task :app:validateSigningDebug
+> Task :app:mergeProjectDexDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:mergeDebugNativeLibs
+> Task :shared:downloadKotlinNativeDistribution UP-TO-DATE
+
+> Task :app:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so. Run with --info option to learn more.
+
+> Task :shared:compileKotlinIosArm64 UP-TO-DATE
+> Task :shared:exportCrossCompilationMetadataForIosArm64ApiElements UP-TO-DATE
+> Task :sharedUi:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :sharedUi:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForAppleMain SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForIosArm64Main SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForIosMain SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForNativeMain SKIPPED
+> Task :sharedUi:generateActualResourceCollectorsForIosArm64Main SKIPPED
+> Task :sharedUi:compileKotlinIosArm64
+> Task :app:mergeLibDexDebug
+> Task :shared:compileKotlinIosSimulatorArm64 UP-TO-DATE
+> Task :shared:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :sharedUi:convertXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForIosSimulatorArm64Main NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForIosSimulatorArm64Main SKIPPED
+> Task :sharedUi:generateActualResourceCollectorsForIosSimulatorArm64Main SKIPPED
+> Task :sharedUi:compileKotlinIosSimulatorArm64
+> Task :sharedUi:convertXmlValueResourcesForAppleTest NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForAppleTest NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForAppleTest NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForAppleTest SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForIosArm64Test NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForIosArm64Test NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForIosArm64Test NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForIosArm64Test SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForIosTest NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForIosTest NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForIosTest NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForIosTest SKIPPED
+> Task :sharedUi:convertXmlValueResourcesForNativeTest NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForNativeTest NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForNativeTest NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForNativeTest SKIPPED
+> Task :sharedUi:iosArm64ResolveResourcesFromDependencies
+> Task :sharedUi:assembleIosArm64MainResources
+> Task :sharedUi:iosArm64ResolveSelfResourcesCopyHierarchicalMultiplatformResources
+> Task :sharedUi:iosArm64AggregateResources
+> Task :sharedUi:iosArm64ProcessResources
+> Task :sharedUi:iosArm64MainKlibrary
+> Task :sharedUi:compileTestKotlinIosArm64
+> Task :sharedUi:convertXmlValueResourcesForIosSimulatorArm64Test NO-SOURCE
+> Task :sharedUi:copyNonXmlValueResourcesForIosSimulatorArm64Test NO-SOURCE
+> Task :sharedUi:prepareComposeResourcesTaskForIosSimulatorArm64Test NO-SOURCE
+> Task :sharedUi:generateResourceAccessorsForIosSimulatorArm64Test SKIPPED
+> Task :sharedUi:iosSimulatorArm64ResolveResourcesFromDependencies
+> Task :sharedUi:assembleIosSimulatorArm64MainResources
+> Task :sharedUi:iosSimulatorArm64ResolveSelfResourcesCopyHierarchicalMultiplatformResources
+> Task :sharedUi:iosSimulatorArm64AggregateResources
+> Task :sharedUi:iosSimulatorArm64ProcessResources
+> Task :sharedUi:iosSimulatorArm64MainKlibrary
+> Task :sharedUi:compileTestKotlinIosSimulatorArm64
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+
+> Task :app:lintReportDebug
+Wrote HTML report to file:///C:/Users/kaiqu/Documents/App-Financeiro/app/build/reports/lint-results-debug.html
+
+> Task :app:lintDebug
+> Task :harnessVerify
+
+[Incubating] Problems report is available at: file:///C:/Users/kaiqu/Documents/App-Financeiro/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 8m 56s
+104 actionable tasks: 95 executed, 9 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

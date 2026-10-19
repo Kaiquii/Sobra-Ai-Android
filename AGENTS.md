@@ -3,7 +3,11 @@
 ## Comece aqui
 
 Este repositório contém o aplicativo Android SobraAi, em Kotlin e Jetpack Compose,
-com um módulo `:app`. O backend é externo: não presumir Go, Docker ou acesso ao
+com o host Android `:app` e a biblioteca Kotlin Multiplatform `:shared`.
+O módulo `:sharedUi` contém a interface Compose comum (login/Início/Rendas/Despesas),
+hospedada por `iosApp/SobraAi.xcodeproj`; `:app` ainda não depende de `:sharedUi`.
+Consulte `docs/kmp-compose-ios.md` para o escopo e a validação Apple.
+O backend é externo: não presumir Go, Docker ou acesso ao
 repositório do servidor a partir de informações de outra conversa.
 
 Antes de editar:
@@ -28,8 +32,14 @@ declare testes, interface ou release aprovados sem ter feito essa validação.
 - `MainActivity.kt` concentra a navegação Compose e a entrada de sessão.
 - `feature/` contém telas, componentes específicos e ViewModels.
 - `core/data/` contém repositórios, contratos de fontes de dados e tratamento de erros.
-- `core/network/` contém contratos Retrofit, DTOs e configuração HTTP.
+- `shared/.../core/network/` contém DTOs, contratos e transporte JSON Ktor comum.
+  `app/.../core/network/` mantém configuração Android e Retrofit para foto/exportação.
 - `core/designsystem/` contém tema e componentes reutilizáveis.
+- `shared/src/commonMain/kotlin/` contém regras compartilhadas com iOS; os pacotes
+  existentes foram preservados. Não duplicar essas regras dentro de `:app`.
+- A sessão usa `SessionStore`/`PersistentSessionStore` comuns. `SessionManager`
+  está em `shared/src/androidMain/` e preserva o DataStore `user_session` e suas
+  chaves. `IosSessionStore` usa Keychain e preferências Apple; validar no Mac/iPhone.
 - Algumas pastas não coincidem com o `package`: conferir a declaração antes de importar.
 
 ## Regras de implementação
@@ -69,7 +79,9 @@ Execute os comandos a partir da raiz, com o Gradle Wrapper:
 .\gradlew.bat harnessVerify
 ```
 
-O primeiro executa testes JVM; o segundo acrescenta Lint debug. Para dispositivo,
+O primeiro executa testes JVM de `:app` e `:shared`; o segundo acrescenta Lint
+debug do app. Os targets iOS exigem validação própria no Mac/Xcode, conforme
+`shared/README.md`; sucesso do harness no Windows não comprova execução Apple. Para dispositivo,
 release, configuração do ambiente e critérios de conclusão, siga
 [o fluxo de validação](docs/ai-workflow.md). O [harness de testes](docs/test-harness.md)
 é uma ferramenta de apoio a estas instruções.

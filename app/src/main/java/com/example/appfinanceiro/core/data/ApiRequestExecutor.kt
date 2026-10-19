@@ -6,15 +6,8 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-class ApiRequestException(
-    val statusCode: Int,
-    val apiMessage: String?
-) : Exception(apiMessage)
-
-class NetworkRequestException(
-    val userMessage: String,
-    cause: Throwable
-) : IOException(userMessage, cause)
+// A propriedade local preserva os smart casts das telas Android sem editá-las.
+class ApiRequestException(statusCode: Int, override val apiMessage: String?) : ApiResponseException(statusCode, apiMessage)
 
 suspend fun <T> executeApiRequest(
     authenticated: Boolean = true,
@@ -51,13 +44,5 @@ suspend fun <T> executeApiRequest(
             userMessage = "Não foi possível conectar ao servidor. Verifique sua internet.",
             cause = error
         )
-    }
-}
-
-fun Throwable.userMessageOr(defaultMessage: String): String {
-    return when (this) {
-        is ApiRequestException -> apiMessage?.takeIf { it.isNotBlank() } ?: defaultMessage
-        is NetworkRequestException -> userMessage
-        else -> defaultMessage
     }
 }

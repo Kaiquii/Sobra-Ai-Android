@@ -16,8 +16,8 @@ O modo padrao, `unit`, executa apenas os testes unitarios e nao requer emulador.
 
 | Modo | Validacoes | Precisa de dispositivo |
 | --- | --- | --- |
-| `unit` | Testes unitarios JVM | Nao |
-| `verify` | Testes unitarios e Android Lint | Nao |
+| `unit` | Testes JVM de `:app`, `:shared` e `:sharedUi` | Nao |
+| `verify` | Testes JVM dos três módulos e Android Lint debug | Nao |
 | `device` | Testes instrumentados | Sim |
 | `all` | Testes unitarios, Lint e instrumentados | Sim |
 
@@ -57,8 +57,23 @@ da execucao se o ADB e um dispositivo ou emulador estao disponiveis.
 Depois da execucao, os relatorios ficam em:
 
 - `app/build/reports/tests/testDebugUnitTest/index.html`
+- `shared/build/reports/tests/testAndroidHostTest/index.html`
 - `app/build/reports/lint-results-debug.html`
 - `app/build/reports/androidTests/connected/debug/index.html`
 
 Uma falha em qualquer etapa encerra o harness com codigo diferente de zero, o que
 permite utiliza-lo como verificacao em CI.
+
+## Kotlin Multiplatform
+
+`harnessUnit` depende de `:app:testDebugUnitTest`, `:shared:testAndroidHostTest` e
+`:sharedUi:testAndroidHostTest`. O relatório da interface comum fica em
+`sharedUi/build/reports/tests/testAndroidHostTest/index.html`.
+`harnessVerify` inclui os dois e `:app:lintDebug`. O script mostra separadamente
+o relatório das regras comuns executadas na JVM. Os modos `device`/`all`
+preservam o comportamento Android e exigem solicitação explícita para execução.
+
+Os targets Apple não são validados por esse harness. Para compilar frameworks
+e executar testes Native em Mac/Xcode, seguir [shared/README.md](../shared/README.md).
+O aviso de teste Native desabilitado no Windows não deve ser suprimido nem
+interpretado como teste iOS aprovado.

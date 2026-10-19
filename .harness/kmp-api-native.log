@@ -1,0 +1,22 @@
+
+> Configure project :shared
+w: Native task 'iosSimulatorArm64Test' is disabled
+Task 'iosSimulatorArm64Test' for target 'ios_simulator_arm64' cannot run on the current host (windows-x86_64).
+Reason: simulator tests require macOS
+Solution: To suppress this warning, add 'kotlin.native.ignoreDisabledTargets=true' to gradle.properties.
+
+
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :shared:downloadKotlinNativeDistribution
+Kotlin/Native bundle directory C:\Users\kaiqu\.konan\kotlin-native-prebuilt-windows-x86_64-2.4.21 is not empty. Native bundle files will be overwritten.
+
+> Task :shared:compileKotlinIosArm64
+w: file:///C:/Users/kaiqu/Documents/App-Financeiro/shared/src/commonMain/kotlin/com/example/appfinanceiro/core/network/FinanceModels.kt:78:36 Unnecessary safe call on a non-null receiver of type 'String'.
+
+[Incubating] Problems report is available at: file:///C:/Users/kaiqu/Documents/App-Financeiro/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 2m 33s
+3 actionable tasks: 3 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

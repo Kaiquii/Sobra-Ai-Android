@@ -1,0 +1,113 @@
+package com.example.appfinanceiro.core.network.auth
+
+import android.util.Log
+import br.com.sobraai.app.BuildConfig
+import com.example.appfinanceiro.core.network.FinanceApi
+import com.example.appfinanceiro.core.network.createFinanceGson
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
+import retrofit2.http.POST
+import java.util.concurrent.TimeUnit
+
+data class LoginRequest(val email: String, val password: String)
+data class RequestRegisterCodeRequest(
+    val email: String,
+    val protection_provider: String,
+    val play_integrity_token: String
+)
+
+data class RegisterRequest(
+    val name: String,
+    val email: String,
+    val password: String,
+    val code: String
+)
+
+data class ForgotPasswordRequest(
+    val email: String,
+    val protection_provider: String,
+    val play_integrity_token: String
+)
+
+data class ResetPasswordRequest(
+    val email: String,
+    val code: String,
+    val new_password: String
+)
+
+data class UserResponse(
+    val name: String,
+    val email: String,
+    val role: String,
+    val avatar_url: String? = null
+)
+
+data class LoginResponse(
+    val message: String,
+    val token: String,
+    val user: UserResponse
+)
+
+data class RegisterResponse(val message: String, val user_id: Int)
+data class DefaultAuthResponse(val message: String)
+
+interface AuthApi {
+    @POST("api/auth/login")
+    suspend fun login(@Body request: LoginRequest): LoginResponse
+
+    @POST("api/auth/register")
+    suspend fun register(@Body request: RegisterRequest): RegisterResponse
+
+    @POST("api/auth/request-register-code")
+    suspend fun requestRegisterCode(@Body request: RequestRegisterCodeRequest): DefaultAuthResponse
+
+    @POST("api/auth/forgot-password")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): DefaultAuthResponse
+
+    @POST("api/auth/reset-password")
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): DefaultAuthResponse
+}
+
+object RetrofitClient {
+    private val authenticatedClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor { chain ->
+                val request = chain.request()
+                val startedAt = System.nanoTime()
+                val response = chain.proceed(request)
+                val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
+
+                if (request.url.encodedPath.contains("installment-commitments")) {
+                    Log.d(
+                        "API_DEBUG",
+                        "GET ${request.url} -> ${response.code} em ${elapsedMs}ms"
+                    )
+                }
+
+                response
+            }
+            .build()
+    }
+
+    val authApi: AuthApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(BuildConfig.API_BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(AuthApi::class.java)
+    }
+
+    val financeApi: FinanceApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(BuildConfig.API_BASE_URL)
+            .client(authenticatedClient)
+            .addConverterFactory(GsonConverterFactory.create(createFinanceGson()))
+            .build()
+            .create(FinanceApi::class.java)
+    }
+}

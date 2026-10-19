@@ -1,0 +1,13 @@
+PRODUCT_BUNDLE_IDENTIFIER = br.com.sobraai.app.ios
+PRODUCT_NAME = SobraAi
+SWIFT_VERSION = 5.0
+IPHONEOS_DEPLOYMENT_TARGET = 15.0
+TARGETED_DEVICE_FAMILY = 1,2
+CODE_SIGN_STYLE = Automatic
+ENABLE_USER_SCRIPT_SANDBOXING = NO
+GENERATE_INFOPLIST_FILE = NO
+INFOPLIST_FILE = SobraAi/Info.plist
+FRAMEWORK_SEARCH_PATHS = $(inherited) $(SRCROOT)/../sharedUi/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+OTHER_LDFLAGS = $(inherited) -framework SobraAiUI
+API_BASE_URL =
+#include? "Local.xcconfig"

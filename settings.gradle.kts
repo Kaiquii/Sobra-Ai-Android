@@ -24,3 +24,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Sobra-Ai-Android"
 include(":app")
+include(":shared")
+include(":sharedUi")
