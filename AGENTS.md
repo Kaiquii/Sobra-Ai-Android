@@ -1,12 +1,14 @@
-# Orientações para agentes — SobraAi Android
+# Orientações para agentes — SobraAi KMP (Android e iOS)
 
 ## Comece aqui
 
-Este repositório contém o aplicativo Android SobraAi, em Kotlin e Jetpack Compose,
-com o host Android `:app` e a biblioteca Kotlin Multiplatform `:shared`.
-O módulo `:sharedUi` contém a interface Compose comum (login/Início/Rendas/Despesas),
-hospedada por `iosApp/SobraAi.xcodeproj`; `:app` ainda não depende de `:sharedUi`.
-Consulte `docs/kmp-compose-ios.md` para o escopo e a validação Apple.
+Este repositório contém o SobraAi, um projeto **Kotlin Multiplatform para Android
+e iPhone**. Toda mudança deve preservar o funcionamento nas duas plataformas.
+O host Android `:app` mantém seu front-end em Jetpack Compose; `:shared` contém
+regras, API e sessão comuns. `:sharedUi` contém as telas Compose Multiplatform,
+hospedadas por `iosApp/SobraAi.xcodeproj`; `:app` não depende de `:sharedUi`.
+Leia [a política KMP](rules.md) e consulte `docs/kmp-compose-ios.md` para a
+integração Apple. Sucesso Android/JVM não comprova funcionamento no iPhone.
 O backend é externo: não presumir Go, Docker ou acesso ao
 repositório do servidor a partir de informações de outra conversa.
 
@@ -18,6 +20,8 @@ Antes de editar:
 4. Para mudanças visuais, leia integralmente [as regras de front-end](docs/frontend-rules.md).
 5. Inspecione o código e os testes relevantes; a documentação é um mapa, não uma
    substituição da implementação. Atualize o mapa quando mudar a arquitetura.
+6. Confira [rules.md](rules.md), identifique o impacto em Android e iOS e escolha
+   as verificações adequadas para o código comum e os adaptadores nativos.
 
 Responda em português brasileiro. Execute o trabalho solicitado até a validação
 adequada; se houver impedimento real, informe o que falta e a evidência. Não
@@ -25,8 +29,8 @@ declare testes, interface ou release aprovados sem ter feito essa validação.
 
 ## Identidade e organização
 
-- `namespace` e `applicationId`: `br.com.sobraai.app`.
-- Base dos fontes: `app/src/main/java/com/example/appfinanceiro`.
+- `namespace` e `applicationId` do Android `:app`: `br.com.sobraai.app`.
+- Base dos fontes Android: `app/src/main/java/com/example/appfinanceiro`.
 - O pacote Kotlin predominante é `com.example.appfinanceiro`; `R` e `BuildConfig`
   são gerados em `br.com.sobraai.app`. Não fazer renomeação global para igualá-los.
 - `MainActivity.kt` concentra a navegação Compose e a entrada de sessão.
@@ -37,6 +41,9 @@ declare testes, interface ou release aprovados sem ter feito essa validação.
 - `core/designsystem/` contém tema e componentes reutilizáveis.
 - `shared/src/commonMain/kotlin/` contém regras compartilhadas com iOS; os pacotes
   existentes foram preservados. Não duplicar essas regras dentro de `:app`.
+- `sharedUi/src/commonMain/` contém telas/tema/apresentadores comuns. Adaptadores
+  UIKit/Speech ficam em `sharedUi/src/iosMain/`; o host e a configuração Xcode
+  ficam em `iosApp/`. Não mover APIs nativas para `commonMain`.
 - A sessão usa `SessionStore`/`PersistentSessionStore` comuns. `SessionManager`
   está em `shared/src/androidMain/` e preserva o DataStore `user_session` e suas
   chaves. `IosSessionStore` usa Keychain e preferências Apple; validar no Mac/iPhone.
@@ -44,6 +51,10 @@ declare testes, interface ou release aprovados sem ter feito essa validação.
 
 ## Regras de implementação
 
+- Trate Android e iOS como plataformas mantidas do projeto. Priorize código
+  comum compatível e preserve os adaptadores e consumidores das duas plataformas.
+  Não introduza dependências Android/JVM em `commonMain` nem remova targets para
+  fazer um build passar. Não altere o front-end Android como efeito da migração.
 - Siga o padrão existente da funcionalidade. Para lógica nova, prefira ViewModels,
   funções testáveis e repositórios; não coloque chamadas HTTP na recomposição.
 - Preserve os contratos de `FinanceDataSources.kt` e a possibilidade de injetar
@@ -66,11 +77,13 @@ declare testes, interface ou release aprovados sem ter feito essa validação.
 
 ## Validação rápida
 
-O usuário inicia o emulador e realiza os testes visuais/manuais do aplicativo.
-Não iniciar emuladores, instalar ou abrir o app, nem executar testes instrumentados
-por iniciativa própria. Só realizar essas ações se o usuário solicitar explicitamente.
-Por padrão, validar com build, Lint e testes unitários; informar o que ficou para
-o usuário conferir no emulador. É permitido compilar os testes instrumentados sem executá-los.
+O usuário prepara o emulador/simulador e realiza os testes visuais/manuais.
+Não iniciar emuladores/simuladores, instalar ou abrir o app, nem executar testes
+instrumentados por iniciativa própria. Só realizar essas ações se o usuário
+solicitar explicitamente.
+Por padrão, validar com build Android, Lint, testes JVM e compilação KMP para iOS;
+informar o que ficou para o usuário conferir nas duas plataformas. É permitido
+compilar os testes sem executar emuladores/simuladores ou dispositivos.
 
 Execute os comandos a partir da raiz, com o Gradle Wrapper:
 
@@ -79,10 +92,13 @@ Execute os comandos a partir da raiz, com o Gradle Wrapper:
 .\gradlew.bat harnessVerify
 ```
 
-O primeiro executa testes JVM de `:app` e `:shared`; o segundo acrescenta Lint
-debug do app. Os targets iOS exigem validação própria no Mac/Xcode, conforme
-`shared/README.md`; sucesso do harness no Windows não comprova execução Apple. Para dispositivo,
-release, configuração do ambiente e critérios de conclusão, siga
+O primeiro é parcial: testes JVM de `:app`, `:shared` e `:sharedUi`. O segundo é
+a verificação local padrão: acrescenta APK Android debug, Lint e fontes/testes
+KLIB de `shared`/`sharedUi` para `iosArm64` e `iosSimulatorArm64`.
+O script `scripts/test-harness.ps1` usa `verify` por padrão. No Mac, complemente
+com `harnessIos` e build Xcode; testes Native (`harnessIosTest`) exigem solicitação
+explícita e simulador preparado. Sucesso no Windows não comprova execução Apple.
+Para dispositivo, release, configuração do ambiente e critérios de conclusão, siga
 [o fluxo de validação](docs/ai-workflow.md). O [harness de testes](docs/test-harness.md)
 é uma ferramenta de apoio a estas instruções.
 

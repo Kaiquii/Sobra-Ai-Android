@@ -7,8 +7,11 @@ Android/JVM em `commonMain`; engines e persistência nativas ficam nos source se
 por plataforma. Detalhes: [API e sessão](../docs/kmp-api-session.md).
 
 O host iOS inicial agora existe em `iosApp/` e consome `:shared` pela interface
-Compose de `:sharedUi`. Login, Início, Rendas/Despesas, configuração Xcode e limites
-de validação estão em [Compose iOS](../docs/kmp-compose-ios.md).
+Compose de `:sharedUi`. Telas, configuração Xcode e limites de validação estão
+em [Compose iOS](../docs/kmp-compose-ios.md) e
+[funcionalidades iOS](../docs/kmp-funcionalidades-ios.md).
+Android e iPhone são plataformas mantidas: siga [rules.md](../rules.md) em toda
+alteração. O harness padrão compila os dois targets Apple, além de verificar Android.
 
 ## Configuração
 
@@ -46,8 +49,13 @@ Na raiz, em Windows:
 
 ```powershell
 .\gradlew.bat harnessUnit
-.\gradlew.bat harnessVerify :app:assembleDebug
+.\gradlew.bat harnessVerify
 ```
+
+`harnessUnit` é parcial (JVM). `harnessVerify` inclui APK/Lint Android e
+`harnessKmp`, que compila fontes Android e fontes/testes KLIB de `shared` e
+`sharedUi` para `iosArm64` e `iosSimulatorArm64`. É também o modo padrão do
+script PowerShell. Alcance e relatórios: [harness](../docs/test-harness.md).
 
 As regras comuns são executadas via `:shared:testAndroidHostTest`, na JVM.
 Relatório: `shared/build/reports/tests/testAndroidHostTest/index.html`.
@@ -64,25 +72,25 @@ Isso valida os tipos e APIs usados, sem gerar um framework final ou executar
 Keychain/Darwin. Para essa compilação sem execução:
 
 ```powershell
-.\gradlew.bat :shared:compileKotlinIosArm64 :shared:compileKotlinIosSimulatorArm64
-.\gradlew.bat :shared:compileTestKotlinIosArm64 :shared:compileTestKotlinIosSimulatorArm64
+.\gradlew.bat harnessKmp
 ```
 
 No Mac com Xcode configurado, executar a partir da raiz:
 
 ```sh
-./gradlew :shared:linkDebugFrameworkIosArm64 :shared:linkDebugFrameworkIosSimulatorArm64
-./gradlew :shared:linkReleaseFrameworkIosArm64 :shared:linkReleaseFrameworkIosSimulatorArm64
+/bin/sh ./gradlew harnessIos
 ```
 
 Quando o usuário tiver preparado e autorizado o simulador Apple:
 
 ```sh
-./gradlew :shared:iosSimulatorArm64Test
+/bin/sh ./gradlew harnessIosTest
 ```
 
 Os nomes de tarefas foram conferidos na configuração Gradle; sua execução Apple
 continua pendente. Resultados dos frameworks ficam em `shared/build/bin/`.
+Os grupos Apple também incluem `sharedUi`; o teste exige Mac Apple Silicon/JDK
+ARM64. Link de frameworks não substitui build Swift no Xcode nem execução em iPhone.
 
 O projeto `iosApp/SobraAi.xcodeproj` integra o framework de entrada
 `SobraAiUI`, produzido por `:sharedUi:embedAndSignAppleFrameworkForXcode`.

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("unit", "verify", "device", "all")]
-    [string] $Mode = "unit",
+    [ValidateSet("unit", "kmp", "verify", "device", "all")]
+    [string] $Mode = "verify",
 
     [string] $ApiBaseUrl,
 
@@ -91,6 +91,7 @@ if ($Mode -in @("device", "all")) {
 
 $taskByMode = @{
     unit = "harnessUnit"
+    kmp = "harnessKmp"
     verify = "harnessVerify"
     device = "harnessDevice"
     all = "harnessAll"
@@ -105,7 +106,14 @@ if ($ApiBaseUrl) {
     $gradleArguments += "-PAPI_BASE_URL=$normalizedApiUrl"
 }
 
+Write-Host "[harness] SobraAi KMP: preservar Android e iPhone em toda alteracao."
 Write-Host "[harness] Executando modo '$Mode'..."
+if ($Mode -eq "unit") {
+    Write-Host "[harness] Modo parcial: somente JVM. Use verify para compilar tambem os fontes iOS."
+}
+if ($Mode -eq "device") {
+    Write-Host "[harness] Modo parcial: instrumentados Android. Nao substitui verify nem validacao Apple."
+}
 Push-Location $projectRoot
 try {
     & $gradleWrapper @gradleArguments
@@ -122,8 +130,14 @@ $sharedUnitReport = Join-Path $projectRoot "shared\build\reports\tests\testAndro
 $sharedUiReport = Join-Path $projectRoot "sharedUi\build\reports\tests\testAndroidHostTest\index.html"
 $lintReport = Join-Path $projectRoot "app\build\reports\lint-results-debug.html"
 $deviceReport = Join-Path $projectRoot "app\build\reports\androidTests\connected\debug\index.html"
+$apkDirectory = Join-Path $projectRoot "app\build\outputs\apk\debug"
 
-Write-Host "[harness] OK: modo '$Mode' concluido."
+Write-Host "[harness] OK: verificacoes do modo '$Mode' concluidas."
+if ($Mode -in @("kmp", "verify", "all")) {
+    Write-Host "[harness] KMP: fontes Android e fontes/testes KLIB iosArm64 + iosSimulatorArm64 de shared/sharedUi compilados."
+}
+Write-Host "[harness] Pendente neste host Windows: link Apple, build Swift/Xcode e execucao no Mac/iPhone."
+Write-Host "[harness] Guia Apple: README.md e docs/test-harness.md."
 if ($Mode -in @("unit", "verify", "all") -and (Test-Path -LiteralPath $unitReport)) {
     Write-Host "[harness] Testes unitarios: $unitReport"
 }
@@ -132,6 +146,9 @@ if ($Mode -in @("unit", "verify", "all") -and (Test-Path -LiteralPath $sharedUni
 }
 if ($Mode -in @("verify", "all") -and (Test-Path -LiteralPath $lintReport)) {
     Write-Host "[harness] Lint: $lintReport"
+}
+if ($Mode -in @("verify", "all") -and (Test-Path -LiteralPath $apkDirectory)) {
+    Write-Host "[harness] APK Android debug: $apkDirectory"
 }
 if ($Mode -in @("unit", "verify", "all") -and (Test-Path -LiteralPath $sharedUiReport)) {
     Write-Host "[harness] Interface compartilhada (Android/JVM): $sharedUiReport"

@@ -3,6 +3,7 @@
 ## Orientações para IA
 
 O ponto de entrada para agentes é [AGENTS.md](AGENTS.md), com regras do projeto,
+[política KMP para Android e iPhone](rules.md),
 [mapa da arquitetura](docs/ai-project-map.md) e
 [fluxo de desenvolvimento e validação](docs/ai-workflow.md).
 Essas instruções orientam a IA ao trabalhar no código e usam o harness de testes
@@ -168,16 +169,24 @@ Esse artefato é para simulador; não é um IPA para instalar no iPhone.
 
 ### 5. Validar
 
-Com SDK e API configurados, execute os testes JVM e Lint pela raiz:
+Com SDK e API configurados, execute a verificação local Android/KMP pela raiz:
 
 ```sh
 /bin/sh ./gradlew harnessVerify
 ```
 
+Esse grupo inclui testes JVM, APK/Lint Android e compilação dos fontes/testes
+KLIB de `shared`/`sharedUi` para aparelho e simulador iOS ARM64. Para fazer também
+o link dos frameworks debug no Mac, sem iniciar o simulador:
+
+```sh
+/bin/sh ./gradlew harnessIos
+```
+
 Para executar também os testes Kotlin/Native no simulador preparado no Mac:
 
 ```sh
-/bin/sh ./gradlew :shared:iosSimulatorArm64Test :sharedUi:iosSimulatorArm64Test
+/bin/sh ./gradlew harnessIosTest
 ```
 
 O build Xcode valida Swift e o link do framework. Depois, confira no iPhone
@@ -205,12 +214,14 @@ declara que já foram aprovados. O front-end Android permanece preservado.
 
 ## 🧪 Harness de testes
 
-O projeto possui um harness para testes unitarios, Android Lint e testes
-instrumentados:
+O harness considera **Android e iPhone** em toda mudança. O modo padrão `verify`
+executa testes JVM dos três módulos, gera o APK Android debug, roda Lint e compila
+os fontes/testes Kotlin para os dois targets iOS, sem iniciar dispositivos:
 
 ```powershell
-.\scripts\test-harness.ps1 -Mode verify
+.\scripts\test-harness.ps1
 ```
 
-Consulte [a documentacao do harness](docs/test-harness.md) para conhecer todos os
-modos e relatorios.
+`unit` é uma verificação parcial; link/build Swift e execução no iPhone exigem
+Mac/Xcode e evidências próprias. Consulte [a documentação do harness](docs/test-harness.md)
+para modos, comandos Apple, relatórios e limites de cada verificação.

@@ -4,6 +4,9 @@ Todos os caminhos abaixo são relativos à raiz do repositório. Dentro dos font
 a base Android é `app/src/main/java/com/example/appfinanceiro/`. A biblioteca KMP
 `:shared` usa `shared/src/commonMain/kotlin/com/example/appfinanceiro/` para as
 regras comuns e mantém seus packages originais, sem alterações nos consumidores.
+O projeto mantém **Android e iPhone**. Toda alteração deve avaliar os consumidores
+das duas plataformas, conforme [rules.md](../rules.md); não restringir a validação
+ao app Android ou apresentar compilação KLIB como execução iOS.
 
 ## Estrutura e pontos de entrada
 
@@ -47,7 +50,8 @@ Envio de códigos e contrato de versão Apple: [pendências do backend](pendenci
 | Sessão comum | `shared/src/commonMain/kotlin/com/example/appfinanceiro/core/data/` (desde a raiz) | `SessionStore`, regras de sessão, persistência segura e contratos de repositório |
 | Sessão por plataforma | `shared/src/androidMain/` e `shared/src/iosMain/` (desde a raiz) | `SessionManager` com DataStore; `IosSessionStore` com Keychain e preferências Apple |
 | Proteções | `core/security/`, `core/biometric/`, `core/update/` | Play Integrity, biometria e exigência de atualização |
-| Interface comum | `core/designsystem/` | Tema, indicadores, banners, botões e diálogos |
+| Interface reutilizável Android | `core/designsystem/` | Tema, indicadores, banners, botões e diálogos do host Android |
+| Interface KMP | `sharedUi/src/commonMain/kotlin/br/com/sobraai/ui/` (desde a raiz) | Telas, tema e apresentadores comuns consumidos pelo host iOS |
 | Datas compartilhadas | `shared/src/commonMain/kotlin/com/example/appfinanceiro/core/date/` (desde a raiz) | Navegação de meses em Android/iOS |
 | Validação compartilhada | `shared/src/commonMain/kotlin/com/example/appfinanceiro/feature/despesas/ExpenseFormValidator.kt` (desde a raiz) | Regras do formulário, sem Compose ou dependências Android |
 
@@ -156,6 +160,11 @@ primeiro arquivo da célula, salvo caminho explícito diferente.
 ## Fontes de configuração e testes
 
 - `settings.gradle.kts`: módulos e repositórios de dependências.
+- `build.gradle.kts`: grupos do harness. `harnessVerify` combina JVM, APK/Lint
+  Android e compilação KMP; `harnessKmp` compila fontes/testes Apple dos dois
+  módulos; `harnessIos`/`harnessIosTest` complementam a validação no Mac.
+- `scripts/test-harness.ps1`: entrada Windows, modo padrão `verify`, checagem
+  ADB só nos modos explícitos de dispositivo. Alcance em `docs/test-harness.md`.
 - `shared/build.gradle.kts`: plugin Android KMP, target Android (minSdk 24,
   JVM 11), `iosArm64`/`iosSimulatorArm64` e framework estático `SobraAiShared`.
 - `shared/src/commonTest/kotlin/`: testes `kotlin.test` de navegação mensal e

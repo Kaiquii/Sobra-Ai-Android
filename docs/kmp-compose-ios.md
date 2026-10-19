@@ -67,12 +67,14 @@ ou provisionamento privados versionados. Não foi publicada uma versão App Stor
 
 ## Verificação
 
+O projeto mantém Android e iPhone como plataformas, conforme [rules.md](../rules.md).
+`harnessVerify` agora cobre testes JVM, APK/Lint Android e fontes/testes KLIB iOS
+de `shared` e `sharedUi`. Esse é o modo padrão do script Windows.
+
 Na raiz, com a configuração habitual da API:
 
 ```powershell
-.\gradlew.bat harnessVerify :app:assembleDebug
-.\gradlew.bat :sharedUi:compileKotlinIosArm64 :sharedUi:compileKotlinIosSimulatorArm64
-.\gradlew.bat :sharedUi:compileTestKotlinIosArm64 :sharedUi:compileTestKotlinIosSimulatorArm64
+.\gradlew.bat harnessVerify
 ```
 
 O harness inclui `:sharedUi:testAndroidHostTest`. Os testes cobrem sessão segura,
@@ -80,14 +82,19 @@ login/logout, erros de armazenamento, biometria, rate limit, cancelamento,
 respostas fora de ordem, filtros de rateio/status, períodos e saldos/formatação.
 Usam fakes e não acessam backend, Keychain ou sensores reais.
 
-No Mac, execute também:
+No Mac, complemente com link dos frameworks; testes Native exigem pedido
+explícito e simulador preparado:
 
 ```sh
-./gradlew :sharedUi:iosSimulatorArm64Test
+/bin/sh ./gradlew harnessIos
+# Somente para executar os testes Native solicitados:
+/bin/sh ./gradlew harnessIosTest
 xcodebuild -project iosApp/SobraAi.xcodeproj -scheme SobraAi \
   -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
   CODE_SIGNING_ALLOWED=NO build
 ```
+
+Alcance de cada grupo em [test-harness.md](test-harness.md).
 
 Gradle usa a configuração API_BASE_URL/local.properties existente; o Xcode usa
 Local.xcconfig. Compilar KLIB no Windows **não** compila Swift, não faz link do

@@ -1,9 +1,35 @@
 # Regras de Front-end
 
-Estas regras devem ser consideradas em toda mudança visual do aplicativo.
+Estas regras devem ser consideradas em toda mudança visual do SobraAi,
+projeto Kotlin Multiplatform para Android e iPhone. Aplicam-se às telas Android
+em `app` e à interface comum em `sharedUi`. Consulte também a
+[política KMP](../rules.md) e o [harness](test-harness.md).
+
+## Compatibilidade Android e iPhone
+
+- Toda mudança visual ou de interação deve considerar as duas plataformas e os
+  consumidores afetados. Preserve o front-end Android existente; uma adaptação
+  iOS não autoriza alterações incidentais em suas telas, recursos ou navegação.
+- Código comum deve usar APIs e recursos de Compose Multiplatform compatíveis
+  com Android e os targets Apple. Isole serviços de plataforma em adaptadores;
+  não importe APIs Android/JVM em `sharedUi/commonMain`.
+- Confira teclado, áreas seguras de notch/indicador de início, navegação/voltar,
+  rotação e fonte ampliada no iPhone, além das variações de tela Android.
+  Acessibilidade inclui TalkBack e VoiceOver; ocultar valores também deve removê-los
+  das semânticas nas duas plataformas.
+- Biometria, fotos, arquivos, voz e permissões exigem tratamento nativo de
+  cancelamento, indisponibilidade e segundo plano. Não presumir que o comportamento
+  de um serviço Android existe de forma idêntica no iOS.
+- Use `harnessVerify` para a verificação local Android/KMP. Sem execução em
+  iPhone, registre a validação visual Apple pendente; não declare aprovação por
+  compilar KLIB. O usuário conduz os testes manuais e prepara os dispositivos.
 
 ## Validação do build de produção
 
+- No iOS, validar build/link Swift e Kotlin no Xcode, assinatura/provisionamento
+  e o candidato no iPhone/TestFlight antes de distribuição. Sucesso do APK/AAB,
+  dos testes JVM ou do KLIB não certifica o app Apple. O build comum de validação
+  não autoriza gerar/publicar uma release em nenhuma loja.
 - Nunca considerar o funcionamento do build `debug` como validação suficiente do aplicativo publicado. O build `release` usa R8 e precisa ser validado separadamente.
 - Manter redução de código, otimização, ofuscação e redução de recursos habilitadas no `release`. Contratos acessados por reflexão devem possuir regras de preservação específicas e revisadas.
 - Antes de gerar uma versão para a Play Console, executar o lint de release, todos os testes automatizados e a geração do AAB sem erros.
@@ -18,6 +44,7 @@ Estas regras devem ser consideradas em toda mudança visual do aplicativo.
 - Sempre considerar celulares com telas pequenas e estreitas, além de fontes maiores e teclado aberto.
 - Em telas com conteúdo extenso, usar rolagem vertical e `imePadding()` para que os campos e botões não fiquem inacessíveis pelo teclado.
 - Respeitar áreas seguras do sistema. Ações no topo, como voltar, devem usar `statusBarsPadding()`; ações no rodapé devem respeitar a barra de navegação.
+- No iOS, respeitar também notch e indicador de início. Conferir os insets já aplicados por Scaffold/host para não duplicar espaçamentos ao adaptar componentes comuns.
 - Manter alvos de toque de no mínimo 48 dp, principalmente ícones e ações secundárias.
 - Evitar textos e controles com largura fixa. Preferir `fillMaxWidth()`, espaçamentos adaptáveis e textos que possam quebrar em mais de uma linha.
 

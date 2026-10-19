@@ -1,5 +1,10 @@
 # Fluxo de trabalho da IA
 
+O SobraAi é **Kotlin Multiplatform para Android e iPhone**. Toda mudança deve
+considerar as duas plataformas, conforme [rules.md](../rules.md). O harness
+padrão verifica o Android e a compilação KMP; build/execução Apple têm evidências
+próprias e não podem ser presumidos a partir de um resultado JVM.
+
 ## Investigar e implementar
 
 1. Confirme o pedido e o estado do Git. Localize o fluxo no
@@ -7,6 +12,8 @@
 2. Identifique o contrato que deve permanecer estável: comportamento visual,
    dados da API, regras financeiras ou persistência. Para interface, aplique
    [as regras de front-end](frontend-rules.md).
+   Identifique consumidores em `app`, `shared`, `sharedUi` e `iosApp`; preserve
+   o front-end Android e a compatibilidade dos contratos/adaptadores iOS.
 3. Faça a alteração no componente responsável e nos consumidores necessários.
    Corrija a causa de regressões; não remova asserções ou suprima erros de Lint
    apenas para obter aprovação.
@@ -18,13 +25,15 @@
 
 ## Ambiente e comandos
 
-O usuário é responsável por iniciar o emulador e testar visualmente o aplicativo.
-A IA não deve iniciar emuladores, instalar/abrir o app ou executar testes
-instrumentados sem um pedido explícito para isso. As instruções de dispositivo
+O usuário é responsável por preparar emuladores/simuladores e testar visualmente
+o aplicativo nas duas plataformas. A IA não deve iniciar emuladores/simuladores,
+instalar/abrir o app ou executar testes de dispositivo/Native em simulador sem
+um pedido explícito para isso. As instruções de dispositivo
 abaixo são referência para esse caso; não são autorização automática.
-Na entrega usual, concluir build, Lint e testes JVM e indicar os cenários visuais
-que o usuário deve conferir. A compilação dos testes instrumentados pode ser feita
-sem iniciar um dispositivo.
+Na entrega usual, concluir `harnessVerify`: build Android, Lint, testes JVM e
+fontes/testes KLIB de ambos os módulos KMP para iOS. Indique os cenários visuais
+e as verificações Apple que o usuário deve conferir. Compilar testes sem
+executá-los não exige iniciar um dispositivo.
 
 Use a raiz do projeto como diretório de trabalho. No Windows, use PowerShell e
 `gradlew.bat`; em Linux/macOS, use `./gradlew` com as mesmas tarefas. Prefira o
@@ -50,14 +59,17 @@ para validar integrações ou gerar um artefato destinado ao usuário.
 | Alteração/objetivo | Validação |
 | --- | --- |
 | Apenas documentação | Conferir caminhos, conteúdo, links locais e `git diff --check` |
-| Lógica Kotlin/estado/API | `./gradlew.bat harnessVerify` e testes relevantes ao comportamento |
-| Regras em `shared/src/commonMain/` | `./gradlew.bat harnessVerify :app:assembleDebug`; testes comuns também no Mac, conforme `../shared/README.md` |
+| Lógica Kotlin/estado/API ou configuração | `./gradlew.bat harnessVerify` e testes relevantes; conferir impacto nos consumidores Android/iOS |
+| Regras ou interface em `shared`/`sharedUi` | `./gradlew.bat harnessVerify`; link/build Apple no Mac e testes Native quando solicitados |
 | Teste JVM específico durante investigação | `./gradlew.bat :app:testDebugUnitTest --tests "com.example.appfinanceiro.feature.home.HomeViewModelTest"` |
-| Interface ou integração Android | Validação anterior e `./gradlew.bat :app:assembleDebug`; inspeção em dispositivo/emulador pelo usuário, conforme regras visuais |
+| Interface ou integração Android/iOS | `harnessVerify`; preservar o Android e validar o adaptador afetado; interface conferida pelo usuário nas duas plataformas |
+| Frameworks Apple no Mac | `/bin/sh ./gradlew harnessIos`; também build do projeto Xcode, conforme README |
+| Testes Native solicitados no simulador Apple | `/bin/sh ./gradlew harnessIosTest`, somente com Mac Apple Silicon/JDK ARM64 e simulador preparado |
 | Testes instrumentados existentes | `./scripts/test-harness.ps1 -Mode device` com dispositivo pronto |
-| Todos os testes existentes e Lint debug | `./scripts/test-harness.ps1 -Mode all` |
+| Verificação KMP e instrumentados Android solicitados | `./scripts/test-harness.ps1 -Mode all`; testes Apple continuam separados |
 | Preparação de release | `./gradlew.bat harnessUnit :app:lintRelease :app:bundleRelease`, além de todos os testes automatizados aplicáveis |
 
+O script usa `verify` por padrão; `unit` é uma checagem parcial mais rápida.
 Os exemplos com `./` também são aceitos no PowerShell. O script
 [test-harness.ps1](../scripts/test-harness.ps1) é específico de Windows; veja
 [sua documentação](test-harness.md) para os modos e os relatórios.
@@ -79,17 +91,22 @@ sem empacotar nem publicar uma release.
 `harnessUnit` inclui `:app:testDebugUnitTest`, `:shared:testAndroidHostTest` e
 `:sharedUi:testAndroidHostTest`. A interface comum e o host iOS têm verificações
 adicionais em [kmp-compose-ios.md](kmp-compose-ios.md).
-`harnessVerify` acrescenta `:app:lintDebug`. A suíte comum roda na JVM pelo target
-Android; ela não executa os targets Apple. O Gradle avisa sobre testes Native
-desabilitados no Windows; não suprimir o aviso nem contar tarefas ignoradas como
-aprovação iOS. Compilação de frameworks, testes Native e host Xcode são provas
-distintas, descritas em [shared/README.md](../shared/README.md).
+`harnessVerify` acrescenta APK debug, Lint e `harnessKmp`. Este compila Android
+e fontes/testes KLIB para `iosArm64` e `iosSimulatorArm64`, nos módulos `shared`
+e `sharedUi`. A suíte comum executada nessa verificação roda na JVM; testes Apple
+são apenas compilados. O Gradle avisa sobre testes Native desabilitados no Windows;
+não suprimir o aviso nem contar tarefas ignoradas como aprovação iOS.
+`harnessIos` faz link debug no Mac e `harnessIosTest` executa Native quando
+solicitado; ambos recusam hosts sem suporte. Build Swift/Xcode e execução no
+iPhone continuam provas distintas. Comandos e alcance em
+[test-harness.md](test-harness.md) e no [README](../README.md#build-ios-no-mac).
 
 - Tarefa Gradle aprovada não prova que os fluxos visuais foram exercitados.
   O teste instrumentado de exemplo atual verifica somente o contexto do app.
 - `UP-TO-DATE` indica reaproveitamento; não descreva isso como nova execução de
   cada teste. Force reexecução apenas quando for necessário para a investigação.
-- Sem dispositivo, relate a validação Android pendente; não invente aprovação.
+- Sem dispositivo, relate a execução visual Android/iPhone pendente; sem Mac,
+  registre também link/build Swift e testes Native pendentes. Não invente aprovação.
 - Em falha de ambiente (SDK, Java, download ou URL), separe o problema de uma falha
   de teste. Não mude a configuração de produção para contornar o ambiente.
 - Não repita números históricos de avisos/testes como se fossem resultados atuais.
@@ -97,9 +114,10 @@ distintas, descritas em [shared/README.md](../shared/README.md).
 
 ## Critério de conclusão
 
-Entregue a implementação solicitada, o diff revisado, os testes apropriados e a
-documentação coerente. A resposta final deve dizer o que mudou, quais validações
-foram feitas e quais não puderam ser feitas. Não faça commit, push ou publicação
+Entregue a implementação solicitada preservando Android e iPhone, o diff revisado,
+os testes apropriados e a documentação coerente. A resposta final deve separar
+Android/JVM, compilação KMP, build/link Apple e execução real, informando as
+validações que não puderam ser feitas. Não faça commit, push ou publicação
 sem que isso faça parte do pedido.
 
 ## Uso e manutenção destas instruções
@@ -114,8 +132,9 @@ Para conferir o carregamento em uma nova tarefa neste repositório, peça:
 e pacote Kotlin, onde fica o RetrofitClient e quais verificações este pedido
 precisa, antes de editar.” Compare a resposta com o mapa e o fluxo acima.
 
-Mantenha regras gerais no `AGENTS.md`, localização de código no mapa e comandos
-neste fluxo. Atualize esses arquivos quando os fatos mudarem; não armazene neles
-transcrições, tokens, relatórios temporários ou suposições como fatos.
+Mantenha o ponto de entrada no `AGENTS.md`, política KMP em `rules.md`, localização
+de código no mapa e comandos neste fluxo/harness. Atualize esses arquivos quando
+os fatos mudarem; não armazene neles transcrições, tokens, relatórios temporários
+ou suposições como fatos.
 
 Referência de carregamento consultada: [documentação oficial de AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
