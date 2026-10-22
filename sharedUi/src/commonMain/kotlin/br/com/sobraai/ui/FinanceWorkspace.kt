@@ -44,9 +44,12 @@ class FinanceWorkspace(val home: HomePresenter, private val source: ExpensesData
         }, date).also { it.load() }
         mutableRoute.value = FinanceRoute.ExpenseEditor
     }
-    fun editIncome(source: String, existing: Income?, period: Period) {
+    var deletingIncome: Boolean = false
+        private set
+    fun editIncome(source: String, existing: Income?, period: Period, deleting: Boolean = false) {
         if (mutableIncome.value != null) return
         val job = SupervisorJob(scope.coroutineContext[Job]); incomeJob = job
+        deletingIncome = deleting
         mutableIncome.value = IncomeEditor(edits, token, CoroutineScope(scope.coroutineContext + job),
             IncomeDraft(if (sourceKey(source) == "salario") "Salario" else source, period, existing), onExpired) { refreshAll(); dismissIncome() }
     }
@@ -54,6 +57,8 @@ class FinanceWorkspace(val home: HomePresenter, private val source: ExpensesData
         if (mutableIncome.value?.mutation?.state?.value?.busy == true) return
         incomeJob?.cancel(); mutableIncome.value = null
     }
+    fun incomeSettingsEditor(source: String, existing: Income?, period: Period, formScope: CoroutineScope): IncomeEditor =
+        IncomeEditor(edits, token, formScope, IncomeDraft(source, period, existing), onExpired, ::refreshAll)
     fun newAction(): MutationRunner {
         mutableAction.value?.takeIf { it.state.value.busy }?.let { return it }
         return MutationRunner(scope, onExpired).also { mutableAction.value = it }

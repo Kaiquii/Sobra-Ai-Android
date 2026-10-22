@@ -8,6 +8,18 @@ projeto está em [rules.md](../rules.md) e [AGENTS.md](../AGENTS.md).
 Os grupos abaixo usam o Gradle Wrapper. `harnessVerify` é a verificação local
 padrão e não inicia emuladores/simuladores, instala apps ou publica releases.
 
+`harnessKmp` inclui também `:designSystem`: compila os componentes visuais comuns
+para Android, `iosArm64` e `iosSimulatorArm64`. Os testes JVM continuam em `:app`,
+`:shared` e `:sharedUi`; os testes Apple de `shared`/`sharedUi` são compilados,
+não executados no Windows. Compartilhar os componentes não dispensa a comparação
+visual em Android/iPhone conduzida pelo usuário.
+
+`verifySharedPresentation` faz parte de `harnessVerify`: exige as 15 telas únicas
+em commonMain, proíbe telas/ViewModels e apresentação Compose nos hosts (exceto
+os hooks nativos de voltar/aparência de janela), exige o diálogo de atualização
+comum e verifica que Android/iOS
+abrem `SobraAiApp(services)`. A guarda estrutural não substitui a comparação visual.
+
 ## Modos e alcance
 
 | Modo PowerShell | Tarefa Gradle | Verificações | Dispositivo/ambiente |

@@ -15,7 +15,7 @@ import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class PlayIntegrityException(cause: Throwable) : Exception(cause)
+typealias PlayIntegrityException = br.com.sobraai.ui.runtime.AuthProtectionException
 
 object PlayIntegrityProtection {
     private const val cloudProjectNumber = 800491222292L

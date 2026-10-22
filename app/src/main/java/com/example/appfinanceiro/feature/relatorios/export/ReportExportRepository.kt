@@ -88,6 +88,3 @@ internal fun extractSafeFileName(contentDisposition: String?, fallback: String):
         .take(120)
         .ifBlank { fallback }
 }
-
-internal fun fallbackFileName(request: ReportExportRequest): String =
-    "${request.type.apiValue}-${request.year}-${request.month.toString().padStart(2, '0')}.${request.format.extension}"

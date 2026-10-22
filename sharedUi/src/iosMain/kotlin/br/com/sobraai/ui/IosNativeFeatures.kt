@@ -28,6 +28,18 @@ internal class IosNativeFeatures : NativeFeatures {
         return current
     }
     override fun cancelInteractions() { revision++; cancelCurrent?.invoke() }
+    fun retainInteraction(onCancel: () -> Unit) { cancelCurrent = onCancel }
+
+    fun shareSavedFile(path: String) {
+        cancelInteractions()
+        val sheet = UIActivityViewController(listOf(NSURL.fileURLWithPath(path)), null)
+        val owner = presenter()
+        sheet.popoverPresentationController?.sourceView = owner.view
+        sheet.popoverPresentationController?.sourceRect = owner.view.bounds
+        cancelCurrent = { sheet.dismissViewControllerAnimated(false, null); cancelCurrent = null }
+        sheet.completionWithItemsHandler = { _, _, _, _ -> cancelCurrent = null }
+        owner.presentViewController(sheet, true, null)
+    }
 
     override suspend fun pickPhoto(): ProfilePhoto? = withContext(Dispatchers.Main) {
         cancelInteractions()

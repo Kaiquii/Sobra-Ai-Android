@@ -37,6 +37,8 @@ class ReportsPresenterTest {
         val snapshot = assertNotNull(p.reports.state.value.data)
         assertEquals(listOf(Period(9, 2025), Period(10, 2025), Period(11, 2025), Period(12, 2025), Period(1, 2026), Period(2, 2026)), snapshot.value.chart.map { it.first })
         assertEquals(listOf(2025, 2026), source.chartYears.sorted()); assertEquals(2025.0, snapshot.value.chart.first().second.income)
+        assertEquals((1..12).toList(), snapshot.value.displayChart.map { it.month })
+        assertTrue(snapshot.value.displayChart.all { it.income == 2026.0 })
         assertEquals(850.0, snapshot.value.summary.total_geral_disponivel)
     }
     @Test fun failureRetainsLabeledOldSnapshotUntilSuccessfulRetry() = runTest {

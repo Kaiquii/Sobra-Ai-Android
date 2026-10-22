@@ -6,7 +6,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.time.Clock
 
-data class ChatMessage(val role: String, val content: String, val displayTime: String? = null)
+typealias ChatMessage = com.example.appfinanceiro.feature.assistant.AssistantMessage
 data class ChatState(val conversation: Int? = null, val messages: List<ChatMessage> = emptyList(),
     val conversations: List<AssistantConversation> = emptyList(), val input: String = "", val sending: Boolean = false,
     val loading: Boolean = false, val historyLoading: Boolean = false, val error: String? = null, val historyError: String? = null,
@@ -60,7 +60,8 @@ class AssistantPresenter(private val source: AssistantDataSource, private val na
                 val response = source.chatAssistant(token, message, state.conversation); ensureActive()
                 if (response.tool_call == "create_expense" && response.tool_result?.status == "created") onExpenseCreated()
                 mutable.update { it.copy(conversation = response.conversation_id, sending = false,
-                    messages = it.messages + ChatMessage("assistant", response.reply),
+                    messages = it.messages + ChatMessage("assistant", response.reply, errorCode = response.error_code,
+                        retryAfterSeconds = response.retry_after_seconds),
                     retryAt = if (response.error_code == "gemini_quota_exceeded" && (response.retry_after_seconds ?: 0) > 0)
                         now() + response.retry_after_seconds!!.toLong() * 1000 else it.retryAt) }
                 history()

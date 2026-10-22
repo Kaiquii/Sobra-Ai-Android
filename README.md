@@ -9,15 +9,17 @@ O ponto de entrada para agentes é [AGENTS.md](AGENTS.md), com regras do projeto
 Essas instruções orientam a IA ao trabalhar no código e usam o harness de testes
 documentado abaixo como ferramenta de validação.
 
-Aplicativo de gestão financeira com Android em Jetpack Compose e uma base Kotlin
-Multiplatform para iOS, integrada a uma API REST externa. O front-end Android
-existente é preservado; o iOS usa a interface comum de Compose Multiplatform.
+Aplicativo de gestão financeira em Kotlin Multiplatform, integrado a uma API
+REST externa. Android e iOS usam **as mesmas telas, navegação e apresentação
+Compose Multiplatform**, preservando o visual completo do Android. Ambos os hosts
+abrem `SobraAiApp(services)`; telas iOS simplificadas ou paralelas são proibidas.
 
 | Módulo | Responsabilidade |
 | --- | --- |
-| `app` | Aplicativo e interface Android existentes |
+| `app` | Host Android e integrações nativas; depende de `sharedUi` |
 | `shared` | Regras, contratos HTTP, repositórios e sessão compartilhados |
-| `sharedUi` | Interface Compose Multiplatform e apresentadores comuns usados no iOS |
+| `sharedUi` | Todas as telas, navegação e apresentação comuns Android/iOS |
+| `designSystem` | Componentes e tema Compose comuns |
 | `iosApp` | Host SwiftUI/UIKit e projeto Xcode do iOS |
 
 ## 🚀 Funcionalidades
@@ -25,7 +27,7 @@ existente é preservado; o iOS usa a interface comum de Compose Multiplatform.
 - **Autenticação Completa:** Login, Registo de novos utilizadores e Recuperação/Alteração de Senha.
 - **Integração com API:** Comunicação assíncrona e segura com o back-end.
 - **UI/UX Moderna:** Interface construída 100% com Jetpack Compose, priorizando a fluidez e um design de alto contraste.
-- **Gestão de Estado:** Navegação eficiente entre telas usando Navigation Compose.
+- **Gestão de Estado:** Navegação única entre telas comuns nas duas plataformas.
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -33,12 +35,12 @@ O projeto foi construído utilizando as ferramentas mais modernas do ecossistema
 
 - **[Kotlin](https://kotlinlang.org/):** Linguagem de programação oficial para desenvolvimento Android.
 - **[Jetpack Compose](https://developer.android.com/jetpack/compose):** Toolkit moderno para construção de UI nativa de forma declarativa.
-- **Kotlin Multiplatform e Compose Multiplatform:** Código comum e interface usada pelo host iOS.
+- **Kotlin Multiplatform e Compose Multiplatform:** Código, telas e apresentação usados pelos hosts Android e iOS.
 - **Ktor e kotlinx.serialization:** Transporte HTTP e serialização da camada compartilhada.
 - **[Retrofit 2](https://square.github.io/retrofit/):** Cliente HTTP type-safe para consumo da API REST.
 - **[Gson](https://github.com/google/gson):** Serialização e desserialização de JSON.
 - **Coroutines:** Gerenciamento de tarefas em segundo plano e chamadas de rede assíncronas.
-- **Navigation Compose:** Roteamento e navegação entre as telas do aplicativo.
+- **Apresentação comum:** Navegação e estados em `sharedUi/commonMain`, com serviços nativos injetados.
 
 ## ⚙️ Como executar o projeto localmente
 

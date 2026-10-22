@@ -17,8 +17,10 @@ internal class MemoryPersistence(initial: SessionData = SessionData()) : Session
     }
 }
 
-private class FakeBiometrics(var available: Boolean = false, var accepted: Boolean = false) : BiometricAuthenticator {
+private class FakeBiometrics(var available: Boolean = false, var accepted: Boolean = false,
+    val sensor: BiometricKind = BiometricKind.Generic) : BiometricAuthenticator {
     override fun isAvailable() = available
+    override fun kind() = sensor
     override suspend fun authenticate() = accepted
 }
 
@@ -26,6 +28,34 @@ private fun response() = LoginResponse("ok", "synthetic-token", UserResponse("Pe
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppControllerTest {
+    @Test fun offerAndProtectedSessionKeepTheDetectedBiometricSensor() = runTest {
+        for (sensor in listOf(BiometricKind.FaceId, BiometricKind.TouchId)) {
+            val bio = FakeBiometrics(true, true, sensor)
+            val memory = MemoryPersistence()
+            val controller = AppController({ _, _ -> response() }, PersistentSessionStore(memory), bio, backgroundScope)
+            runCurrent(); controller.login("pessoa@example.invalid", "synthetic"); runCurrent()
+            assertEquals(AppRoute.BiometricOffer, controller.state.value.route)
+            assertEquals(sensor, controller.biometricKind)
+            assertEquals(if (sensor == BiometricKind.FaceId) "Face ID" else "Touch ID", controller.biometricKind.label)
+            controller.finishLogin(true); runCurrent(); controller.lock()
+            assertEquals(AppRoute.Locked, controller.state.value.route)
+            assertEquals(sensor, controller.biometricKind)
+            controller.enterForeground(); controller.unlock(); runCurrent()
+            assertEquals(AppRoute.Home, controller.state.value.route)
+            controller.logout(); runCurrent()
+        }
+    }
+
+    @Test fun missingEnrollmentDoesNotOfferOrEnableBiometrics() = runTest {
+        val memory = MemoryPersistence()
+        val bio = FakeBiometrics(false, true, BiometricKind.FaceId)
+        val controller = AppController({ _, _ -> response() }, PersistentSessionStore(memory), bio, backgroundScope)
+        runCurrent(); controller.login("pessoa@example.invalid", "synthetic"); runCurrent()
+        assertEquals(AppRoute.Home, controller.state.value.route)
+        assertTrue(memory.content.value.biometricEnabledEmails.isEmpty())
+        assertFailsWith<IllegalStateException> { controller.setBiometricEnabled(true) }
+        assertTrue(memory.content.value.biometricEnabledEmails.isEmpty())
+    }
     @Test fun lateProfileBiometricAuthenticationCannotChangeLoggedOutAccount() = runTest {
         val pending = CompletableDeferred<Boolean>()
         val bio = object : BiometricAuthenticator {

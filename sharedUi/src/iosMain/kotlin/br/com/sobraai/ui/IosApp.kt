@@ -23,23 +23,13 @@ class IosApp(apiBaseUrl: String, sessionService: String) {
     private val session = IosSessionStore(sessionService)
     private val native = IosNativeFeatures()
     private val files = KtorFinanceFiles(client, configuration)
-    private val controller = AppController(auth::login, session, AppleBiometrics(), scope)
-    private fun expired() { controller.logout("Sua sessão expirou. Entre novamente.") }
+    private val biometrics = AppleBiometrics()
+    private val controller = AppController(auth::login, session, biometrics, scope)
+    private val services = br.com.sobraai.ui.runtime.UiServices(session, finance, auth, files, native, controller,
+        IosReportFiles(files, native), apiBaseUrl, codeDeliveryAvailable = false)
 
     fun viewController(): UIViewController = ComposeUIViewController {
-        SobraAiApp(controller, { token ->
-            HomePresenter(finance, token, scope, currentPeriod()) {
-                controller.logout("Sua sessão expirou. Entre novamente.")
-            }
-        }, { token, home -> FinanceWorkspace(home, finance, finance, token, scope,
-            featureFactory = { featureScope, changed -> WorkspaceFeatures(
-                ReportsPresenter(finance, files, native, token, featureScope, currentPeriod(), ::expired),
-                AssistantPresenter(finance, native, token, featureScope, ::expired, changed),
-                ProfilePresenter(finance, files, native, session, token, featureScope, ::expired, changed,
-                    controller::setBiometricEnabled, controller::refreshIdentity), native)
-            }, onExpired = ::expired) },
-            { mode, accountScope -> AccountAuthPresenter(mode, authApi, PendingAppleCodeDelivery(), accountScope,
-                { message -> controller.accountRoute(AppRoute.Login, message) }) })
+        SobraAiApp(services)
     }.also { native.host = it }
 
     fun enterBackground() { native.cancelInteractions(); controller.lock() }
@@ -49,6 +39,17 @@ class IosApp(apiBaseUrl: String, sessionService: String) {
 
 private class AppleBiometrics : BiometricAuthenticator {
     override fun isAvailable(): Boolean = LAContext().canEvaluatePolicy(LAPolicyDeviceOwnerAuthenticationWithBiometrics, null)
+
+    override fun kind(): BiometricKind {
+        val context = LAContext()
+        // LocalAuthentication populates biometryType after evaluating availability.
+        context.canEvaluatePolicy(LAPolicyDeviceOwnerAuthenticationWithBiometrics, null)
+        return when (context.biometryType) {
+            LABiometryTypeFaceID -> BiometricKind.FaceId
+            LABiometryTypeTouchID -> BiometricKind.TouchId
+            else -> BiometricKind.Generic
+        }
+    }
 
     override suspend fun authenticate(): Boolean = withContext(Dispatchers.Main) {
         suspendCancellableCoroutine { continuation ->

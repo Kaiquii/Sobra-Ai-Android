@@ -10,7 +10,51 @@ arquivo concentra a política KMP; os comandos estão no
 
 ## Implementação nas duas plataformas
 
-- Antes de alterar código, identifique os consumidores em `app`, `shared`,
+### Interface única: Android e iOS devem ser visualmente iguais
+
+- **O front-end Android existente é a referência oficial. O iOS deve reproduzir
+  100% dessa interface**, incluindo estrutura das telas, ordem das informações,
+  cores, tipografia, ícones, cards, espaçamentos, botões, estados, modais e navegação.
+  Paridade apenas de funcionalidades ou dados **não atende** ao projeto.
+- Não criar uma versão simplificada, aproximada, genérica ou com outro desenho
+  para o iPhone. Não substituir os componentes do app pelos padrões Material
+  apenas porque compilam. Não modificar o Android para imitar uma tela iOS divergente.
+- Use Compose Multiplatform e **uma única implementação de TODAS as telas,
+  navegação, estado e apresentação**, em `sharedUi/src/commonMain/`, com os
+  componentes reutilizáveis de `designSystem/src/commonMain/`.
+  **Android e iOS chamam exatamente `SobraAiApp(services)`**, definido em
+  `sharedUi/src/commonMain/kotlin/br/com/sobraai/ui/SharedApplication.kt`.
+  `:app` depende de `:sharedUi`. Compartilhar apenas DTOs, regras, tema ou cards
+  enquanto cada plataforma mantém suas próprias telas **é proibido**.
+- Não criar `HomeScreen`, formulários, ViewModels, navegação ou apresentação
+  alternativos em `app`, `androidMain`, `iosMain`, Swift ou UIKit. Não manter
+  telas iOS reduzidas, paralelas, provisórias ou de fallback. Alterar a tela
+  comum para que a mesma mudança chegue aos dois aplicativos.
+- Os hosts somente criam/injetam os serviços nativos e encaminham o ciclo de
+  vida. Adaptadores nativos não podem decidir layout, filtros, regras financeiras,
+  conteúdo das telas ou destinos de navegação. `UiServices` é a fronteira; a
+  apresentação não pode importar Android, Java, Retrofit ou UIKit.
+- Toda mudança de interface deve chegar às duas plataformas na mesma tarefa.
+  Uma correção de divergência do iOS deve preservar o desenho Android;
+  a extração de código comum deve conservar esse desenho.
+- A tipografia usa a família Roboto embutida em `designSystem/commonMain/composeResources`.
+  Não deixar a fonte padrão de cada sistema substituir a referência Android.
+  Manter os mesmos tamanhos, pesos, espaçamentos e alturas de linha no tema comum.
+- Diferenças são permitidas somente quando exigidas pela plataforma ou solicitadas
+  pelo usuário: áreas seguras, teclado, permissões, seletores/compartilhamento do
+  sistema e biometria real. No iPhone com Face ID, apresentar Face ID e seu ícone;
+  com Touch ID, apresentar Touch ID e impressão digital. Detectar o sensor com
+  LocalAuthentication; não oferecer os dois nomes juntos como se fossem a mesma opção.
+- O ícone instalado no iOS deve usar a mesma identidade visual do Android,
+  incluído em um AppIcon válido no catálogo de assets e ligado ao target Xcode.
+- **Não declarar igualdade visual comprovada por build ou testes JVM/KLIB.**
+  A comparação real é feita pelo usuário em Android e iPhone, nas mesmas telas,
+  temas e condições, incluindo fonte ampliada. Sem essa conferência, declarar
+  explicitamente a validação visual pendente e corrigir qualquer divergência relatada.
+
+### Código, contratos e adaptadores
+
+- Antes de alterar código, identifique os consumidores em `app`, `shared`, `designSystem`,
   `sharedUi` e `iosApp`, inclusive quando o pedido mencionar apenas uma plataforma.
 - Coloque regras de domínio, contratos HTTP, repositórios, sessão e apresentação
   reutilizável em `commonMain` quando forem compatíveis. Não duplique uma regra
@@ -24,9 +68,10 @@ arquivo concentra a política KMP; os comandos estão no
 - Preserve endpoints, nomes JSON, regras financeiras, cancelamento, erros e
   identidade de mês/filtro nas duas plataformas. Acrescente testes comuns para
   comportamento compartilhado; mantenha testes específicos quando necessários.
-- O `app` Android mantém seu front-end existente. A adoção de KMP não autoriza
-  redesenhar, substituir ou migrar suas telas incidentalmente. O host iOS usa
-  `sharedUi`; paridade funcional não exige copiar integrações Android para Apple.
+- A migração mantém o desenho completo do Android em código comum. Não redesenhar
+  o Android para facilitar a migração. Cadastro, recuperação, detalhes, filtros,
+  modais, editores, exportação, histórico, configurações e telas secundárias
+  obedecem à mesma regra das telas principais; nenhuma pode ficar fora da unificação.
 - Preserve HTTPS, sessão segura, privacidade e biometria. Play Integrity continua
   no Android; proteção Apple exige contrato próprio. Não simule provas, não
   desative proteção e não trate Face ID como substituto de integridade do app.
@@ -35,9 +80,11 @@ arquivo concentra a política KMP; os comandos estão no
 
 ## Validação obrigatória e evidências
 
-- Para alterações de código ou configuração, use `harnessVerify`: testes JVM dos
+- Para alterações de código ou configuração, use `harnessVerify`, incluindo a
+  guarda arquitetural `verifySharedPresentation`: testes JVM dos
   três módulos, APK Android debug, Lint e compilação dos fontes/testes KLIB dos
-  dois targets iOS, nos módulos `shared` e `sharedUi`.
+  dois targets iOS, nos módulos `shared` e `sharedUi`, além dos fontes visuais
+  de `designSystem` para Android e ambos os targets Apple.
 - `harnessUnit` é uma verificação rápida e parcial. Seu sucesso não substitui
   `harnessVerify` nem o build/execução Apple. `harnessKmp` também é parcial: compila
   os targets, mas não executa testes JVM/Native, Swift ou interface.

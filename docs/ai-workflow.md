@@ -12,7 +12,7 @@ próprias e não podem ser presumidos a partir de um resultado JVM.
 2. Identifique o contrato que deve permanecer estável: comportamento visual,
    dados da API, regras financeiras ou persistência. Para interface, aplique
    [as regras de front-end](frontend-rules.md).
-   Identifique consumidores em `app`, `shared`, `sharedUi` e `iosApp`; preserve
+   Identifique consumidores em `app`, `shared`, `designSystem`, `sharedUi` e `iosApp`; preserve
    o front-end Android e a compatibilidade dos contratos/adaptadores iOS.
 3. Faça a alteração no componente responsável e nos consumidores necessários.
    Corrija a causa de regressões; não remova asserções ou suprima erros de Lint
@@ -22,6 +22,13 @@ próprias e não podem ser presumidos a partir de um resultado JVM.
    rede real ou da disponibilidade do backend.
 5. Execute a validação proporcional abaixo e revise o diff. Ao mudar caminhos,
    contratos ou comandos, atualize também a documentação afetada.
+
+Para interface, inclua `sharedUi` e `designSystem` na investigação. Os dois hosts
+devem abrir `SobraAiApp(services)`, com as mesmas telas, apresentação e navegação,
+seguindo integralmente o Android de
+referência. Preserve os adaptadores nativos e faça a comparação visual em
+Android/iPhone com os mesmos dados, tema e configuração de fonte; o usuário
+conduz essa comparação. Não aceite layouts iOS simplificados como conclusão.
 
 ## Ambiente e comandos
 
@@ -91,7 +98,8 @@ sem empacotar nem publicar uma release.
 `harnessUnit` inclui `:app:testDebugUnitTest`, `:shared:testAndroidHostTest` e
 `:sharedUi:testAndroidHostTest`. A interface comum e o host iOS têm verificações
 adicionais em [kmp-compose-ios.md](kmp-compose-ios.md).
-`harnessVerify` acrescenta APK debug, Lint e `harnessKmp`. Este compila Android
+`harnessVerify` acrescenta a guarda `verifySharedPresentation`, APK debug, Lint
+e `harnessKmp`. A guarda rejeita telas e ViewModels nativos paralelos; `harnessKmp` compila Android
 e fontes/testes KLIB para `iosArm64` e `iosSimulatorArm64`, nos módulos `shared`
 e `sharedUi`. A suíte comum executada nessa verificação roda na JVM; testes Apple
 são apenas compilados. O Gradle avisa sobre testes Native desabilitados no Windows;

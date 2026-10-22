@@ -2,10 +2,19 @@
 
 Estas regras devem ser consideradas em toda mudança visual do SobraAi,
 projeto Kotlin Multiplatform para Android e iPhone. Aplicam-se às telas Android
-em `app` e à interface comum em `sharedUi`. Consulte também a
+compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também a
 [política KMP](../rules.md) e o [harness](test-harness.md).
 
 ## Compatibilidade Android e iPhone
+
+- **A interface deve ser igual nas duas plataformas, com fidelidade integral ao
+  front-end Android de referência.** Funcionalidade equivalente com outro layout
+  não atende. Todas as telas, navegação e apresentação ficam em
+  `sharedUi/src/commonMain/`; os componentes ficam em `designSystem/src/commonMain/`.
+  Ambos os hosts abrem `SobraAiApp(services)`. Não manter cópias independentes
+  de telas ou ViewModels, nem uma segunda navegação para iOS.
+  Diferenças nativas e critérios de conferência:
+  [interface única](../rules.md#interface-única-android-e-ios-devem-ser-visualmente-iguais).
 
 - Toda mudança visual ou de interação deve considerar as duas plataformas e os
   consumidores afetados. Preserve o front-end Android existente; uma adaptação
@@ -49,6 +58,10 @@ em `app` e à interface comum em `sharedUi`. Consulte também a
 - Evitar textos e controles com largura fixa. Preferir `fillMaxWidth()`, espaçamentos adaptáveis e textos que possam quebrar em mais de uma linha.
 
 ## Tema claro e escuro
+
+- Tipografia, pesos e métricas são definidos no tema comum com Roboto embutida
+  em `designSystem/src/commonMain/composeResources/font/`. Não usar a fonte
+  padrão diferente de cada sistema para textos do aplicativo.
 
 - Toda nova interface deve ser conferida nos temas claro e escuro antes de ser considerada pronta.
 - Usar `MaterialTheme.colorScheme` e os tokens de tema do projeto para fundo, superfícies, texto e erros; não fixar cores de fundo ou texto que prejudiquem um dos temas.

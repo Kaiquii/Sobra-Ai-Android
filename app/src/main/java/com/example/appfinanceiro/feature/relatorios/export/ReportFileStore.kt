@@ -63,7 +63,7 @@ class ReportFileStore(private val context: Context) {
                 }
 
                 ExportedReport(
-                    uri = destination.uri,
+                    uri = destination.uri.toString(),
                     fileName = destination.fileName,
                     mimeType = download.mimeType
                 )

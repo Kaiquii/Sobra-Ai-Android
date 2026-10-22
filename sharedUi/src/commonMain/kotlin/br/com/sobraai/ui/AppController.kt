@@ -9,7 +9,12 @@ import kotlin.time.Clock
 
 interface BiometricAuthenticator {
     fun isAvailable(): Boolean
+    fun kind(): BiometricKind = BiometricKind.Generic
     suspend fun authenticate(): Boolean
+}
+
+enum class BiometricKind(val label: String) {
+    FaceId("Face ID"), TouchId("Touch ID"), Generic("biometria")
 }
 
 enum class AppRoute { Loading, Login, Register, Recovery, BiometricOffer, Locked, Home, StorageError }
@@ -29,6 +34,7 @@ class AppController(
     private val scope: CoroutineScope,
     private val now: () -> Long = { Clock.System.now().toEpochMilliseconds() }
 ) {
+    val biometricKind: BiometricKind get() = biometrics.kind()
     private val mutable = MutableStateFlow(AppState())
     val state = mutable.asStateFlow()
     private var token: String? = null
@@ -78,6 +84,9 @@ class AppController(
         require(route in listOf(AppRoute.Login, AppRoute.Register, AppRoute.Recovery))
         if (!mutable.value.busy && mutable.value.route in listOf(AppRoute.Login, AppRoute.Register, AppRoute.Recovery)) mutable.value = AppState(route, message = message)
     }
+    fun clearLoginMessage() {
+        if (mutable.value.route == AppRoute.Login && !mutable.value.busy) mutable.value = mutable.value.copy(message = null)
+    }
     suspend fun refreshIdentity() {
         require(mutable.value.route == AppRoute.Home)
         email = session.userEmail.first()
@@ -87,7 +96,7 @@ class AppController(
         require(mutable.value.route == AppRoute.Home && token != null)
         val version = generation
         if (enabled) {
-            check(biometrics.isAvailable()) { "Face ID ou Touch ID não está disponível neste aparelho." }
+            check(biometrics.isAvailable()) { "${biometricKind.label.replaceFirstChar { it.uppercase() }} não está disponível neste aparelho." }
             check(biometrics.authenticate()) { "A biometria não foi confirmada. A preferência foi mantida." }
         }
         currentCoroutineContext().ensureActive()

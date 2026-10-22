@@ -11,3 +11,5 @@ FRAMEWORK_SEARCH_PATHS = $(inherited) $(SRCROOT)/../sharedUi/build/xcode-framewo
 OTHER_LDFLAGS = $(inherited) -framework SobraAiUI
 API_BASE_URL =
 #include? "Local.xcconfig"
+
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon

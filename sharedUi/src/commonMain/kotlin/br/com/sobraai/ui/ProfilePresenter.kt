@@ -10,7 +10,8 @@ import kotlin.time.Clock
 class ProfilePresenter(private val source: ProfileDataSource, private val files: FinanceFilesDataSource,
     private val native: NativeFeatures, private val session: SessionStore, private val token: String,
     private val scope: CoroutineScope, private val onExpired: () -> Unit, private val onFinancialChange: () -> Unit,
-    private val biometricChange: suspend (Boolean) -> Unit, private val sessionChanged: suspend () -> Unit) {
+    private val biometricChange: suspend (Boolean) -> Unit, private val sessionChanged: suspend () -> Unit,
+    val biometricKind: BiometricKind = BiometricKind.Generic) {
     val profile = FeatureQuery<Unit, ProfileUser>(Unit, scope, onExpired) { source.getProfile(token).user }
     val categories = FeatureQuery<Unit, List<Category>>(Unit, scope, onExpired) { source.getCategories(token).categories }
     val action = FeatureAction(scope, onExpired)

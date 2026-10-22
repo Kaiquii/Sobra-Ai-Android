@@ -19,7 +19,8 @@ tasks.register("harnessUnit") {
 
 tasks.register("harnessKmp") {
     group = "verification"
-    description = "Compiles shared/sharedUi for Android and iOS, including both Apple test source sets."
+    description = "Compiles shared/sharedUi/designSystem for Android and iOS, including shared/sharedUi Apple test source sets."
+    dependsOn(":designSystem:compileAndroidMain", ":designSystem:compileKotlinIosArm64", ":designSystem:compileKotlinIosSimulatorArm64")
     listOf(":shared", ":sharedUi").forEach { module ->
         dependsOn("$module:compileAndroidMain")
         listOf("IosArm64", "IosSimulatorArm64").forEach { target ->
@@ -34,9 +35,49 @@ tasks.register("harnessKmp") {
 tasks.register("harnessVerify") {
     group = "verification"
     description = "Verifies KMP sources, JVM tests, Android debug APK and lint without starting devices."
-    dependsOn("harnessUnit", "harnessKmp", ":app:lintDebug", ":app:assembleDebug")
+    dependsOn("verifySharedPresentation", "harnessUnit", "harnessKmp", ":app:lintDebug", ":app:assembleDebug")
     doLast {
         logger.lifecycle("[harness] Verificacao local Android/KMP concluida. Build Swift/Xcode e execucao em iPhone exigem validacao Apple separada.")
+    }
+}
+
+tasks.register("verifySharedPresentation") {
+    group = "verification"
+    description = "Rejects platform-specific or duplicate application screens and presentation models."
+    doLast {
+        val sharedRoots = listOf("sharedUi/src/commonMain/kotlin", "designSystem/src/commonMain/kotlin")
+        val commonFiles = sharedRoots.flatMap { fileTree(it) { include("**/*.kt") }.files }
+        val facades = commonFiles.groupBy { source ->
+            Regex("(?m)^package\\s+([^\\r\\n]+)").find(source.readText())?.groupValues?.get(1)?.trim() + "/" + source.nameWithoutExtension
+        }
+        check(facades.none { it.value.size > 1 }) { "Arquivos comuns geram a mesma classe JVM: ${facades.filterValues { it.size > 1 }.keys}" }
+        val platformFiles = listOf("app/src/main/java", "sharedUi/src/androidMain/kotlin", "sharedUi/src/iosMain/kotlin")
+            .flatMap { fileTree(it) { include("**/*.kt") }.files }
+        val screenDeclaration = Regex("\\bfun\\s+(\\w+Screen)\\s*\\(")
+        val screens = commonFiles.flatMap { source -> screenDeclaration.findAll(source.readText()).map { it.groupValues[1] to source }.toList() }
+        val expected = listOf("LoginScreen", "RegisterScreen", "EsqueciSenhaScreen", "HomeScreen", "DespesasScreen",
+            "NovaDespesaScreen", "EditarDespesaScreen", "RelatoriosScreen", "InstallmentCommitmentsScreen", "AssistantScreen",
+            "PerfilScreen", "ConfiguracoesRendaScreen", "CategoriasScreen", "EditarPerfilScreen", "AjudaScreen")
+        expected.forEach { name -> check(screens.count { it.first == name } == 1) { "A tela $name deve ter exatamente uma implementação comum." } }
+        check(screens.groupBy { it.first }.none { it.value.size > 1 }) { "Há telas duplicadas na apresentação comum." }
+        platformFiles.forEach { source ->
+            val code = source.readText()
+            val nativeHook = source.name == "PlatformBackHandler.kt" || source.name == "WindowAppearance.kt"
+            check(nativeHook || !code.contains("@Composable")) { "Apresentação Compose fora de commonMain: ${source.relativeTo(rootDir)}" }
+            check(!screenDeclaration.containsMatchIn(code)) { "Tela fora de commonMain: ${source.relativeTo(rootDir)}" }
+            check(!Regex("\\bclass\\s+\\w*ViewModel\\b").containsMatchIn(code)) { "ViewModel fora de commonMain: ${source.relativeTo(rootDir)}" }
+        }
+        check(commonFiles.count { it.name == "AppUpdateGate.kt" } == 1) { "O diálogo de atualização também deve ser comum." }
+        listOf("regular", "medium", "semibold", "bold", "extrabold").forEach { weight ->
+            check(file("designSystem/src/commonMain/composeResources/font/roboto_$weight.ttf").length() > 0) { "Fonte comum ausente: Roboto $weight" }
+        }
+        commonFiles.forEach { source -> check(!Regex("(?m)^import (android\\.|java\\.|javax\\.|platform\\.|retrofit2\\.|okhttp3\\.)").containsMatchIn(source.readText())) {
+            "Dependência nativa na apresentação comum: ${source.relativeTo(rootDir)}"
+        } }
+        listOf("app/src/main/java/com/example/appfinanceiro/MainActivity.kt", "sharedUi/src/iosMain/kotlin/br/com/sobraai/ui/IosApp.kt")
+            .forEach { check(file(it).readText().contains("SobraAiApp(services)")) { "O host $it deve abrir a mesma aplicação Compose." } }
+        check(file("app/build.gradle.kts").readText().contains("implementation(project(\":sharedUi\"))")) { "O host Android precisa consumir :sharedUi." }
+        logger.lifecycle("[harness] 15 telas únicas em commonMain; Android/iOS usam SobraAiApp(services), sem telas ou ViewModels nativos paralelos.")
     }
 }
 

@@ -39,9 +39,11 @@ Requisitos do contrato a acordar:
 7. Fornecer exemplos sintéticos de requisições/respostas e ambiente de teste,
    sem credenciais ou provas reais no repositório.
 
-Após a definição, criar o adaptador nativo e implementar `AppleCodeDelivery`,
-injetando-o em `IosApp`. Hoje `PendingAppleCodeDelivery.available=false`: a tela
-explica a indisponibilidade e não chama os endpoints protegidos. O usuário pode
+Após a definição, criar o adaptador nativo de proteção e injetá-lo no
+`SharedAuthRepository` de `IosApp`; somente então habilitar
+`UiServices.codeDeliveryAvailable`. Hoje esse valor é `false` no host Apple:
+as mesmas telas comuns permitem informar um código já recebido e não chamam
+os endpoints protegidos de envio/reenvio. O usuário pode
 informar um código válido obtido por outro canal autorizado; o servidor continua
 validando esse código nos endpoints existentes de cadastro/redefinição. Não há
 geração local ou bypass de OTP.
@@ -55,8 +57,10 @@ pendente do contrato acima e de testes no ambiente Apple.
 
 O contrato atual de versão contém `play_store_url`; confirmar no backend se há
 suporte a `platform=ios`, quais versões serão publicadas e qual campo/endereço
-da App Store será usado. O bloqueio de atualização do Android permanece no host
-Android. Não inventar versão mínima, link de loja ou equivalência entre os dois
+da App Store será usado. A decisão e o diálogo de atualização são comuns;
+`AndroidAppUpdates` fornece os dados e a abertura da Play Store. No Apple,
+`UiServices.updates` permanece sem provedor até confirmar esse contrato.
+Não inventar versão mínima, link de loja ou equivalência entre os dois
 canais. Esta pendência não bloqueia login e uso das telas com conta existente.
 
 ## Critério de encerramento

@@ -6,7 +6,8 @@ import kotlinx.coroutines.*
 
 data class ReportsKey(val period: Period, val compare: Period = period.shift(-1), val chartMonths: Int = 6)
 data class ReportsBundle(val summary: SummaryResponse, val categories: List<CategoryReportResponse>,
-    val chart: List<Pair<Period, ChartReportResponse>>, val yearly: YearlySummaryResponse, val comparison: MonthComparisonResponse)
+    val chart: List<Pair<Period, ChartReportResponse>>, val yearly: YearlySummaryResponse, val comparison: MonthComparisonResponse,
+    val displayChart: List<ChartReportResponse> = chart.map { it.second })
 data class CommitmentsKey(val period: Period, val months: Int = 12, val includeCurrentAsPaid: Boolean = false)
 
 class ReportsPresenter(source: ReportsDataSource, private val files: FinanceFilesDataSource, private val platform: NativeFeatures,
@@ -25,7 +26,7 @@ class ReportsPresenter(source: ReportsDataSource, private val files: FinanceFile
             c.mes_atual == key.period.month && c.ano_atual == key.period.year && c.mes_comparado == key.compare.month && c.ano_comparado == key.compare.year) {
             "O relatório recebido não corresponde aos períodos solicitados."
         }
-        ReportsBundle(s, categories.await(), chart, y, c)
+        ReportsBundle(s, categories.await(), chart, y, c, charts.getValue(key.period.year).await())
     } }
     val commitments = FeatureQuery(CommitmentsKey(period), scope, onExpired) { key ->
         val value = source.getInstallmentCommitments(token, key.months, key.period.month, key.period.year, key.includeCurrentAsPaid)

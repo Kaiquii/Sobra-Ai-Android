@@ -69,6 +69,8 @@ android {
 
 dependencies {
     implementation(project(":shared"))
+    implementation(project(":designSystem"))
+    implementation(project(":sharedUi"))
     implementation(libs.androidx.core.ktx)
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
