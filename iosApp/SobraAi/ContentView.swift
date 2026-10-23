@@ -46,6 +46,9 @@ struct SobraAiApplication: App {
                     Text("SobraAi").font(.title).accessibilityLabel("Aplicativo protegido")
                 }
             }
+            .onAppear {
+                if phase == .active { runtime.app?.enterForeground() }
+            }
             .onChange(of: phase) { next in
                 if next == .background { runtime.app?.enterBackground() }
                 if next == .active { runtime.app?.enterForeground() }

@@ -44,6 +44,8 @@ class AppController(
     private var operation: Job? = null
     private var generation = 0
     private var background = false
+    private var foreground = false
+    private var automaticUnlockPending = false
     private var logoutPending = false
     var home: HomePresenter? = null
         private set
@@ -57,17 +59,22 @@ class AppController(
 
     fun restore() {
         if (logoutPending) { logout(); return }
+        generation++
         operation?.cancel()
+        automaticUnlockPending = false
         mutable.value = AppState()
-        operation = scope.launch {
+        operation = scope.launch(start = CoroutineStart.LAZY) {
             try {
                 token = session.token.first()?.takeIf { it.isNotBlank() }
                 email = session.userEmail.first()
                 biometricEnabled = session.isBiometricEnabledForUser(email).first()
                 mutable.value = AppState(if (token == null) AppRoute.Login else if (biometricEnabled) AppRoute.Locked else AppRoute.Home)
+                automaticUnlockPending = mutable.value.route == AppRoute.Locked
+                unlockAutomaticallyIfReady()
             } catch (cancel: CancellationException) { throw cancel }
             catch (_: Exception) { mutable.value = AppState(AppRoute.StorageError, message = "Não foi possível acessar a sessão segura. Desbloqueie o aparelho e tente novamente.") }
         }
+        operation?.start()
     }
 
     fun attachHome(factory: (String) -> HomePresenter): HomePresenter? {
@@ -170,36 +177,66 @@ class AppController(
         biometricEnabled = enabled
         pending = null
         mutable.value = AppState(if (enabled && background) AppRoute.Locked else AppRoute.Home)
+        automaticUnlockPending = mutable.value.route == AppRoute.Locked
     }
 
     fun unlock() {
         if (mutable.value.busy || mutable.value.route != AppRoute.Locked) return
+        automaticUnlockPending = false
+        val version = generation
         mutable.value = mutable.value.copy(busy = true, message = null)
         operation = scope.launch {
             try {
                 val accepted = biometrics.authenticate()
+                currentCoroutineContext().ensureActive()
+                if (version != generation || mutable.value.route != AppRoute.Locked) return@launch
                 mutable.value = AppState(if (accepted && !background) AppRoute.Home else AppRoute.Locked,
                     message = if (accepted) null else "Autenticação cancelada ou indisponível. Tente novamente ou entre com sua senha.")
             } catch (cancel: CancellationException) { throw cancel }
-            catch (_: Exception) { mutable.value = AppState(AppRoute.Locked, message = "Não foi possível autenticar com biometria.") }
+            catch (_: Exception) {
+                if (version == generation && mutable.value.route == AppRoute.Locked) {
+                    mutable.value = AppState(AppRoute.Locked, message = "Não foi possível autenticar com biometria.")
+                }
+            }
         }
     }
 
     fun lock() {
         background = true
-        // Do not cancel the system biometric sheet when iOS temporarily becomes inactive.
+        foreground = false
+        // Hosts call this only for real background, never for the biometric sheet's inactive scene.
         if (biometricEnabled && mutable.value.route == AppRoute.Home) {
             workspace?.close(); workspace = null
             home?.clear(); home = null
             mutable.value = AppState(AppRoute.Locked)
         }
+        if (mutable.value.route == AppRoute.Locked) {
+            if (mutable.value.busy) {
+                generation++
+                operation?.cancel()
+                mutable.value = AppState(AppRoute.Locked)
+            }
+            automaticUnlockPending = true
+        }
     }
 
-    fun enterForeground() { background = false }
+    fun enterForeground() {
+        background = false
+        foreground = true
+        unlockAutomaticallyIfReady()
+    }
+
+    private fun unlockAutomaticallyIfReady() {
+        if (foreground && !background && automaticUnlockPending &&
+            mutable.value.route == AppRoute.Locked && !mutable.value.busy) {
+            unlock()
+        }
+    }
 
     fun logout(message: String? = null) {
         logoutPending = true
         generation++
+        automaticUnlockPending = false
         operation?.cancel()
         workspace?.close(); workspace = null
         home?.clear(); home = null; pending = null; token = null

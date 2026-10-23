@@ -39,6 +39,12 @@ Não basta compartilhar cards: [regra obrigatória](../rules.md#interface-única
   compartilhamento. `LAContext.biometryType` distingue Face ID de Touch ID;
   o texto e o ícone comuns usam somente o sensor detectado. Ativação exige
   autenticação real e a cena inativa fica coberta pelo host Swift.
+- O `AppController` comum solicita a biometria automaticamente para sessões salvas
+  com a preferência ativada, após o host entrar em primeiro plano. O host Swift
+  informa também a primeira aparição já ativa. Cancelar/falhar não reabre o pedido
+  em ciclo; os botões de nova tentativa e senha continuam disponíveis. Somente a
+  ida real para segundo plano arma uma nova tentativa automática, sem tratar a
+  cena temporariamente inativa do Face ID como saída do app.
 - O ícone original Android está em `iosApp/SobraAi/Assets.xcassets/AppIcon.appiconset`,
   incluído no target Xcode com `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`.
 - Envio de códigos Apple e consulta de versão da App Store dependem de contrato

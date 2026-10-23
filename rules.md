@@ -45,6 +45,11 @@ arquivo concentra a política KMP; os comandos estão no
   sistema e biometria real. No iPhone com Face ID, apresentar Face ID e seu ícone;
   com Touch ID, apresentar Touch ID e impressão digital. Detectar o sensor com
   LocalAuthentication; não oferecer os dois nomes juntos como se fossem a mesma opção.
+- Com sessão salva e biometria já ativada pelo usuário, solicitar autenticação
+  automaticamente ao abrir ou retornar ao app, tanto no Android quanto no iOS.
+  Não exigir um toque prévio para iniciar Face ID/Touch ID. Cancelamento ou falha
+  mantém o bloqueio e permite nova tentativa manual ou entrada com senha, sem
+  repetir o pedido em ciclo. A ativação inicial da preferência continua explícita.
 - O ícone instalado no iOS deve usar a mesma identidade visual do Android,
   incluído em um AppIcon válido no catálogo de assets e ligado ao target Xcode.
 - **Não declarar igualdade visual comprovada por build ou testes JVM/KLIB.**
