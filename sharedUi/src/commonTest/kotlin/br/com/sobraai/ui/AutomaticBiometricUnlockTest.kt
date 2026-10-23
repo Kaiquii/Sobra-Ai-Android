@@ -147,4 +147,71 @@ class AutomaticBiometricUnlockTest {
             assertEquals(0, bio.calls)
         }
     }
+
+    @Test fun canceledBiometricsAllowPasswordLoginWithoutAnIntermediateUnlockAction() = runTest {
+        val bio = Biometrics().apply { result = { false } }
+        val memory = MemoryPersistence(savedSession())
+        var requests = 0
+        val app = AppController({ email, password ->
+            requests++
+            assertNull(memory.content.value.token)
+            assertEquals("outra@example.invalid", email)
+            assertEquals("synthetic-password", password)
+            com.example.appfinanceiro.core.network.auth.LoginResponse("ok", "new-synthetic-token",
+                com.example.appfinanceiro.core.network.auth.UserResponse("Pessoa", email, "user"))
+        }, PersistentSessionStore(memory), bio, backgroundScope)
+        app.enterForeground(); runCurrent()
+        assertEquals(AppRoute.Locked, app.state.value.route)
+        app.login("outra@example.invalid", "synthetic-password"); runCurrent()
+        assertEquals(1, requests)
+        assertEquals(1, bio.calls)
+        assertEquals(AppRoute.BiometricOffer, app.state.value.route)
+        assertNull(memory.content.value.token)
+        app.finishLogin(false); runCurrent()
+        assertEquals(AppRoute.Home, app.state.value.route)
+        assertEquals("new-synthetic-token", memory.content.value.token)
+    }
+
+    @Test fun rejectedPasswordCannotRestoreTheOldProtectedSession() = runTest {
+        val bio = Biometrics().apply { result = { false } }
+        val memory = MemoryPersistence(savedSession())
+        val app = AppController({ _, _ -> throw ApiResponseException(401, "Credenciais inválidas.") },
+            PersistentSessionStore(memory), bio, backgroundScope)
+        app.enterForeground(); runCurrent()
+        app.login("pessoa@example.invalid", "synthetic-invalid"); runCurrent()
+        assertEquals(AppRoute.Login, app.state.value.route)
+        assertFalse(app.state.value.busy)
+        assertNull(memory.content.value.token)
+        app.enterForeground(); runCurrent()
+        assertEquals(1, bio.calls)
+        assertEquals(AppRoute.Login, app.state.value.route)
+    }
+
+    @Test fun passwordFallbackDoesNotSubmitCredentialsIfSecureSessionCannotBeCleared() = runTest {
+        val bio = Biometrics().apply { result = { false } }
+        val memory = MemoryPersistence(savedSession())
+        var requests = 0
+        val app = AppController({ _, _ -> requests++; error("No request expected") },
+            PersistentSessionStore(memory), bio, backgroundScope)
+        app.enterForeground(); runCurrent()
+        memory.fail = true
+        app.login("pessoa@example.invalid", "synthetic-password"); runCurrent()
+        assertEquals(0, requests)
+        assertEquals(AppRoute.StorageError, app.state.value.route)
+        assertNull(app.attachHome { error("Protected data must stay inaccessible") })
+    }
+
+    @Test fun recoveryAndRegistrationFromProtectedLoginClearSavedSessionFirst() = runTest {
+        for (route in listOf(AppRoute.Recovery, AppRoute.Register)) {
+            val bio = Biometrics().apply { result = { false } }
+            val memory = MemoryPersistence(savedSession())
+            val app = controller(backgroundScope, bio, memory)
+            app.enterForeground(); runCurrent()
+            app.accountRoute(route); runCurrent()
+            assertEquals(route, app.state.value.route)
+            assertNull(memory.content.value.token)
+            app.enterForeground(); runCurrent()
+            assertEquals(1, bio.calls)
+        }
+    }
 }

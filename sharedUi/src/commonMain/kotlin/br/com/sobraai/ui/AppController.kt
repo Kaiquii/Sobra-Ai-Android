@@ -89,10 +89,14 @@ class AppController(
 
     fun accountRoute(route: AppRoute, message: String? = null) {
         require(route in listOf(AppRoute.Login, AppRoute.Register, AppRoute.Recovery))
+        if (!mutable.value.busy && mutable.value.route == AppRoute.Locked) {
+            clearSessionAndRoute(route, message)
+            return
+        }
         if (!mutable.value.busy && mutable.value.route in listOf(AppRoute.Login, AppRoute.Register, AppRoute.Recovery)) mutable.value = AppState(route, message = message)
     }
     fun clearLoginMessage() {
-        if (mutable.value.route == AppRoute.Login && !mutable.value.busy) mutable.value = mutable.value.copy(message = null)
+        if (mutable.value.route in listOf(AppRoute.Login, AppRoute.Locked) && !mutable.value.busy) mutable.value = mutable.value.copy(message = null)
     }
     suspend fun refreshIdentity() {
         require(mutable.value.route == AppRoute.Home)
@@ -115,17 +119,36 @@ class AppController(
     }
 
     fun login(emailInput: String, password: String) {
-        if (mutable.value.busy || mutable.value.route != AppRoute.Login) return
+        if (mutable.value.busy || mutable.value.route !in listOf(AppRoute.Login, AppRoute.Locked)) return
         val normalized = emailInput.trim().lowercase()
         if (normalized == mutable.value.blockedEmail && now() < mutable.value.blockedUntil) return
         if (emailInput.isBlank() || password.isBlank()) {
             mutable.value = mutable.value.copy(message = "Preencha e-mail e senha.")
             return
         }
+        val replacingLockedSession = mutable.value.route == AppRoute.Locked
         val version = ++generation
-        mutable.value = mutable.value.copy(busy = true, message = null)
+        automaticUnlockPending = false
+        operation?.cancel()
+        mutable.value = mutable.value.copy(route = AppRoute.Login, busy = true, message = null)
         operation = scope.launch {
             try {
+                if (replacingLockedSession) {
+                    try {
+                        session.clearSession()
+                        currentCoroutineContext().ensureActive()
+                        if (version != generation) return@launch
+                        token = null
+                        email = ""
+                        biometricEnabled = false
+                    } catch (cancel: CancellationException) { throw cancel }
+                    catch (_: Exception) {
+                        logoutPending = true
+                        mutable.value = AppState(AppRoute.StorageError,
+                            message = "Não foi possível encerrar a sessão segura. Tente novamente.")
+                        return@launch
+                    }
+                }
                 val result = loginRequest(emailInput.trim(), password)
                 require(result.token.isNotBlank()) { "Resposta de sessão inválida." }
                 if (version != generation) return@launch
@@ -233,7 +256,9 @@ class AppController(
         }
     }
 
-    fun logout(message: String? = null) {
+    fun logout(message: String? = null) = clearSessionAndRoute(AppRoute.Login, message)
+
+    private fun clearSessionAndRoute(destination: AppRoute, message: String? = null) {
         logoutPending = true
         generation++
         automaticUnlockPending = false
@@ -242,7 +267,7 @@ class AppController(
         home?.clear(); home = null; pending = null; token = null
         mutable.value = AppState(AppRoute.Loading)
         operation = scope.launch {
-            try { session.clearSession(); logoutPending = false; mutable.value = AppState(AppRoute.Login, message = message) }
+            try { session.clearSession(); logoutPending = false; mutable.value = AppState(destination, message = message) }
             catch (cancel: CancellationException) { throw cancel }
             catch (_: Exception) { mutable.value = AppState(AppRoute.StorageError, message = "Não foi possível encerrar a sessão segura. Tente novamente.") }
         }

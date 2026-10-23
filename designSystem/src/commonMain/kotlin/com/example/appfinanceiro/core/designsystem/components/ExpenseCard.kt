@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
@@ -31,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -49,15 +47,12 @@ enum class ExpenseCardStyle {
 @Composable
 fun ExpenseCard(
     style: ExpenseCardStyle,
-    icon: ImageVector,
-    iconColor: Color,
     title: String,
     categoryName: String,
     paymentSource: String,
     type: String,
     date: String,
     value: String,
-    notes: String?,
     isPaid: Boolean = false,
     isAdvanced: Boolean = false,
     advancedLabel: String? = null,
@@ -65,19 +60,19 @@ fun ExpenseCard(
     onView: () -> Unit,
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
-    onPaymentStatusClick: (() -> Unit)? = null
+    onPaymentStatusClick: (() -> Unit)? = null,
+    expenseType: String
 ) {
+    val typeAccent = expenseTypeStyle(expenseType).accent()
     when (style) {
         ExpenseCardStyle.Compact -> CompactExpenseCard(
-            icon = icon,
-            iconColor = iconColor,
+            typeAccent = typeAccent,
             title = title,
             categoryName = categoryName,
             paymentSource = paymentSource,
             type = type,
             date = date,
             value = value,
-            notes = notes,
             isPaid = isPaid,
             isAdvanced = isAdvanced,
             advancedLabel = advancedLabel,
@@ -86,15 +81,13 @@ fun ExpenseCard(
         )
 
         ExpenseCardStyle.Detailed -> DetailedExpenseCard(
-            icon = icon,
-            iconColor = iconColor,
+            typeAccent = typeAccent,
             title = title,
             categoryName = categoryName,
             paymentSource = paymentSource,
             type = type,
             date = date,
             value = value,
-            notes = notes,
             isPaid = isPaid,
             isAdvanced = isAdvanced,
             advancedLabel = advancedLabel,
@@ -109,15 +102,13 @@ fun ExpenseCard(
 
 @Composable
 private fun CompactExpenseCard(
-    icon: ImageVector,
-    iconColor: Color,
+    typeAccent: Color,
     title: String,
     categoryName: String,
     paymentSource: String,
     type: String,
     date: String,
     value: String,
-    notes: String?,
     isPaid: Boolean,
     isAdvanced: Boolean,
     advancedLabel: String?,
@@ -135,22 +126,6 @@ private fun CompactExpenseCard(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(42.dp)
-                .background(iconColor.copy(alpha = 0.16f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
@@ -174,7 +149,7 @@ private fun CompactExpenseCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                MiniChip(label = type, color = TextMuted)
+                MiniChip(label = type, color = typeAccent)
                 if (isPaid) {
                     Spacer(modifier = Modifier.width(6.dp))
                     MiniChip(label = "Paga", color = GreenPositive)
@@ -191,10 +166,6 @@ private fun CompactExpenseCard(
                         fontSize = 10.sp,
                         maxLines = 1
                     )
-                }
-                if (!notes.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    ExpenseNoteIndicatorIcon()
                 }
             }
         }
@@ -253,15 +224,13 @@ private fun CompactExpenseCard(
 
 @Composable
 private fun DetailedExpenseCard(
-    icon: ImageVector,
-    iconColor: Color,
+    typeAccent: Color,
     title: String,
     categoryName: String,
     paymentSource: String,
     type: String,
     date: String,
     value: String,
-    notes: String?,
     isPaid: Boolean,
     isAdvanced: Boolean,
     advancedLabel: String?,
@@ -285,22 +254,6 @@ private fun DetailedExpenseCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(iconColor.copy(alpha = 0.12f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconColor,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -313,7 +266,9 @@ private fun DetailedExpenseCard(
                 Text(
                     text = categoryName,
                     color = secondaryColor,
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -324,10 +279,10 @@ private fun DetailedExpenseCard(
                 ) {
                     Box(
                         modifier = Modifier
-                            .background(TextMuted.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                            .background(typeAccent.copy(alpha = 0.10f), RoundedCornerShape(4.dp))
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Text(text = type, color = TextMuted, fontSize = 10.sp)
+                        Text(text = type, color = typeAccent, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (isAdvanced) {
                         Spacer(modifier = Modifier.width(5.dp))
@@ -346,10 +301,6 @@ private fun DetailedExpenseCard(
                         )
                     } else {
                         Spacer(modifier = Modifier.weight(1f))
-                    }
-                    if (!notes.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        ExpenseNoteIndicatorIcon()
                     }
                 }
             }
@@ -436,7 +387,9 @@ private fun DetailedExpenseCard(
                     text = value,
                     color = titleColor,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -459,23 +412,6 @@ private fun DetailedExpenseCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ExpenseNoteIndicatorIcon() {
-    Box(
-        modifier = Modifier
-            .background(PrimaryBlue.copy(alpha = 0.10f), RoundedCornerShape(6.dp))
-            .padding(4.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Description,
-            contentDescription = "Despesa com observacao",
-            tint = PrimaryBlue,
-            modifier = Modifier.size(12.dp)
-        )
     }
 }
 

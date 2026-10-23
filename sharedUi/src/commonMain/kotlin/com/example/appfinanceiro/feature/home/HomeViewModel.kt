@@ -20,6 +20,8 @@ data class HomeUiState(
     val summaryData: SummaryResponse? = null,
     val expensesData: List<Expense> = emptyList(),
     val categoriesMap: Map<Int, String> = emptyMap(),
+    val categoriesError: String? = null,
+    val isCategoriesLoading: Boolean = false,
     val incomesData: List<Income> = emptyList(),
     val isSummaryLoading: Boolean = false,
     val isIncomesLoading: Boolean = false,
@@ -40,14 +42,14 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
 
-    fun loadAll(token: String, month: Int, year: Int, paymentStatus: String? = null) {
-        loadSummary(token, month, year)
-        loadIncomes(token, month, year)
-        loadExpenses(token, month, year, paymentStatus)
+    fun loadAll(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null) {
+        loadSummary(token, month, year, refreshKey)
+        loadIncomes(token, month, year, refreshKey)
+        loadExpenses(token, month, year, paymentStatus, refreshKey)
     }
 
-    fun loadSummary(token: String, month: Int, year: Int) {
-        launchLatest("summary") {
+    fun loadSummary(token: String, month: Int, year: Int, refreshKey: Any? = null) {
+        launchLatest("summary", listOf(token, month, year, refreshKey)) {
             _uiState.update {
                 it.copy(isSummaryLoading = true, isSessionExpired = false)
             }
@@ -78,8 +80,8 @@ class HomeViewModel(
         }
     }
 
-    fun loadIncomes(token: String, month: Int, year: Int) {
-        launchLatest("incomes") {
+    fun loadIncomes(token: String, month: Int, year: Int, refreshKey: Any? = null) {
+        launchLatest("incomes", listOf(token, month, year, refreshKey)) {
             _uiState.update {
                 it.copy(isIncomesLoading = true, isSessionExpired = false)
             }
@@ -121,22 +123,18 @@ class HomeViewModel(
         }
     }
 
-    fun loadExpenses(token: String, month: Int, year: Int, paymentStatus: String? = null) {
-        launchLatest("expenses") {
+    fun loadExpenses(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null) {
+        launchLatest("expenses", listOf(token, month, year, paymentStatus, refreshKey)) {
             _uiState.update {
                 it.copy(isExpensesLoading = true, isSessionExpired = false)
             }
 
             try {
-                val categories = repository.getCategories(token)
                 val expenses = repository.getEffectiveExpenses(token, month, year, paymentStatus)
 
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
                     it.copy(
-                        categoriesMap = categories.categories.associate { category ->
-                            category.id to category.name
-                        },
                         expensesData = expenses.expenses,
                         expensesError = null
                     )
@@ -157,6 +155,30 @@ class HomeViewModel(
                 if (currentCoroutineContext().isActive) _uiState.update {
                     it.copy(isExpensesLoading = false, hasLoadedExpenses = true)
                 }
+            }
+        }
+        loadCategories(token, refreshKey)
+    }
+
+    fun loadCategories(token: String, refreshKey: Any? = null) {
+        launchLatest("categories", listOf(token, refreshKey)) {
+            _uiState.update { it.copy(isCategoriesLoading = true) }
+            try {
+                val categories = repository.getCategories(token)
+                currentCoroutineContext().ensureActive()
+                _uiState.update { it.copy(
+                    categoriesMap = categories.categories.associate { category -> category.id to category.name },
+                    categoriesError = null
+                ) }
+            } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+            catch (error: SessionExpiredException) {
+                currentCoroutineContext().ensureActive()
+                _uiState.update { it.copy(isSessionExpired = true) }
+            } catch (error: Exception) {
+                currentCoroutineContext().ensureActive()
+                _uiState.update { it.copy(categoriesError = error.userMessageOr("Não foi possível carregar as categorias.")) }
+            } finally {
+                if (currentCoroutineContext().isActive) _uiState.update { it.copy(isCategoriesLoading = false) }
             }
         }
     }

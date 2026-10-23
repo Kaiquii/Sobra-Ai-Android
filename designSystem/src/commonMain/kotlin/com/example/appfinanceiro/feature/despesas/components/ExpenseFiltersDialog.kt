@@ -1,6 +1,5 @@
 package com.example.appfinanceiro.feature.despesas.components
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,13 +7,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -25,7 +23,7 @@ import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 @Composable
 fun ExpenseFilterButton(active: Boolean, onClick: () -> Unit) {
     val colors = MaterialTheme.colorScheme
-    val tint = if (active) colors.onPrimaryContainer else colors.onSurfaceVariant
+    val tint = if (active) PrimaryBlue else colors.onSurfaceVariant
     Surface(
         onClick = onClick,
         modifier = Modifier.size(48.dp).semantics {
@@ -33,17 +31,10 @@ fun ExpenseFilterButton(active: Boolean, onClick: () -> Unit) {
             stateDescription = if (active) "Filtros ativos" else "Sem filtros ativos"
         },
         shape = RoundedCornerShape(12.dp),
-        color = if (active) colors.primaryContainer else colors.surface
+        color = if (active) PrimaryBlue.copy(alpha = 0.16f) else colors.surface
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Canvas(Modifier.size(24.dp)) {
-                listOf(0.8f, 0.55f, 0.3f).forEachIndexed { index, fraction ->
-                    val inset = size.width * (1f - fraction) / 2f
-                    val y = size.height * (0.25f + index * 0.25f)
-                    drawLine(tint, Offset(inset, y), Offset(size.width - inset, y),
-                        strokeWidth = 1.8.dp.toPx(), cap = StrokeCap.Round)
-                }
-            }
+            Icon(Icons.Default.Tune, null, Modifier.size(24.dp), tint = tint)
         }
     }
 }

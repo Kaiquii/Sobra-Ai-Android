@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,7 +44,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -85,7 +86,6 @@ import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import com.example.appfinanceiro.core.network.Expense
 import com.example.appfinanceiro.core.network.paymentCardSourceLabel
 import com.example.appfinanceiro.feature.home.components.MonthSelector
-import com.example.appfinanceiro.feature.home.utils.getCategoryIconAndColor
 import com.example.appfinanceiro.feature.despesas.components.ExpenseListControls
 import com.example.appfinanceiro.feature.despesas.components.ExpenseFiltersDialog
 import com.example.appfinanceiro.feature.despesas.components.AdvanceExpenseDialog
@@ -114,9 +114,7 @@ fun DespesasScreen(
     val colorScheme = MaterialTheme.colorScheme
 
     val backgroundColor = colorScheme.background
-    val inputBgColor = colorScheme.surface
     val textColor = colorScheme.onBackground
-    val surfaceTextColor = colorScheme.onSurface
     val secondaryTextColor = colorScheme.onSurfaceVariant
 
     var refreshTrigger by remember { mutableIntStateOf(0) }
@@ -153,7 +151,8 @@ fun DespesasScreen(
             viewModel.loadExpenses(
                 token,
                 currentMonthIndex + 1,
-                currentYear
+                currentYear,
+                refreshKey = listOf(financeRevision, refreshTrigger)
             )
         }
     }
@@ -244,7 +243,7 @@ fun DespesasScreen(
         "Parceladas" -> "Total em Parceladas"
         "Únicas" -> "Total em Únicas"
         "Fixas" -> "Total em Fixas"
-        else -> "Total"
+        else -> "Total das despesas"
     }
     val formattedSelectedFilterTotal = remember(selectedFilterTotal) {
         NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"))
@@ -262,11 +261,12 @@ fun DespesasScreen(
         modifier = Modifier.swipeNavigation(1, onNavigate),
         containerColor = backgroundColor,
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         "Despesas Mensais",
                         color = textColor,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -296,104 +296,93 @@ fun DespesasScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
+        // The header scrolls with the list so large fonts and the keyboard cannot hide the cards.
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize().imePadding(),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                top = paddingValues.calculateTopPadding() + 4.dp,
+                end = 16.dp,
+                bottom = paddingValues.calculateBottomPadding() + 16.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            ExpenseListControls(
-                searchQuery, { searchQuery = it }, selectedFilter, { selectedFilter = it },
-                selectedCategoryId != null || selectedPaymentSource != null || selectedPaymentStatus != null,
-                { focusManager.clearFocus(); showFiltersDialog = true },
-                currentMonthIndex, currentYear,
-                when {
-                    uiState.errorMessage != null && uiState.expensesData.isEmpty() -> null
-                    selectedFilterCount == 1 -> "1 despesa"
-                    else -> "$selectedFilterCount despesas"
-                }, { changeMonth(-1) }, { changeMonth(1) })
-            expensesErrorBannerMessage?.let { message ->
-                AppDataErrorBanner(
-                    message = message,
-                    isRetrying = uiState.isLoading,
-                    onRetry = {
-                        userToken?.let { token ->
-                            viewModel.loadExpenses(
-                                token,
-                                currentMonthIndex + 1,
-                                currentYear
-                            )
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            item(key = "expenses_controls") {
+                val summaryAvailable = uiState.hasLoadedOnce &&
+                    (uiState.errorMessage == null || uiState.expensesData.isNotEmpty() ||
+                        uiState.effectiveExpensesData.isNotEmpty())
+                ExpenseListControls(
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { searchQuery = it },
+                    selectedFilter = selectedFilter,
+                    onFilterSelect = { selectedFilter = it },
+                    filtersActive = selectedCategoryId != null || selectedPaymentSource != null || selectedPaymentStatus != null,
+                    onShowFilters = { focusManager.clearFocus(); showFiltersDialog = true },
+                    currentMonthIndex = currentMonthIndex,
+                    currentYear = currentYear,
+                    count = selectedFilterCount.takeIf { summaryAvailable },
+                    formattedTotal = formattedSelectedFilterTotal.takeIf { summaryAvailable },
+                    totalLabel = selectedFilterTotalLabel,
+                    onPrevClick = { changeMonth(-1) },
+                    onNextClick = { changeMonth(1) }
                 )
             }
-
-            if (uiState.isLoading && !uiState.hasLoadedOnce) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AppLoadingIndicator(size = 40.dp, strokeWidth = 4.dp)
+            uiState.categoriesError?.let { error ->
+                item(key = "categories_error") {
+                    AppDataErrorBanner(
+                        message = "Não foi possível atualizar as categorias. $error",
+                        isRetrying = uiState.isCategoriesLoading,
+                        onRetry = { userToken?.let { token -> viewModel.loadCategories(token) } }
+                    )
                 }
-            } else if (uiState.errorMessage != null && uiState.expensesData.isEmpty()) {
-                Spacer(modifier = Modifier.fillMaxSize())
-            } else if (filteredExpenses.isEmpty() && filteredIncomingAdvanced.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Nenhuma despesa encontrada.", color = secondaryTextColor)
-                }
-            } else {
-                LazyColumn(
-                    state = listState,
-                    contentPadding = PaddingValues(
-                        start = 16.dp,
-                        top = 8.dp,
-                        end = 16.dp,
-                        bottom = paddingValues.calculateBottomPadding() + 16.dp
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    item(key = "expenses_summary") {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = selectedFilterTotalLabel,
-                                    color = secondaryTextColor,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                FinancialValue(
-                                    text = formattedSelectedFilterTotal,
-                                    color = PrimaryBlue,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1
-                                )
+            }
+            expensesErrorBannerMessage?.let { message ->
+                item(key = "expenses_error") {
+                    AppDataErrorBanner(
+                        message = message,
+                        isRetrying = uiState.isLoading,
+                        onRetry = {
+                            userToken?.let { token ->
+                                viewModel.loadExpenses(token, currentMonthIndex + 1, currentYear)
                             }
-
-                            if (filteredExpenses.isNotEmpty()) {
+                        }
+                    )
+                }
+            }
+            when {
+                uiState.isLoading && !uiState.hasLoadedOnce -> item(key = "expenses_loading") {
+                    Box(Modifier.fillParentMaxHeight(0.35f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        AppLoadingIndicator(size = 40.dp, strokeWidth = 4.dp)
+                    }
+                }
+                uiState.errorMessage != null && uiState.expensesData.isEmpty() -> Unit
+                filteredExpenses.isEmpty() && filteredIncomingAdvanced.isEmpty() -> item(key = "expenses_empty") {
+                    Box(Modifier.fillParentMaxHeight(0.35f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text("Nenhuma despesa encontrada.", color = secondaryTextColor)
+                    }
+                }
+                else -> {
+                    if (filteredExpenses.isNotEmpty()) {
+                        item(key = "expenses_summary") {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "Despesas previstas para ${monthName(currentMonthIndex + 1)}",
                                     color = textColor,
                                     fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.titleMedium
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = if (selectedFilterCount == 1) "1 despesa" else "$selectedFilterCount despesas",
+                                    color = secondaryTextColor,
+                                    style = MaterialTheme.typography.bodySmall
                                 )
                             }
                         }
                     }
-                    items(
-                        items = filteredExpenses,
-                        key = { expense -> "scheduled_${expense.id}" }
-                    ) { expense ->
+                    items(items = filteredExpenses, key = { expense -> "scheduled_${expense.id}" }) { expense ->
                         DespesaListItem(
                             expense = expense,
                             categoriesMap = uiState.categoriesMap,
@@ -403,7 +392,6 @@ fun DespesasScreen(
                             onPaymentStatusClick = { expensePaymentStatusToChange = expense }
                         )
                     }
-
                     if (filteredIncomingAdvanced.isNotEmpty()) {
                         item(key = "incoming_advanced_header") {
                             AdvancedExpensesImpactNotice(
@@ -411,10 +399,7 @@ fun DespesasScreen(
                                 selectedYear = currentYear
                             )
                         }
-                        items(
-                            items = filteredIncomingAdvanced,
-                            key = { expense -> "incoming_${expense.id}" }
-                        ) { expense ->
+                        items(items = filteredIncomingAdvanced, key = { expense -> "incoming_${expense.id}" }) { expense ->
                             AdvancedExpenseImpactCard(
                                 expense = expense,
                                 categoriesMap = uiState.categoriesMap,
@@ -422,11 +407,7 @@ fun DespesasScreen(
                                 onGoToOriginalExpense = {
                                     val scheduledPeriod = expense.scheduledMonthYear()
                                     if (scheduledPeriod == null) {
-                                        Toast.makeText(
-                                            context,
-                                            "Não foi possível identificar o mês original desta despesa.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        Toast.makeText(context, "Não foi possível identificar o mês original desta despesa.", Toast.LENGTH_SHORT).show()
                                     } else {
                                         val (month, year) = scheduledPeriod
                                         searchQuery = ""
@@ -730,19 +711,16 @@ fun DespesaListItem(
     } else {
         expense.paymentCardSourceLabel()
     }
-    val (icon, color) = getCategoryIconAndColor(categoryName)
 
     ExpenseCard(
         style = ExpenseCardStyle.Detailed,
-        icon = icon,
-        iconColor = color,
         title = expense.displayDescription,
         categoryName = categoryName,
         paymentSource = paymentSource,
         type = typeLabel,
         date = formattedDate,
         value = "- $formattedAmount",
-        notes = expense.notes,
+        expenseType = expense.type,
         isPaid = expense.is_paid,
         isAdvanced = expense.isAdvanced,
         advancedLabel = formatAdvancedDate(expense.advancedAt)?.let { "Adiantada em $it" },

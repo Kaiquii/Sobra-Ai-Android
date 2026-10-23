@@ -14,6 +14,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
 import kotlinx.io.IOException
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.serialization.decodeFromString
 
 class ApiConfiguration(baseUrl: String) {
@@ -60,6 +61,22 @@ class ApiTransport(
         body: String?, authenticated: Boolean
     ): String {
         require(!path.startsWith('/') && !path.contains("://") && !path.contains("..")) { "Caminho de API inválido." }
+        return try {
+            executeOnce(method, path, authorization, query, body, authenticated)
+        } catch (error: NetworkRequestException) {
+            // Reabrir uma leitura após queda de conexão é seguro; escritas nunca são repetidas.
+            // Timeouts já aguardaram o limite configurado, por isso não prolongamos a espera.
+            if (method != "GET" || body != null || error.cause is HttpRequestTimeoutException ||
+                error.cause is ConnectTimeoutException || error.cause is SocketTimeoutException) throw error
+            delay(300)
+            executeOnce(method, path, authorization, query, body, authenticated)
+        }
+    }
+
+    private suspend fun executeOnce(
+        method: String, path: String, authorization: String?, query: Map<String, Any?>,
+        body: String?, authenticated: Boolean
+    ): String {
         try {
             val response = client.request(configuration.baseUrl + path) {
                 this.method = HttpMethod.parse(method)

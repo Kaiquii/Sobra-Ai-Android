@@ -18,6 +18,8 @@ data class DespesasUiState(
     val expensesData: List<Expense> = emptyList(),
     val effectiveExpensesData: List<Expense> = emptyList(),
     val categoriesMap: Map<Int, String> = emptyMap(),
+    val categoriesError: String? = null,
+    val isCategoriesLoading: Boolean = false,
     val isLoading: Boolean = true,
     val hasLoadedOnce: Boolean = false,
     val isDeleting: Boolean = false,
@@ -40,23 +42,19 @@ class DespesasViewModel(
     private val _uiState = MutableStateFlow(DespesasUiState())
     val uiState: StateFlow<DespesasUiState> = _uiState
 
-    fun loadExpenses(token: String, month: Int, year: Int, paymentStatus: String? = null) {
-        launchLatest("expenses") {
+    fun loadExpenses(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null) {
+        launchLatest("expenses", listOf(token, month, year, paymentStatus, refreshKey)) {
             _uiState.update {
                 it.copy(isLoading = true, isSessionExpired = false)
             }
 
             try {
-                val categories = repository.getCategories(token)
                 val expenses = repository.getExpenses(token, month, year, paymentStatus)
                 val effectiveExpenses = repository.getEffectiveExpenses(token, month, year, paymentStatus)
 
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
                     it.copy(
-                        categoriesMap = categories.categories.associate { category ->
-                            category.id to category.name
-                        },
                         expensesData = expenses.expenses,
                         effectiveExpensesData = effectiveExpenses.expenses,
                         errorMessage = null
@@ -80,6 +78,30 @@ class DespesasViewModel(
                 if (currentCoroutineContext().isActive) _uiState.update {
                     it.copy(isLoading = false, hasLoadedOnce = true)
                 }
+            }
+        }
+        loadCategories(token, refreshKey)
+    }
+
+    fun loadCategories(token: String, refreshKey: Any? = null) {
+        launchLatest("categories", listOf(token, refreshKey)) {
+            _uiState.update { it.copy(isCategoriesLoading = true) }
+            try {
+                val categories = repository.getCategories(token)
+                currentCoroutineContext().ensureActive()
+                _uiState.update { it.copy(
+                    categoriesMap = categories.categories.associate { category -> category.id to category.name },
+                    categoriesError = null
+                ) }
+            } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+            catch (error: SessionExpiredException) {
+                currentCoroutineContext().ensureActive()
+                _uiState.update { it.copy(isSessionExpired = true) }
+            } catch (error: Exception) {
+                currentCoroutineContext().ensureActive()
+                _uiState.update { it.copy(categoriesError = error.userMessageOr("Não foi possível carregar as categorias.")) }
+            } finally {
+                if (currentCoroutineContext().isActive) _uiState.update { it.copy(isCategoriesLoading = false) }
             }
         }
     }

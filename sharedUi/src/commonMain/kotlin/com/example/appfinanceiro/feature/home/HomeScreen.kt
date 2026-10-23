@@ -62,7 +62,6 @@ import com.example.appfinanceiro.feature.home.components.FilterOptionItem
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import com.example.appfinanceiro.feature.home.components.ResumoFinanceiroSection
 import com.example.appfinanceiro.feature.home.utils.formatExpenseDate
-import com.example.appfinanceiro.feature.home.utils.getCategoryIconAndColor
 import com.example.appfinanceiro.feature.despesas.formatAdvancedDate
 import kotlinx.coroutines.launch
 import br.com.sobraai.ui.runtime.Calendar
@@ -212,7 +211,8 @@ fun HomeScreen(
                 token,
                 currentMonthIndex + 1,
                 currentYear,
-                selectedPaymentStatus
+                selectedPaymentStatus,
+                refreshKey = listOf(financeRevision, refreshIncomeActions)
             )
         }
     }
@@ -310,6 +310,16 @@ fun HomeScreen(
                 }
             }
 
+            uiState.categoriesError?.let { error ->
+                item(key = "categories_error") {
+                    AppDataErrorBanner(
+                        message = "Não foi possível atualizar as categorias. $error",
+                        isRetrying = uiState.isCategoriesLoading,
+                        onRetry = { userToken?.let { token -> viewModel.loadCategories(token) } }
+                    )
+                }
+            }
+
             item {
                 ResumoFinanceiroSection(
                     isLoading = uiState.isSummaryLoading || uiState.isIncomesLoading,
@@ -373,7 +383,6 @@ fun HomeScreen(
                 key = { expense -> expense.id }
             ) { expense ->
                 val categoryName = uiState.categoriesMap[expense.category_id] ?: "Outros"
-                val (icon, color) = getCategoryIconAndColor(categoryName)
                 val formattedDate = formatExpenseDate(expense.date)
 
                 val typeText =
@@ -388,15 +397,13 @@ fun HomeScreen(
                     }
 
                 ExpenseItem(
-                    icon = icon,
-                    iconColor = color,
                     title = expense.displayDescription,
                     categoryName = categoryName,
                     paymentSource = expense.paymentCardSourceLabel(),
                     type = typeText,
                     date = formattedDate,
                     value = "- ${formatCurrency(expense.amount)}",
-                    notes = expense.notes,
+                    expenseType = expense.type,
                     isPaid = expense.is_paid,
                     isAdvanced = expense.isAdvanced,
                     advancedLabel = formatAdvancedDate(expense.advancedAt)?.let { "Adiantada em $it" },

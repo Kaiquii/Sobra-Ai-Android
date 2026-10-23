@@ -11,6 +11,7 @@ Multiplatform**. A referência visual é o Android anterior à migração. Leia
 | Aplicação Compose única | `sharedUi/src/commonMain/kotlin/br/com/sobraai/ui/SharedApplication.kt` | `SobraAiApp(services)`, sessão, navegação de todas as telas, estado restaurável e mensagens |
 | Telas e apresentação | `sharedUi/src/commonMain/kotlin/com/example/appfinanceiro/` | Telas completas, diálogos, formulários e ViewModels migrados do Android, preservando os packages |
 | Componentes comuns | `designSystem/src/commonMain/kotlin/com/example/appfinanceiro/` | Tema, cores, privacidade, barra inferior, cards, filtros, gráficos, perfil, ajuda e chat; Roboto embutida em `designSystem/src/commonMain/composeResources/` |
+| Despesas: apresentação | `designSystem/.../feature/despesas/components/ExpenseListControls.kt`, `core/designsystem/components/ExpenseCard.kt`, `ExpenseTypeStyle.kt` | Cabeçalho de mês/resumo/busca/filtros e cards usados em Início/Despesas; cor apenas no marcador do tipo da API; seletor de mês padrão e ações originais |
 | Serviços da interface | `sharedUi/src/commonMain/kotlin/br/com/sobraai/ui/runtime/` | `UiServices`, contratos de arquivos, escopos de apresentação e formatação/data com adaptadores |
 | Host Android | `app/src/main/java/com/example/appfinanceiro/MainActivity.kt` | Splash, proteção, injeção e ciclo de vida; abre `SobraAiApp(services)` |
 | Adaptadores Android | `app/src/main/java/com/example/appfinanceiro/platform/` | Biometria, galeria, permissões, voz e arquivos do sistema |
@@ -57,6 +58,10 @@ As pastas nem sempre coincidem com o package: `RegisterScreen.kt` usa o pacote
   adiantamentos, rateios, arredondamento e status. Não mudar saldo incidentalmente.
 - Serviços nativos são injetados: sessão, biometria, galeria, voz, arquivos e
   permissões. Sem Android/Java em commonMain e sem UIKit nas telas.
+- Leituras HTTP GET repetem uma única vez após falha de conexão, com pausa curta;
+  timeouts, respostas HTTP, JSON inválido e gravações não são repetidos pelo transporte.
+  Consultas idênticas em andamento são reutilizadas; mês, filtro e revisão de dados
+  salvos identificam uma consulta nova. Categorias não bloqueiam a lista de despesas.
 - Cancelamento, expiração e bloqueio não podem publicar sucesso da sessão antiga.
 - Senhas, tokens e dados pessoais não entram em logs, fixtures ou documentos.
 - O backend ainda precisa definir proteção Apple para envio de códigos e versão

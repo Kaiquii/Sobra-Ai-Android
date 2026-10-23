@@ -48,15 +48,13 @@ fun SobraAiApp(services: UiServices) {
                 Box(Modifier.fillMaxSize()) {
                     when (state.route) {
                         AppRoute.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { AppLoadingIndicator() }
-                        AppRoute.Login -> LoginScreen({ controller.accountRoute(AppRoute.Register) }, { controller.accountRoute(AppRoute.Recovery) })
+                        AppRoute.Login, AppRoute.Locked -> LoginScreen({ controller.accountRoute(AppRoute.Register) }, { controller.accountRoute(AppRoute.Recovery) })
                         AppRoute.Register -> RegisterScreen({ controller.accountRoute(AppRoute.Login) }, { controller.accountRoute(AppRoute.Login) })
                         AppRoute.Recovery -> EsqueciSenhaScreen(onNavigateBack = { controller.accountRoute(AppRoute.Login) })
                         AppRoute.Home -> FinancialPrivacyProvider { SignedInScreens(services) }
                         AppRoute.BiometricOffer -> GateScreen("Ativar ${controller.biometricKind.label}?",
                             "Use ${controller.biometricKind.label} para proteger o acesso à sua conta no SobraAi.", state,
                             "Ativar ${controller.biometricKind.label}", { controller.finishLogin(true) }, "Agora não", { controller.finishLogin(false) }, biometricIcon(controller.biometricKind))
-                        AppRoute.Locked -> GateScreen("Desbloquear SobraAi", "Autentique-se para acessar sua conta.", state,
-                            "Entrar com ${controller.biometricKind.label}", controller::unlock, "Entrar com senha", { controller.logout() }, biometricIcon(controller.biometricKind))
                         AppRoute.StorageError -> GateScreen("Sessão indisponível", "Seus dados ficam protegidos no aparelho.", state,
                             "Tentar novamente", controller::restore, "Encerrar sessão", { controller.logout() })
                     }

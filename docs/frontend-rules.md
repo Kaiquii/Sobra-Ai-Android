@@ -68,6 +68,21 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
 - Garantir contraste suficiente para textos, ícones, bordas, estados desabilitados e botões nos dois temas.
 - Todos os modais e diálogos devem seguir o mesmo padrão visual do aplicativo: usar `MaterialTheme.colorScheme.background` como fundo, `onBackground` para título e conteúdo e os tokens do tema para ações. No modo escuro, não usar o fundo acinzentado padrão do Material sem uma decisão visual explícita.
 
+## Apresentação de despesas
+
+- A tela de despesas usa o seletor de mês padrão do aplicativo, resumo azul,
+  busca e chips no cabeçalho comum `ExpenseListControls`; ele rola com a lista para continuar acessível com
+  teclado ou fonte ampliada. O total mantém o período efetivo e os filtros atuais.
+- `ExpenseCard` é compartilhado entre Início e Despesas. Não reservar coluna para
+  o antigo ícone grande de recibo, nem exibir a carta de observações; o conteúdo das
+  observações continua nos detalhes.
+- Somente o marcador do tipo usa azul para Única, roxo para Parcelada e verde-água
+  para Fixa, com tons adequados ao tema. Não colorir nem adicionar bordas ao card,
+  não reposicionar suas ações e preservar o layout original. `ExpenseTypeStyle`
+  recebe o tipo original da API, separado do rótulo de parcela (`Parc. 3/10`). Não usar origem, categoria
+  ou status de pagamento para escolher essa cor. Manter o texto do tipo: a cor
+  sozinha não identifica a despesa para todos os usuários.
+
 ## Textos e idioma
 
 - Todo texto exibido ao usuário deve estar em português brasileiro, com ortografia, acentuação, concordância e pontuação revisadas.
@@ -75,7 +90,21 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
 - Antes de concluir uma mudança, revisar títulos, botões, campos, mensagens de erro, estados vazios, notificações e descrições de acessibilidade.
 - Não alterar nomes de campos, valores ou mensagens que façam parte do contrato com a API. Quando necessário, adaptar apenas o texto apresentado na interface.
 
+## Entrada com biometria
+
+- Com sessão salva e biometria ativada, exibir a mesma tela de login enquanto
+  o sistema solicita automaticamente digital, Face ID ou Touch ID. Não criar tela
+  intermediária de desbloqueio nem exigir toque para iniciar a autenticação.
+- Após cancelamento, manter o login com tentativa manual de biometria ou senha;
+  nunca repetir o prompt em ciclo nem expor conteúdo financeiro antes da confirmação.
+
 ## Estados de carregamento
+
+- Falha de consulta não significa lista vazia: mostrar contagem indisponível (—)
+  enquanto os dados não foram carregados, em vez de afirmar zero despesas.
+- Categorias carregam independentemente das despesas; falha nos nomes/filtros
+  não deve bloquear a lista e os valores. Exibir o aviso específico e permitir
+  repetir somente a consulta de categorias.
 
 - Usar o componente `AppLoadingIndicator` para manter tamanho, cor e espessura consistentes nos indicadores de carregamento.
 - Exibir o carregamento central apenas na primeira abertura, quando ainda não existe conteúdo disponível.

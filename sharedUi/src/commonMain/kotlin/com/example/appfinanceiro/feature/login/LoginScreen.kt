@@ -43,6 +43,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.sobraai.ui.AppRoute
+import br.com.sobraai.ui.BiometricKind
+import br.com.sobraai.ui.biometricIcon
 import br.com.sobraai.ui.runtime.rememberPresentation
 import com.example.appfinanceiro.core.data.ApiResponseException as ApiRequestException
 import com.example.appfinanceiro.core.data.AuthViewModel
@@ -172,8 +175,21 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-
-
+        if (state.route == AppRoute.Locked) {
+            OutlinedButton(
+                onClick = { focusManager.clearFocus(); controller.unlock() },
+                enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Icon(biometricIcon(controller.biometricKind), contentDescription = null, tint = PrimaryBlue)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    if (controller.biometricKind == BiometricKind.Generic) "Entrar com biometria"
+                    else "Entrar com ${controller.biometricKind.label}",
+                    color = PrimaryBlue
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(32.dp))
 
         Row(

@@ -79,7 +79,9 @@ fun DespesasHeaderSection(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            ExpenseCountLabel(count = expenses.size)
+            ExpenseCountLabel(count = expenses.size.takeIf {
+                expenses.isNotEmpty() || (hasLoadedOnce && errorMessage == null)
+            })
         }
 
         Row(
@@ -193,8 +195,8 @@ fun DespesasHeaderSection(
 }
 
 @Composable
-private fun ExpenseCountLabel(count: Int) {
-    val label = if (count == 1) "1 despesa" else "$count despesas"
+private fun ExpenseCountLabel(count: Int?) {
+    val label = when (count) { null -> "—"; 1 -> "1 despesa"; else -> "$count despesas" }
 
     Text(
         text = label,
@@ -305,31 +307,27 @@ private fun ActiveFilterChip(
 
 @Composable
 fun ExpenseItem(
-    icon: ImageVector,
-    iconColor: Color,
     title: String,
     categoryName: String,
     paymentSource: String,
     type: String,
     date: String,
     value: String,
-    notes: String?,
     isPaid: Boolean,
     isAdvanced: Boolean = false,
     advancedLabel: String? = null,
-    onViewClick: () -> Unit
+    onViewClick: () -> Unit,
+    expenseType: String
 ) {
     ExpenseCard(
         style = ExpenseCardStyle.Compact,
-        icon = icon,
-        iconColor = iconColor,
         title = title,
         categoryName = categoryName,
         paymentSource = paymentSource,
         type = type,
         date = date,
         value = value,
-        notes = notes,
+        expenseType = expenseType,
         isPaid = isPaid,
         isAdvanced = isAdvanced,
         advancedLabel = advancedLabel,

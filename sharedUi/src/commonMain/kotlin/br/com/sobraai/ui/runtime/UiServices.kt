@@ -56,10 +56,13 @@ internal class PresentationStore {
 
 open class PresentationModel {
     val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private val readers = mutableMapOf<String, Job>()
-    protected fun launchLatest(key: String, block: suspend CoroutineScope.() -> Unit): Job {
-        readers.remove(key)?.cancel()
-        return viewModelScope.launch(block = block).also { readers[key] = it }
+    private class Reader(val request: Any?, val job: Job)
+    private val readers = mutableMapOf<String, Reader>()
+    protected fun launchLatest(key: String, request: Any? = null, block: suspend CoroutineScope.() -> Unit): Job {
+        val previous = readers[key]
+        if (request != null && previous?.request == request && previous.job.isActive) return previous.job
+        readers.remove(key)?.job?.cancel()
+        return viewModelScope.launch(block = block).also { readers[key] = Reader(request, it) }
     }
     protected open fun onCleared() {}
     fun close() { viewModelScope.cancel(); onCleared() }
