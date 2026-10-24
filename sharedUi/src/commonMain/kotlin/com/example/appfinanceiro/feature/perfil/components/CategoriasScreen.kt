@@ -158,13 +158,13 @@ fun CategoriasScreen(
                                     editingCategory!!.id,
                                     CategoryRequest(editingCategoryName.trim())
                                 )
-                                Toast.makeText(context, "Categoria atualizada!", Toast.LENGTH_SHORT).show()
+                                Toast.success(context, "Categoria atualizada!", Toast.LENGTH_SHORT).show()
                                 editingCategory = null
                                 editingCategoryName = ""
                                 refreshTrigger++
                             } catch (e: Exception) {
                                 if (e is kotlinx.coroutines.CancellationException) throw e
-                                Toast.makeText(context, "Erro ao atualizar categoria", Toast.LENGTH_SHORT).show()
+                                Toast.error(context, "Erro ao atualizar categoria", Toast.LENGTH_SHORT).show()
                             }
                             }
                     }
@@ -210,7 +210,7 @@ fun CategoriasScreen(
                                     userToken ?: return@launch,
                                     selectedCategory.id
                                 )
-                                Toast.makeText(context, "Categoria removida!", Toast.LENGTH_SHORT).show()
+                                Toast.success(context, "Categoria removida!", Toast.LENGTH_SHORT).show()
                                 categoryToDelete = null
                                 refreshTrigger++
                             } catch (e: Exception) {
@@ -331,12 +331,12 @@ fun CategoriasScreen(
                                                 userToken ?: return@launch,
                                                 CategoryRequest(newCategoryName.trim())
                                             )
-                                            Toast.makeText(context, "Categoria criada!", Toast.LENGTH_SHORT).show()
+                                            Toast.success(context, "Categoria criada!", Toast.LENGTH_SHORT).show()
                                             newCategoryName = ""
                                             refreshTrigger++
                                         } catch (e: Exception) {
                                             if (e is kotlinx.coroutines.CancellationException) throw e
-                                            Toast.makeText(context, "Erro ao criar categoria", Toast.LENGTH_SHORT).show()
+                                            Toast.error(context, "Erro ao criar categoria", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 },

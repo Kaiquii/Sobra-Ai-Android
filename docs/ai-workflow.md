@@ -17,6 +17,11 @@ próprias e não podem ser presumidos a partir de um resultado JVM.
 3. Faça a alteração no componente responsável e nos consumidores necessários.
    Corrija a causa de regressões; não remova asserções ou suprima erros de Lint
    apenas para obter aprovação.
+   A revisão transversal é obrigatória: liste os consumidores e fluxos análogos,
+   procure o mesmo defeito nas outras telas e adapte a solução compartilhada.
+   Não considere concluída uma correção isolada se outro fluxo mantiver a mesma
+   causa conhecida. Registre os casos conferidos e acrescente regressões de
+   comportamento para os consumidores afetados, sem duplicar testes de implementação.
 4. Para lógica nova ou corrigida, acrescente testes de comportamento relevantes.
    Use fakes e dados sintéticos; testes unitários não devem depender de login,
    rede real ou da disponibilidade do backend.

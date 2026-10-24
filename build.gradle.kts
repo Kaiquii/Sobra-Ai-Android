@@ -38,6 +38,7 @@ tasks.register("harnessVerify") {
     dependsOn("verifySharedPresentation", "harnessUnit", "harnessKmp", ":app:lintDebug", ":app:assembleDebug")
     doLast {
         logger.lifecycle("[harness] Verificacao local Android/KMP concluida. Build Swift/Xcode e execucao em iPhone exigem validacao Apple separada.")
+        logger.lifecycle("[harness] Conferir revisao transversal: consumidores, fluxos semelhantes e regressoes afetadas. Build verde nao comprova revisao de todas as telas.")
     }
 }
 

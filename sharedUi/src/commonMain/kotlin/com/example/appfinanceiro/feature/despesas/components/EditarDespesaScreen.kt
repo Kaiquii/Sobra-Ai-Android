@@ -157,7 +157,7 @@ fun EditarDespesaScreen(
                 }
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                Toast.makeText(context, e.userMessageOr("Erro ao carregar despesa"), Toast.LENGTH_SHORT).show()
+                Toast.error(context, e.userMessageOr("Erro ao carregar despesa"), Toast.LENGTH_SHORT).show()
                 onNavigateBack()
             } finally {
                 isLoading = false
@@ -389,14 +389,14 @@ fun EditarDespesaScreen(
                             requiredFieldsMessage = "Preencha os campos!"
                         )
                         if (validationMessage != null) {
-                            Toast.makeText(context, validationMessage, Toast.LENGTH_SHORT).show()
+                            Toast.warning(context, validationMessage, Toast.LENGTH_SHORT).show()
                             return@Button
                         }
                         val finalAmount = amountText.toAmount() ?: 0.0
                         if (isSplitPayment) {
                             val splitMessage = paymentSplitValidationMessage(finalAmount, paymentSplits)
                             if (splitMessage != null) {
-                                Toast.makeText(context, splitMessage, Toast.LENGTH_SHORT).show()
+                                Toast.warning(context, splitMessage, Toast.LENGTH_SHORT).show()
                                 return@Button
                             }
                         }
@@ -439,11 +439,11 @@ fun EditarDespesaScreen(
                                 )
 
                                 actionsViewModel.updateExpense(userToken ?: return@launch, expenseId, request)
-                                Toast.makeText(context, "Despesa atualizada!", Toast.LENGTH_SHORT).show()
+                                Toast.success(context, "Despesa atualizada!", Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
                             } catch (e: Exception) {
                                 if (e is kotlinx.coroutines.CancellationException) throw e
-                                Toast.makeText(context, e.userMessageOr("Erro ao atualizar"), Toast.LENGTH_SHORT).show()
+                                Toast.error(context, e.userMessageOr("Erro ao atualizar"), Toast.LENGTH_SHORT).show()
                             } finally {
                                 isLoading = false
                             }
@@ -520,11 +520,11 @@ fun EditarDespesaScreen(
                                         )
 
                                         actionsViewModel.updateExpense(userToken ?: return@launch, expenseId, request)
-                                        Toast.makeText(context, "Despesa atualizada!", Toast.LENGTH_SHORT).show()
+                                        Toast.success(context, "Despesa atualizada!", Toast.LENGTH_SHORT).show()
                                         onNavigateBack()
                                     } catch (e: Exception) {
                                         if (e is kotlinx.coroutines.CancellationException) throw e
-                                        Toast.makeText(context, e.userMessageOr("Erro ao atualizar"), Toast.LENGTH_SHORT).show()
+                                        Toast.error(context, e.userMessageOr("Erro ao atualizar"), Toast.LENGTH_SHORT).show()
                                     } finally {
                                         isLoading = false
                                     }

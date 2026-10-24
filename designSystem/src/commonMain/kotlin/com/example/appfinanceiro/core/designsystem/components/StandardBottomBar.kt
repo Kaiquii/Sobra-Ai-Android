@@ -36,6 +36,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
@@ -49,12 +52,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 
+val LocalBottomBarHeightReporter = staticCompositionLocalOf<(Int) -> Unit> { {} }
+
 @Composable
 fun StandardBottomBar(
     itemSelecionado: Int,
     onItemClick: (Int) -> Unit = {},
     onAddClick: () -> Unit = {}
 ) {
+    val reportHeight = LocalBottomBarHeightReporter.current
+    DisposableEffect(reportHeight) { onDispose { reportHeight(0) } }
     val barColor = MaterialTheme.colorScheme.background.copy(alpha = 0.93f)
     val unselectedColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.62f)
     val selectedIndicatorColor = PrimaryBlue.copy(alpha = 0.14f)
@@ -63,6 +70,7 @@ fun StandardBottomBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .onSizeChanged { reportHeight(it.height) }
             .navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 10.dp)
             .height(82.dp),

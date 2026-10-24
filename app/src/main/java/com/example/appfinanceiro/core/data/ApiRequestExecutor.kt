@@ -37,7 +37,8 @@ suspend fun <T> executeApiRequest(
     } catch (error: SocketTimeoutException) {
         throw NetworkRequestException(
             userMessage = "O servidor demorou para responder. Tente novamente.",
-            cause = error
+            cause = error,
+            kind = NetworkFailureKind.Timeout
         )
     } catch (error: IOException) {
         throw NetworkRequestException(

@@ -4,6 +4,8 @@ import br.com.sobraai.ui.runtime.PresentationModel as ViewModel
 import com.example.appfinanceiro.core.data.SharedFinanceRepository
 import com.example.appfinanceiro.core.data.HomeDataSource
 import com.example.appfinanceiro.core.data.SessionExpiredException
+import com.example.appfinanceiro.core.data.NetworkFailureKind
+import com.example.appfinanceiro.core.data.NetworkRequestException
 import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.network.Expense
 import com.example.appfinanceiro.core.network.Income
@@ -21,6 +23,7 @@ data class HomeUiState(
     val expensesData: List<Expense> = emptyList(),
     val categoriesMap: Map<Int, String> = emptyMap(),
     val categoriesError: String? = null,
+    val categoriesNetworkFailure: NetworkFailureKind? = null,
     val isCategoriesLoading: Boolean = false,
     val incomesData: List<Income> = emptyList(),
     val isSummaryLoading: Boolean = false,
@@ -30,8 +33,11 @@ data class HomeUiState(
     val hasLoadedIncomes: Boolean = false,
     val hasLoadedExpenses: Boolean = false,
     val summaryError: String? = null,
+    val summaryNetworkFailure: NetworkFailureKind? = null,
     val incomesError: String? = null,
+    val incomesNetworkFailure: NetworkFailureKind? = null,
     val expensesError: String? = null,
+    val expensesNetworkFailure: NetworkFailureKind? = null,
     val isSessionExpired: Boolean = false
 )
 
@@ -52,14 +58,15 @@ class HomeViewModel(
         launchLatest("summary", listOf(token, month, year, refreshKey)) {
             _uiState.update {
                 it.copy(isSummaryLoading = true, isSessionExpired = false,
-                    summaryError = if (it.summaryData != null) it.summaryError else null)
+                    summaryError = if (it.summaryData != null) it.summaryError else null,
+                    summaryNetworkFailure = if (it.summaryData != null) it.summaryNetworkFailure else null)
             }
 
             try {
                 val summary = repository.getSummary(token, month, year)
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
-                    it.copy(summaryData = summary, summaryError = null)
+                    it.copy(summaryData = summary, summaryError = null, summaryNetworkFailure = null)
                 }
             } catch (e: SessionExpiredException) {
                 currentCoroutineContext().ensureActive()
@@ -71,7 +78,7 @@ class HomeViewModel(
 
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
-                    it.copy(summaryError = e.userMessageOr("Não foi possível carregar o resumo financeiro."))
+                    it.copy(summaryError = e.userMessageOr("Não foi possível carregar o resumo financeiro."), summaryNetworkFailure = (e as? NetworkRequestException)?.kind)
                 }
             } finally {
                 if (currentCoroutineContext().isActive) _uiState.update {
@@ -85,7 +92,8 @@ class HomeViewModel(
         launchLatest("incomes", listOf(token, month, year, refreshKey)) {
             _uiState.update {
                 it.copy(isIncomesLoading = true, isSessionExpired = false,
-                    incomesError = if (it.incomesData.isNotEmpty()) it.incomesError else null)
+                    incomesError = if (it.incomesData.isNotEmpty()) it.incomesError else null,
+                    incomesNetworkFailure = if (it.incomesData.isNotEmpty()) it.incomesNetworkFailure else null)
             }
 
             try {
@@ -102,7 +110,7 @@ class HomeViewModel(
                             adiantamento = totals.advance,
                             renda_extra_amt = totals.extraIncome
                         ),
-                        incomesError = null
+                        incomesError = null, incomesNetworkFailure = null
                     )
                 }
             } catch (e: SessionExpiredException) {
@@ -115,7 +123,7 @@ class HomeViewModel(
 
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
-                    it.copy(incomesError = e.userMessageOr("Não foi possível carregar as rendas."))
+                    it.copy(incomesError = e.userMessageOr("Não foi possível carregar as rendas."), incomesNetworkFailure = (e as? NetworkRequestException)?.kind)
                 }
             } finally {
                 if (currentCoroutineContext().isActive) _uiState.update {
@@ -129,7 +137,8 @@ class HomeViewModel(
         launchLatest("expenses", listOf(token, month, year, paymentStatus, refreshKey)) {
             _uiState.update {
                 it.copy(isExpensesLoading = true, isSessionExpired = false,
-                    expensesError = if (it.expensesData.isNotEmpty()) it.expensesError else null)
+                    expensesError = if (it.expensesData.isNotEmpty()) it.expensesError else null,
+                    expensesNetworkFailure = if (it.expensesData.isNotEmpty()) it.expensesNetworkFailure else null)
             }
 
             try {
@@ -139,7 +148,7 @@ class HomeViewModel(
                 _uiState.update {
                     it.copy(
                         expensesData = expenses.expenses,
-                        expensesError = null
+                        expensesError = null, expensesNetworkFailure = null
                     )
                 }
             } catch (e: SessionExpiredException) {
@@ -152,7 +161,7 @@ class HomeViewModel(
 
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
-                    it.copy(expensesError = e.userMessageOr("Não foi possível carregar as despesas."))
+                    it.copy(expensesError = e.userMessageOr("Não foi possível carregar as despesas."), expensesNetworkFailure = (e as? NetworkRequestException)?.kind)
                 }
             } finally {
                 if (currentCoroutineContext().isActive) _uiState.update {
@@ -166,13 +175,14 @@ class HomeViewModel(
     fun loadCategories(token: String, refreshKey: Any? = null) {
         launchLatest("categories", listOf(token, refreshKey)) {
             _uiState.update { it.copy(isCategoriesLoading = true,
-                categoriesError = if (it.categoriesMap.isNotEmpty()) it.categoriesError else null) }
+                categoriesError = if (it.categoriesMap.isNotEmpty()) it.categoriesError else null,
+                    categoriesNetworkFailure = if (it.categoriesMap.isNotEmpty()) it.categoriesNetworkFailure else null) }
             try {
                 val categories = repository.getCategories(token)
                 currentCoroutineContext().ensureActive()
                 _uiState.update { it.copy(
                     categoriesMap = categories.categories.associate { category -> category.id to category.name },
-                    categoriesError = null
+                    categoriesError = null, categoriesNetworkFailure = null
                 ) }
             } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
             catch (error: SessionExpiredException) {
@@ -180,7 +190,7 @@ class HomeViewModel(
                 _uiState.update { it.copy(isSessionExpired = true) }
             } catch (error: Exception) {
                 currentCoroutineContext().ensureActive()
-                _uiState.update { it.copy(categoriesError = error.userMessageOr("Não foi possível carregar as categorias.")) }
+                _uiState.update { it.copy(categoriesError = error.userMessageOr("Não foi possível carregar as categorias."), categoriesNetworkFailure = (error as? NetworkRequestException)?.kind) }
             } finally {
                 if (currentCoroutineContext().isActive) _uiState.update { it.copy(isCategoriesLoading = false) }
             }

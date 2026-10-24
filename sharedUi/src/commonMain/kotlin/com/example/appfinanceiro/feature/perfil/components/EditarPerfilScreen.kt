@@ -102,13 +102,13 @@ fun EditarPerfilScreen(
                 loading = isLoading,
                 onClick = {
                     if (name.isBlank() || email.isBlank()) {
-                        Toast.makeText(context, "Preencha nome e e-mail", Toast.LENGTH_SHORT).show()
+                        Toast.warning(context, "Preencha nome e e-mail", Toast.LENGTH_SHORT).show()
                         return@SettingsPrimaryButton
                     }
 
                     val token = userToken
                     if (token.isNullOrBlank()) {
-                        Toast.makeText(context, "Sessão inválida. Faça login novamente.", Toast.LENGTH_SHORT).show()
+                        Toast.error(context, "Sessão inválida. Faça login novamente.", Toast.LENGTH_SHORT).show()
                         return@SettingsPrimaryButton
                     }
 
@@ -131,11 +131,11 @@ fun EditarPerfilScreen(
                                 avatarUrl = currentAvatarUrl
                             )
 
-                            Toast.makeText(context, "Perfil atualizado com sucesso!", Toast.LENGTH_SHORT).show()
+                            Toast.success(context, "Perfil atualizado com sucesso!", Toast.LENGTH_SHORT).show()
                             onNavigateBack()
                         } catch (e: Exception) {
                             if (e is kotlinx.coroutines.CancellationException) throw e
-                            Toast.makeText(
+                            Toast.error(
                                 context,
                                 e.userMessageOr("Erro ao atualizar perfil"),
                                 Toast.LENGTH_SHORT

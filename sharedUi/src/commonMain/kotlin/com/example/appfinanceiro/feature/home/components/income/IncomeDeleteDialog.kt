@@ -95,7 +95,7 @@ fun IncomeDeleteDialog(
                                 deleteFuture = if (deleteFuture) true else null
                             )
 
-                            Toast.makeText(
+                            Toast.success(
                                 context,
                                 "${state.label} removido!",
                                 Toast.LENGTH_SHORT
@@ -104,7 +104,7 @@ fun IncomeDeleteDialog(
                             onSuccess()
                         } catch (e: Exception) {
                             if (e is kotlinx.coroutines.CancellationException) throw e
-                            Toast.makeText(
+                            Toast.error(
                                 context,
                                 e.userMessageOr("Erro ao remover ${state.label}"),
                                 Toast.LENGTH_SHORT

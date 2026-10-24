@@ -78,7 +78,6 @@ import com.example.appfinanceiro.core.designsystem.components.ExpenseCard
 import com.example.appfinanceiro.core.designsystem.components.ExpenseCardStyle
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
 import com.example.appfinanceiro.core.designsystem.components.swipeNavigation
-import com.example.appfinanceiro.core.designsystem.components.dataRequestErrorMessage
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.GreenPositive
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
@@ -174,30 +173,30 @@ fun DespesasScreen(
         uiState.advanceStatusErrorMessage
     ) {
         uiState.deleteSuccessMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            Toast.success(context, it, Toast.LENGTH_SHORT).show()
             viewModel.clearMessages()
         }
 
         uiState.deleteErrorMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            Toast.error(context, it, Toast.LENGTH_SHORT).show()
             viewModel.clearMessages()
         }
 
         uiState.paymentStatusSuccessMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            Toast.success(context, it, Toast.LENGTH_SHORT).show()
             viewModel.clearMessages()
         }
 
         uiState.paymentStatusErrorMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            Toast.error(context, it, Toast.LENGTH_SHORT).show()
             viewModel.clearMessages()
         }
         uiState.advanceStatusSuccessMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            Toast.success(context, it, Toast.LENGTH_SHORT).show()
             viewModel.clearMessages()
         }
         uiState.advanceStatusErrorMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            Toast.error(context, it, Toast.LENGTH_LONG).show()
             viewModel.clearMessages()
         }
     }
@@ -248,13 +247,6 @@ fun DespesasScreen(
     val formattedSelectedFilterTotal = remember(selectedFilterTotal) {
         NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"))
             .format(selectedFilterTotal)
-    }
-    val expensesErrorBannerMessage = uiState.errorMessage?.let { error ->
-        dataRequestErrorMessage(
-            errorMessage = error,
-            showingPreviousData = uiState.expensesData.isNotEmpty(),
-            dataLabel = "as despesas"
-        )
     }
 
     Scaffold(
@@ -328,23 +320,18 @@ fun DespesasScreen(
                     onNextClick = { changeMonth(1) }
                 )
             }
-            uiState.categoriesError?.let { error ->
-                item(key = "categories_error") {
+            expensesLoadNotices(uiState).forEach { notice ->
+                item(key = "load_error_${notice.target}") {
                     AppDataErrorBanner(
-                        message = "Não foi possível atualizar as categorias. $error",
-                        isRetrying = uiState.isCategoriesLoading,
-                        onRetry = { userToken?.let { token -> viewModel.loadCategories(token) } }
-                    )
-                }
-            }
-            expensesErrorBannerMessage?.let { message ->
-                item(key = "expenses_error") {
-                    AppDataErrorBanner(
-                        message = message,
-                        isRetrying = uiState.isLoading,
+                        message = notice.message,
+                        isRetrying = notice.retrying,
                         onRetry = {
                             userToken?.let { token ->
-                                viewModel.loadExpenses(token, currentMonthIndex + 1, currentYear)
+                                when (notice.target) {
+                                    ExpensesRetryTarget.Categories -> viewModel.loadCategories(token)
+                                    ExpensesRetryTarget.Expenses, ExpensesRetryTarget.Both ->
+                                        viewModel.loadExpenses(token, currentMonthIndex + 1, currentYear)
+                                }
                             }
                         }
                     )
@@ -408,7 +395,7 @@ fun DespesasScreen(
                                 onGoToOriginalExpense = {
                                     val scheduledPeriod = expense.scheduledMonthYear()
                                     if (scheduledPeriod == null) {
-                                        Toast.makeText(context, "Não foi possível identificar o mês original desta despesa.", Toast.LENGTH_SHORT).show()
+                                        Toast.error(context, "Não foi possível identificar o mês original desta despesa.", Toast.LENGTH_SHORT).show()
                                     } else {
                                         val (month, year) = scheduledPeriod
                                         searchQuery = ""

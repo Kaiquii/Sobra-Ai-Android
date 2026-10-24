@@ -230,7 +230,7 @@ fun ConfiguracoesRendaScreen(
                                     deleteFuture = if (deleteFutureSelected) true else null
                                 )
 
-                                Toast.makeText(
+                                Toast.success(
                                     context,
                                     response.message.ifBlank { "$incomeDeleteLabel removido!" },
                                     Toast.LENGTH_SHORT
@@ -241,7 +241,7 @@ fun ConfiguracoesRendaScreen(
                                 refreshTrigger++
                             } catch (e: Exception) {
                                 if (e is kotlinx.coroutines.CancellationException) throw e
-                                Toast.makeText(
+                                Toast.error(
                                     context,
                                     e.userMessageOr("Erro ao remover $incomeDeleteLabel"),
                                     Toast.LENGTH_SHORT
@@ -464,7 +464,7 @@ private fun saveIncome(
 ) {
     val amount = amountText.replace(",", ".").toDoubleOrNull()
     if (amount == null || amount <= 0.0) {
-        Toast.makeText(context, "Informe um valor maior que zero", Toast.LENGTH_SHORT).show()
+        Toast.warning(context, "Informe um valor maior que zero", Toast.LENGTH_SHORT).show()
         return
     }
 
@@ -486,7 +486,7 @@ private fun saveIncome(
                     )
                 )
 
-                Toast.makeText(context, "$source cadastrado!", Toast.LENGTH_SHORT).show()
+                Toast.success(context, "$source cadastrado!", Toast.LENGTH_SHORT).show()
             }
             else {
                 actionsViewModel.updateIncome(
@@ -497,12 +497,12 @@ private fun saveIncome(
                         update_future = updateFuture
                     )
                 )
-                Toast.makeText(context, "$source atualizado!", Toast.LENGTH_SHORT).show()
+                Toast.success(context, "$source atualizado!", Toast.LENGTH_SHORT).show()
             }
             refresh()
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
-            Toast.makeText(
+            Toast.error(
                 context,
                 e.userMessageOr("Erro ao salvar $source"),
                 Toast.LENGTH_SHORT

@@ -59,7 +59,7 @@ fun AppUpdateGate() {
             },
             onUpdateClick = {
                 try { source.openStore(state.version.storeUrl) }
-                catch (_: Exception) { services.notify("Não foi possível abrir a loja de aplicativos.") }
+                catch (_: Exception) { services.notify("Não foi possível abrir a loja de aplicativos.", com.example.appfinanceiro.core.designsystem.components.AppNotificationType.Error) }
             }
         )
     }

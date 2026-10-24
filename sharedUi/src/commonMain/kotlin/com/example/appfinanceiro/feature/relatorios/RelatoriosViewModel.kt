@@ -4,6 +4,8 @@ import br.com.sobraai.ui.runtime.PresentationModel as ViewModel
 import com.example.appfinanceiro.core.data.SharedFinanceRepository
 import com.example.appfinanceiro.core.data.ReportsDataSource
 import com.example.appfinanceiro.core.data.SessionExpiredException
+import com.example.appfinanceiro.core.data.NetworkFailureKind
+import com.example.appfinanceiro.core.data.NetworkRequestException
 import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.network.CategoryReportResponse
 import com.example.appfinanceiro.core.network.ChartReportResponse
@@ -26,9 +28,11 @@ data class RelatoriosUiState(
     val monthComparison: MonthComparisonResponse? = null,
     val isComparisonLoading: Boolean = false,
     val comparisonErrorMessage: String? = null,
+    val comparisonNetworkFailure: NetworkFailureKind? = null,
     val isLoading: Boolean = true,
     val hasLoadedOnce: Boolean = false,
     val errorMessage: String? = null,
+    val reportsNetworkFailure: NetworkFailureKind? = null,
     val isSessionExpired: Boolean = false
 )
 
@@ -42,7 +46,8 @@ class RelatoriosViewModel(
         launchLatest("reports", listOf(token, month, year, refreshKey)) {
             _uiState.update {
                 it.copy(isLoading = true, isSessionExpired = false,
-                    errorMessage = if (it.summaryData != null) it.errorMessage else null)
+                    errorMessage = if (it.summaryData != null) it.errorMessage else null,
+                    reportsNetworkFailure = if (it.summaryData != null) it.reportsNetworkFailure else null)
             }
 
             try {
@@ -58,7 +63,7 @@ class RelatoriosViewModel(
                         categoryData = categories,
                         chartData = chart,
                         yearlySummary = yearly,
-                        errorMessage = null
+                        errorMessage = null, reportsNetworkFailure = null
                     )
                 }
             } catch (e: SessionExpiredException) {
@@ -72,7 +77,7 @@ class RelatoriosViewModel(
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
                     it.copy(
-                        errorMessage = e.userMessageOr("Erro ao carregar relatórios")
+                        errorMessage = e.userMessageOr("Erro ao carregar relatórios"), reportsNetworkFailure = (e as? NetworkRequestException)?.kind
                     )
                 }
             } finally {
@@ -96,6 +101,7 @@ class RelatoriosViewModel(
                 it.copy(
                     isComparisonLoading = true,
                     comparisonErrorMessage = if (it.monthComparison != null) it.comparisonErrorMessage else null,
+                    comparisonNetworkFailure = if (it.monthComparison != null) it.comparisonNetworkFailure else null,
                     isSessionExpired = false
                 )
             }
@@ -111,7 +117,7 @@ class RelatoriosViewModel(
 
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
-                    it.copy(monthComparison = comparison, comparisonErrorMessage = null)
+                    it.copy(monthComparison = comparison, comparisonErrorMessage = null, comparisonNetworkFailure = null)
                 }
             } catch (e: SessionExpiredException) {
                 currentCoroutineContext().ensureActive()
@@ -124,7 +130,7 @@ class RelatoriosViewModel(
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
                     it.copy(
-                        comparisonErrorMessage = e.userMessageOr("Erro ao carregar comparativo mensal")
+                        comparisonErrorMessage = e.userMessageOr("Erro ao carregar comparativo mensal"), comparisonNetworkFailure = (e as? NetworkRequestException)?.kind
                     )
                 }
             } finally {

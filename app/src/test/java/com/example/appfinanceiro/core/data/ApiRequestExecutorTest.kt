@@ -45,6 +45,7 @@ class ApiRequestExecutorTest {
         }
 
         assertEquals("O servidor demorou para responder. Tente novamente.", error.userMessage)
+        assertEquals(NetworkFailureKind.Timeout, error.kind)
     }
 
     private fun httpException(status: Int, json: String): HttpException {

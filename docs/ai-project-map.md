@@ -13,6 +13,7 @@ Multiplatform**. A referência visual é o Android anterior à migração. Leia
 | Componentes comuns | `designSystem/src/commonMain/kotlin/com/example/appfinanceiro/` | Tema, cores, privacidade, barra inferior, cards, filtros, gráficos, perfil, ajuda e chat; Roboto embutida em `designSystem/src/commonMain/composeResources/` |
 | Despesas: apresentação | `designSystem/.../feature/despesas/components/ExpenseListControls.kt`, `core/designsystem/components/ExpenseCard.kt`, `ExpenseTypeStyle.kt` | Cabeçalho de mês/resumo/busca/filtros e cards usados em Início/Despesas; cor apenas no marcador do tipo da API; seletor de mês padrão e ações originais |
 | Serviços da interface | `sharedUi/src/commonMain/kotlin/br/com/sobraai/ui/runtime/` | `UiServices`, contratos de arquivos, escopos de apresentação e formatação/data com adaptadores |
+| Notificações de ações | `designSystem/.../core/designsystem/components/AppNotification.kt` | Card compacto reutilizável nos dois temas; eventos tipados de `UiServices`/`UiToast`, host acima da barra inferior medida, em `SharedApplication` |
 | Host Android | `app/src/main/java/com/example/appfinanceiro/MainActivity.kt` | Splash, proteção, injeção e ciclo de vida; abre `SobraAiApp(services)` |
 | Adaptadores Android | `app/src/main/java/com/example/appfinanceiro/platform/` | Biometria, galeria, permissões, voz e arquivos do sistema |
 | Host Apple Kotlin | `sharedUi/src/iosMain/kotlin/br/com/sobraai/ui/IosApp.kt` | Keychain, clientes, injeção, LocalAuthentication e ciclo de vida; abre o mesmo `SobraAiApp(services)` |
@@ -71,6 +72,11 @@ da identidade continua em `UiServices.persistProfileIdentity`, preservando biome
 - Relatórios, comparativo e compromissos também identificam consultas pelo período,
   filtros e revisão de dados. Ao repetir um carregamento inicial sem conteúdo,
   o erro anterior é limpo; quando existem dados antigos, o aviso permanece até sucesso.
+- `loadNotices` é comum a `HomeLoadNotices`, `ExpensesLoadNotices` e
+  `ReportsLoadNotices`: agrupa falhas de transporte simultâneas apenas quando
+  têm o mesmo `NetworkFailureKind`. Erros HTTP e respostas
+  inválidas continuam visíveis, sem novas repetições automáticas; timeout não é
+  tratado como internet indisponível. Uma recuperação parcial preserva o erro restante.
 - Cancelamento, expiração e bloqueio não podem publicar sucesso da sessão antiga.
 - Biometria é exigida ao restaurar sessão em uma nova instância; alternar apps
   preserva sessão desbloqueada, tela e rascunhos. Hosts chamam `enterBackground()`,

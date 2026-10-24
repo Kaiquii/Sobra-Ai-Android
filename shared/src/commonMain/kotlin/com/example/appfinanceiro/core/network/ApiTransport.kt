@@ -2,6 +2,7 @@ package com.example.appfinanceiro.core.network
 
 import com.example.appfinanceiro.core.data.ApiResponseException
 import com.example.appfinanceiro.core.data.NetworkRequestException
+import com.example.appfinanceiro.core.data.NetworkFailureKind
 import com.example.appfinanceiro.core.data.SessionExpiredException
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -112,5 +113,5 @@ class ApiTransport(
         }
     }
 
-    private fun timeout(cause: Throwable) = NetworkRequestException("O servidor demorou para responder. Tente novamente.", cause)
+    private fun timeout(cause: Throwable) = NetworkRequestException("O servidor demorou para responder. Tente novamente.", cause, NetworkFailureKind.Timeout)
 }

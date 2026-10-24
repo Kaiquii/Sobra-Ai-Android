@@ -47,7 +47,6 @@ import com.example.appfinanceiro.feature.home.utils.formatCurrency
 import com.example.appfinanceiro.core.date.shiftMonth
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
 import com.example.appfinanceiro.core.designsystem.components.AppDataErrorBanner
-import com.example.appfinanceiro.core.designsystem.components.dataRequestErrorMessage
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
 import com.example.appfinanceiro.core.designsystem.components.ExpenseDetailsDialog
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
@@ -91,27 +90,6 @@ fun HomeScreen(
     val hasLoadedHome = uiState.hasLoadedSummary &&
             uiState.hasLoadedIncomes &&
             uiState.hasLoadedExpenses
-    val refreshErrors = listOfNotNull(
-        uiState.summaryError,
-        uiState.incomesError,
-        uiState.expensesError
-    )
-    val hasVisibleCachedData = uiState.summaryData != null ||
-            uiState.incomesData.isNotEmpty() ||
-            uiState.expensesData.isNotEmpty()
-    val staleDataMessage = if (
-        hasLoadedHome &&
-        hasVisibleCachedData &&
-        refreshErrors.isNotEmpty()
-    ) {
-        dataRequestErrorMessage(
-            errorMessage = refreshErrors.first(),
-            showingPreviousData = true
-        )
-    } else {
-        null
-    }
-
     var currentMonthIndex by rememberSaveable {
         mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))
     }
@@ -291,31 +269,24 @@ fun HomeScreen(
                 )
             }
 
-            staleDataMessage?.let { message ->
-                item(key = "stale_data_warning") {
+            homeLoadNotices(uiState).forEach { notice ->
+                item(key = "home_error_${notice.sources}") {
                     AppDataErrorBanner(
-                        message = message,
-                        isRetrying = isLoadingMonth,
+                        message = notice.message,
+                        isRetrying = notice.retrying,
                         onRetry = {
                             userToken?.let { token ->
-                                viewModel.loadAll(
-                                    token,
-                                    currentMonthIndex + 1,
-                                    currentYear,
-                                    selectedPaymentStatus
-                                )
+                                notice.sources.forEach { source ->
+                                    when (source) {
+                                        HomeLoadSource.Summary -> viewModel.loadSummary(token, currentMonthIndex + 1, currentYear)
+                                        HomeLoadSource.Incomes -> viewModel.loadIncomes(token, currentMonthIndex + 1, currentYear)
+                                        HomeLoadSource.Expenses -> viewModel.loadExpenses(token, currentMonthIndex + 1, currentYear, selectedPaymentStatus)
+                                        HomeLoadSource.Categories -> if (HomeLoadSource.Expenses !in notice.sources)
+                                            viewModel.loadCategories(token)
+                                    }
+                                }
                             }
                         }
-                    )
-                }
-            }
-
-            uiState.categoriesError?.let { error ->
-                item(key = "categories_error") {
-                    AppDataErrorBanner(
-                        message = "Não foi possível atualizar as categorias. $error",
-                        isRetrying = uiState.isCategoriesLoading,
-                        onRetry = { userToken?.let { token -> viewModel.loadCategories(token) } }
                     )
                 }
             }
@@ -324,6 +295,7 @@ fun HomeScreen(
                 ResumoFinanceiroSection(
                     isLoading = uiState.isSummaryLoading || uiState.isIncomesLoading,
                     errorMessage = uiState.summaryError ?: uiState.incomesError,
+                    errorHandledExternally = true,
                     onRetry = {
                         userToken?.let { token ->
                             viewModel.loadSummary(token, currentMonthIndex + 1, currentYear)
@@ -346,6 +318,7 @@ fun HomeScreen(
                     isLoading = uiState.isExpensesLoading,
                     hasLoadedOnce = uiState.hasLoadedExpenses,
                     errorMessage = uiState.expensesError,
+                    errorHandledExternally = true,
                     onRetry = {
                         userToken?.let { token ->
                             viewModel.loadExpenses(

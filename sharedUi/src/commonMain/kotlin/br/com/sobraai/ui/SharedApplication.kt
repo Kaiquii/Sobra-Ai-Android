@@ -20,6 +20,8 @@ import br.com.sobraai.ui.runtime.*
 import com.example.appfinanceiro.core.designsystem.theme.AppFinanceiroTheme
 import com.example.appfinanceiro.core.update.AppUpdateGate
 import com.example.appfinanceiro.core.designsystem.components.FinancialPrivacyProvider
+import com.example.appfinanceiro.core.designsystem.components.AppNotification
+import com.example.appfinanceiro.core.designsystem.components.LocalBottomBarHeightReporter
 import com.example.appfinanceiro.feature.login.*
 import com.example.appfinanceiro.feature.login.components.*
 import com.example.appfinanceiro.feature.home.HomeScreen
@@ -36,13 +38,15 @@ fun SobraAiApp(services: UiServices) {
     val controller = services.controller
     val state by controller.state.collectAsState()
     val snackbars = remember { SnackbarHostState() }
-    LaunchedEffect(services) { services.messages.collect { snackbars.showSnackbar(it) } }
+    var bottomBarHeightPx by remember { mutableIntStateOf(0) }
+    val reportBottomBarHeight = remember { { height: Int -> bottomBarHeightPx = height } }
+    LaunchedEffect(services) { snackbars.collectAppNotifications(services.messages) }
     LaunchedEffect(services.session) {
         services.session.token.collect { token ->
             if (token.isNullOrBlank() && controller.state.value.route == AppRoute.Home) controller.logout()
         }
     }
-    CompositionLocalProvider(LocalUiServices provides services) {
+    CompositionLocalProvider(LocalUiServices provides services, LocalBottomBarHeightReporter provides reportBottomBarHeight) {
         AppFinanceiroTheme {
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                 Box(Modifier.fillMaxSize()) {
@@ -58,7 +62,11 @@ fun SobraAiApp(services: UiServices) {
                         AppRoute.StorageError -> GateScreen("Sessão indisponível", "Seus dados ficam protegidos no aparelho.", state,
                             "Tentar novamente", controller::restore, "Encerrar sessão", { controller.logout() })
                     }
-                    SnackbarHost(snackbars, Modifier.align(Alignment.BottomCenter).safeDrawingPadding().imePadding())
+                    SnackbarHost(snackbars, Modifier.align(Alignment.BottomCenter)
+                        .windowInsetsPadding(notificationInsets(WindowInsets.safeDrawing, bottomBarHeightPx))
+                        .padding(bottom = 8.dp)) {
+                        AppNotification(it)
+                    }
                     AppUpdateGate()
                 }
             }

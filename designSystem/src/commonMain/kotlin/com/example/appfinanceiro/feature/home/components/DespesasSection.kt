@@ -59,7 +59,8 @@ fun DespesasHeaderSection(
     onClearCategoryFilter: () -> Unit,
     onClearPaymentSourceFilter: () -> Unit,
     onClearPaymentStatusFilter: () -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    errorHandledExternally: Boolean = false
 ) {
     val textColor = MaterialTheme.colorScheme.onBackground
     val hasActiveFilters =
@@ -150,22 +151,24 @@ fun DespesasHeaderSection(
                 AppLoadingIndicator(size = 40.dp, strokeWidth = 4.dp)
             }
         } else if (expenses.isEmpty() && errorMessage != null) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(errorMessage, color = TextMuted, fontSize = 14.sp)
+            if (!errorHandledExternally) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(errorMessage, color = TextMuted, fontSize = 14.sp)
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                TextButton(onClick = onRetry) {
-                    Text(
-                        text = "Tentar novamente",
-                        color = PrimaryBlue,
-                        fontWeight = FontWeight.Bold
-                    )
+                    TextButton(onClick = onRetry) {
+                        Text(
+                            text = "Tentar novamente",
+                            color = PrimaryBlue,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         } else if (expenses.isEmpty()) {

@@ -123,16 +123,35 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
 
 ## Estados de carregamento
 
+- Mensagens transitórias de ações usam `AppNotification`, do designSystem, em
+  um único `SnackbarHost` compacto acima da barra inferior medida, dentro da área
+  segura e acima do teclado. Usar superfície do tema e ícone por tipo; confirmações
+  fecham ao toque e avisos/erros têm botão de fechar. `UiToast.success/error/warning` e
+  `UiServices.notify` encaminham mensagens tipadas; não inferir sucesso pelo texto.
+  Uma mensagem nova substitui a anterior, sem acumular confirmações antigas.
+  O espaço inferior deve ser a união da área segura/teclado com a altura medida
+  da barra, usando o maior valor. Não alternar o espaço da barra por um booleano
+  de teclado visível nem somar novamente seus insets: isso causa salto ao salvar
+  e fechar o teclado. A regra vale para todos os formulários e diálogos.
+  Falhas de carregamento continuam persistentes na própria tela, com retry.
+- Os avisos de Início, Despesas e Relatórios usam `loadNotices`: agrupar falhas de
+  transporte iguais e repetir somente as consultas afetadas. Manter erros HTTP
+  distintos separados. Se um painel já exibir o aviso central, seus componentes
+  internos não devem duplicá-lo. O retry no banner usa ícone de atualizar com
+  descrição acessível para liberar largura para a mensagem; não cortar o texto.
+
 - Falha de consulta não significa lista vazia: mostrar contagem indisponível (—)
   enquanto os dados não foram carregados, em vez de afirmar zero despesas.
 - Categorias carregam independentemente das despesas; falha nos nomes/filtros
   não deve bloquear a lista e os valores. Exibir o aviso específico e permitir
-  repetir somente a consulta de categorias.
+  repetir somente a consulta de categorias. Se ambas falharem com o mesmo tipo
+  de falha de transporte, usar um aviso único com retry das duas consultas;
+  não agrupar erros HTTP distintos nem considerar timeout como ausência de internet.
 
 - Usar o componente `AppLoadingIndicator` para manter tamanho, cor e espessura consistentes nos indicadores de carregamento.
 - Exibir o carregamento central apenas na primeira abertura, quando ainda não existe conteúdo disponível.
 - Em atualizações de mês, data ou filtros, manter o conteúdo atual na tela e mostrar somente o indicador compacto no topo. A interface não deve piscar nem ser substituída por uma tela vazia.
-- Se uma atualização falhar e a tela continuar mostrando dados anteriores, avisar claramente que eles podem estar desatualizados. Para falhas de conexão, usar o componente compacto `AppDataErrorBanner` com a mensagem “Sem conexão. Exibindo os últimos dados carregados.” e oferecer a ação “Tentar novamente”.
+- Se uma atualização falhar e a tela continuar mostrando dados anteriores, avisar claramente que eles podem estar desatualizados. Usar `AppDataErrorBanner` com superfície do tema, borda e ícone de erro e ação “Tentar novamente”. Falha de comunicação deve mencionar conexão com o servidor, sem afirmar que a internet do usuário caiu. Preservar mensagens de erro da API e distinguir demora na resposta.
 - Ao tocar em “Tentar novamente” com dados antigos visíveis, manter o aviso, trocar a ação por “Tentando...” com indicador de progresso e impedir toques repetidos até a requisição terminar. Remover esse aviso somente após uma resposta bem-sucedida.
 - Sem conteúdo carregado, uma nova tentativa deve mostrar carregamento e limpar o erro da tentativa anterior. Se a nova tentativa também falhar, mostrar o erro terminal; não esconder falhas reais nem repetir consultas em ciclo. Reabrir uma aba não deve cancelar uma leitura idêntica ainda em andamento.
 - Em telas de painel, como Relatórios, uma falha inicial não deve desmontar a estrutura nem deixar uma grande área vazia. Manter ações e cards em seus estados vazios ou zerados, acompanhados do aviso de erro para deixar claro que os valores não foram carregados.

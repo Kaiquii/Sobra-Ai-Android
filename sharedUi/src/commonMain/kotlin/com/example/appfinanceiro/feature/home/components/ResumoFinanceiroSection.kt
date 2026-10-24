@@ -65,7 +65,8 @@ fun ResumoFinanceiroSection(
     token: String?,
     month: Int,
     year: Int,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    errorHandledExternally: Boolean = false
 ) {
     val isDark = isSystemInDarkTheme()
     val textColor = MaterialTheme.colorScheme.onBackground
@@ -112,7 +113,7 @@ fun ResumoFinanceiroSection(
             fontWeight = FontWeight.Bold
         )
 
-        if (data == null && errorMessage != null) {
+        if (data == null && errorMessage != null && !errorHandledExternally) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

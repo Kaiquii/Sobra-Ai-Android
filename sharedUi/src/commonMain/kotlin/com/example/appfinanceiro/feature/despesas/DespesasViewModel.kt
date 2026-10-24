@@ -5,6 +5,8 @@ import com.example.appfinanceiro.core.data.SharedFinanceRepository
 import com.example.appfinanceiro.core.data.ExpensesDataSource
 import com.example.appfinanceiro.core.data.SessionExpiredException
 import com.example.appfinanceiro.core.data.userMessageOr
+import com.example.appfinanceiro.core.data.NetworkRequestException
+import com.example.appfinanceiro.core.data.NetworkFailureKind
 import com.example.appfinanceiro.core.network.Expense
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +21,8 @@ data class DespesasUiState(
     val effectiveExpensesData: List<Expense> = emptyList(),
     val categoriesMap: Map<Int, String> = emptyMap(),
     val categoriesError: String? = null,
+    val categoriesNetworkFailure: NetworkFailureKind? = null,
+    val expensesNetworkFailure: NetworkFailureKind? = null,
     val isCategoriesLoading: Boolean = false,
     val isLoading: Boolean = true,
     val hasLoadedOnce: Boolean = false,
@@ -46,7 +50,8 @@ class DespesasViewModel(
         launchLatest("expenses", listOf(token, month, year, paymentStatus, refreshKey)) {
             _uiState.update {
                 it.copy(isLoading = true, isSessionExpired = false,
-                    errorMessage = if (it.expensesData.isNotEmpty() || it.effectiveExpensesData.isNotEmpty()) it.errorMessage else null)
+                    errorMessage = if (it.expensesData.isNotEmpty() || it.effectiveExpensesData.isNotEmpty()) it.errorMessage else null,
+                    expensesNetworkFailure = if (it.expensesData.isNotEmpty() || it.effectiveExpensesData.isNotEmpty()) it.expensesNetworkFailure else null)
             }
 
             try {
@@ -58,7 +63,8 @@ class DespesasViewModel(
                     it.copy(
                         expensesData = expenses.expenses,
                         effectiveExpensesData = effectiveExpenses.expenses,
-                        errorMessage = null
+                        errorMessage = null,
+                        expensesNetworkFailure = null
                     )
                 }
             } catch (e: SessionExpiredException) {
@@ -72,7 +78,8 @@ class DespesasViewModel(
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
                     it.copy(
-                        errorMessage = e.userMessageOr("Erro ao carregar despesas")
+                        errorMessage = e.userMessageOr("Erro ao carregar despesas"),
+                        expensesNetworkFailure = (e as? NetworkRequestException)?.kind
                     )
                 }
             } finally {
@@ -87,13 +94,15 @@ class DespesasViewModel(
     fun loadCategories(token: String, refreshKey: Any? = null) {
         launchLatest("categories", listOf(token, refreshKey)) {
             _uiState.update { it.copy(isCategoriesLoading = true,
-                categoriesError = if (it.categoriesMap.isNotEmpty()) it.categoriesError else null) }
+                categoriesError = if (it.categoriesMap.isNotEmpty()) it.categoriesError else null,
+                categoriesNetworkFailure = if (it.categoriesMap.isNotEmpty()) it.categoriesNetworkFailure else null) }
             try {
                 val categories = repository.getCategories(token)
                 currentCoroutineContext().ensureActive()
                 _uiState.update { it.copy(
                     categoriesMap = categories.categories.associate { category -> category.id to category.name },
-                    categoriesError = null
+                    categoriesError = null,
+                    categoriesNetworkFailure = null
                 ) }
             } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
             catch (error: SessionExpiredException) {
@@ -101,7 +110,8 @@ class DespesasViewModel(
                 _uiState.update { it.copy(isSessionExpired = true) }
             } catch (error: Exception) {
                 currentCoroutineContext().ensureActive()
-                _uiState.update { it.copy(categoriesError = error.userMessageOr("Não foi possível carregar as categorias.")) }
+                _uiState.update { it.copy(categoriesError = error.userMessageOr("Não foi possível carregar as categorias."),
+                    categoriesNetworkFailure = (error as? NetworkRequestException)?.kind) }
             } finally {
                 if (currentCoroutineContext().isActive) _uiState.update { it.copy(isCategoriesLoading = false) }
             }
@@ -169,7 +179,7 @@ class DespesasViewModel(
                         expensesData = state.expensesData.map { currentExpense ->
                             if (currentExpense.id == expense.id) response.expense else currentExpense
                         },
-                        paymentStatusSuccessMessage = response.message
+                        paymentStatusSuccessMessage = if (isPaid) "Despesa marcada como paga." else "Despesa marcada como pendente."
                     )
                 }
                 onUpdated()
@@ -218,7 +228,7 @@ class DespesasViewModel(
                     state.copy(
                         expensesData = state.expensesData.replaceExpense(response.expense),
                         effectiveExpensesData = state.effectiveExpensesData.replaceExpense(response.expense),
-                        advanceStatusSuccessMessage = response.message
+                        advanceStatusSuccessMessage = "Adiantamento atualizado."
                     )
                 }
                 onUpdated()

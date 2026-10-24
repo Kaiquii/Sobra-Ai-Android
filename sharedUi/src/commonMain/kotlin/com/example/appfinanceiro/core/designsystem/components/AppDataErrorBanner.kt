@@ -1,25 +1,25 @@
 package com.example.appfinanceiro.core.designsystem.components
 
+import androidx.compose.foundation.BorderStroke
+
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -33,8 +33,9 @@ fun AppDataErrorBanner(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = colorScheme.errorContainer,
-        contentColor = colorScheme.onErrorContainer,
+        color = colorScheme.surface,
+        contentColor = colorScheme.onSurface,
+        border = BorderStroke(1.dp, colorScheme.error.copy(alpha = 0.35f)),
         shape = MaterialTheme.shapes.medium
     ) {
         Row(
@@ -45,6 +46,7 @@ fun AppDataErrorBanner(
             Icon(
                 imageVector = Icons.Default.WarningAmber,
                 contentDescription = null,
+                tint = colorScheme.error,
                 modifier = Modifier.size(18.dp)
             )
             Text(
@@ -52,25 +54,19 @@ fun AppDataErrorBanner(
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodySmall
             )
-            TextButton(
+            IconButton(
                 onClick = onRetry,
                 enabled = !isRetrying,
-                modifier = Modifier.heightIn(min = 36.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                modifier = Modifier.size(48.dp).semantics {
+                    contentDescription = if (isRetrying) "Tentando novamente" else "Tentar novamente"
+                }
             ) {
                 if (isRetrying) {
-                    AppLoadingIndicator(
-                        size = 14.dp,
-                        strokeWidth = 2.dp,
-                        color = colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    AppLoadingIndicator(size = 18.dp, color = colorScheme.error)
+                } else {
+                    Icon(Icons.Default.Refresh, contentDescription = null, tint = colorScheme.error,
+                        modifier = Modifier.size(20.dp))
                 }
-                Text(
-                    text = if (isRetrying) "Tentando..." else "Tentar novamente",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold
-                )
             }
         }
     }
@@ -81,17 +77,20 @@ fun dataRequestErrorMessage(
     showingPreviousData: Boolean,
     dataLabel: String = "dados"
 ): String {
+    val isTimeout = errorMessage.contains("demorou", ignoreCase = true)
     val isConnectionFailure = errorMessage.contains("internet", ignoreCase = true) ||
-            errorMessage.contains("conectar", ignoreCase = true) ||
-            errorMessage.contains("demorou", ignoreCase = true)
+            errorMessage.contains("conectar", ignoreCase = true)
 
     return when {
+        isTimeout && showingPreviousData ->
+            "O servidor demorou para responder. Exibindo dados salvos."
+        isTimeout -> errorMessage
         isConnectionFailure && showingPreviousData ->
-            "Sem conexão. Exibindo os últimos dados carregados."
+            "Falha de conexão com o servidor. Exibindo dados salvos."
         isConnectionFailure ->
-            "Sem conexão. Não foi possível carregar $dataLabel."
+            "Falha de conexão com o servidor. Não foi possível carregar $dataLabel."
         showingPreviousData ->
-            "Não foi possível atualizar os dados. Exibindo os últimos dados carregados."
+            "$errorMessage Exibindo dados salvos."
         else -> errorMessage
     }
 }

@@ -107,6 +107,7 @@ if ($ApiBaseUrl) {
 }
 
 Write-Host "[harness] SobraAi KMP: preservar Android e iPhone em toda alteracao."
+Write-Host "[harness] Revisao transversal obrigatoria: conferir consumidores e fluxos semelhantes; nao concluir com o mesmo defeito conhecido em outra tela."
 Write-Host "[harness] Executando modo '$Mode'..."
 if ($Mode -eq "unit") {
     Write-Host "[harness] Modo parcial: somente JVM. Use verify para compilar tambem os fontes iOS."

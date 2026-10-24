@@ -135,7 +135,7 @@ fun IncomeEditorDialog(
                 onClick = {
                     val amount = amountText.replace(",", ".").toDoubleOrNull()
                     if (amount == null || amount <= 0.0) {
-                        Toast.makeText(context, "Informe um valor maior que zero", Toast.LENGTH_SHORT).show()
+                        Toast.warning(context, "Informe um valor maior que zero", Toast.LENGTH_SHORT).show()
                         return@TextButton
                     }
 
@@ -154,7 +154,7 @@ fun IncomeEditorDialog(
                                     )
                                 )
 
-                                Toast.makeText(
+                                Toast.success(
                                     context,
                                     "${state.title} criado!",
                                     Toast.LENGTH_SHORT
@@ -169,7 +169,7 @@ fun IncomeEditorDialog(
                                     )
                                 )
 
-                                Toast.makeText(
+                                Toast.success(
                                     context,
                                     "${state.title} atualizado!",
                                     Toast.LENGTH_SHORT
@@ -179,7 +179,7 @@ fun IncomeEditorDialog(
                             onSuccess()
                         } catch (e: Exception) {
                             if (e is kotlinx.coroutines.CancellationException) throw e
-                            Toast.makeText(
+                            Toast.error(
                                 context,
                                 e.userMessageOr("Erro ao salvar ${state.title}"),
                                 Toast.LENGTH_SHORT

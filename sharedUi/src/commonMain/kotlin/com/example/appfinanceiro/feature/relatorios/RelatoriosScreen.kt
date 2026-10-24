@@ -58,7 +58,6 @@ import com.example.appfinanceiro.core.designsystem.components.FinancialPrivacyBu
 import com.example.appfinanceiro.core.designsystem.components.PrivateReportContent
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
 import com.example.appfinanceiro.core.designsystem.components.swipeNavigation
-import com.example.appfinanceiro.core.designsystem.components.dataRequestErrorMessage
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import com.example.appfinanceiro.feature.relatorios.components.CategoryExpensesCard
@@ -114,19 +113,6 @@ fun RelatoriosScreen(
 
     val currentMonthNumber = currentMonthIndex + 1
     val compareMonthNumber = compareMonthIndex + 1
-    val hasCachedReportData = uiState.summaryData != null ||
-            uiState.categoryData.isNotEmpty() ||
-            uiState.chartData.isNotEmpty() ||
-            uiState.yearlySummary != null
-    val reportErrorBannerMessage = uiState.errorMessage?.let { error ->
-        dataRequestErrorMessage(
-            errorMessage = error,
-            showingPreviousData = hasCachedReportData,
-            dataLabel = "os relatórios"
-        )
-    }
-
-
     fun changeMonth(amount: Int) {
         val target = shiftMonth(currentMonthIndex, currentYear, amount)
         val previousMonth = shiftMonth(target.monthIndex, target.year, -1)
@@ -275,14 +261,17 @@ fun RelatoriosScreen(
                     )
                 }
 
-                reportErrorBannerMessage?.let { message ->
-                    item(key = "report_error", contentType = "status") {
+                reportsLoadNotices(uiState).forEach { notice ->
+                    item(key = "report_error_${notice.sources}", contentType = "status") {
                         AppDataErrorBanner(
-                            message = message,
-                            isRetrying = uiState.isLoading,
+                            message = notice.message,
+                            isRetrying = notice.retrying,
                             onRetry = {
                                 userToken?.let { token ->
-                                    viewModel.loadReports(token, currentMonthNumber, currentYear)
+                                    if (ReportsLoadSource.Reports in notice.sources)
+                                        viewModel.loadReports(token, currentMonthNumber, currentYear)
+                                    if (ReportsLoadSource.Comparison in notice.sources)
+                                        viewModel.loadMonthComparison(token, currentMonthNumber, currentYear, compareMonthNumber, compareYear)
                                 }
                             }
                         )
@@ -361,6 +350,7 @@ fun RelatoriosScreen(
                             data = uiState.monthComparison,
                             isLoading = uiState.isComparisonLoading,
                             errorMessage = uiState.comparisonErrorMessage,
+                            errorHandledExternally = true,
                             currentMonthIndex = currentMonthIndex,
                             currentYear = currentYear,
                             compareMonthIndex = compareMonthIndex,
@@ -418,11 +408,11 @@ fun RelatoriosScreen(
             report = success.report,
             onOpen = {
                 try { context.reports.open(success.report) }
-                catch (_: Exception) { context.notify("Nenhum aplicativo disponível consegue abrir este formato.") }
+                catch (_: Exception) { context.notify("Nenhum aplicativo disponível consegue abrir este formato.", com.example.appfinanceiro.core.designsystem.components.AppNotificationType.Error) }
             },
             onShare = {
                 try { context.reports.share(success.report) }
-                catch (_: Exception) { context.notify("Não foi possível compartilhar o arquivo.") }
+                catch (_: Exception) { context.notify("Não foi possível compartilhar o arquivo.", com.example.appfinanceiro.core.designsystem.components.AppNotificationType.Error) }
             },
             onDismiss = exportViewModel::clearResult
         )

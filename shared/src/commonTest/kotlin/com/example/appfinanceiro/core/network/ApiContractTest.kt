@@ -253,10 +253,12 @@ class ApiContractTest {
         withTransport({ request -> throw HttpRequestTimeoutException(request) }) { transport ->
             val error = assertFailsWith<NetworkRequestException> { KtorFinanceApi(transport).getCategories("Bearer $token") }
             assertEquals("O servidor demorou para responder. Tente novamente.", error.userMessage)
+            assertEquals(NetworkFailureKind.Timeout, error.kind)
         }
         withTransport({ throw IOException("synthetic-offline") }) { transport ->
             val error = assertFailsWith<NetworkRequestException> { KtorFinanceApi(transport).getCategories("Bearer $token") }
             assertEquals("Não foi possível conectar ao servidor. Verifique sua internet.", error.userMessage)
+            assertEquals(NetworkFailureKind.Connection, error.kind)
         }
         withTransport({ throw CancellationException("synthetic-cancel") }) { transport ->
             assertFailsWith<CancellationException> { KtorFinanceApi(transport).getCategories("Bearer $token") }

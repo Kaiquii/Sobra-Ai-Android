@@ -13,7 +13,7 @@ class AppDataErrorBannerTest {
         )
 
         assertEquals(
-            "Sem conexão. Exibindo os últimos dados carregados.",
+            "Falha de conexão com o servidor. Exibindo dados salvos.",
             message
         )
     }
@@ -27,7 +27,7 @@ class AppDataErrorBannerTest {
         )
 
         assertEquals(
-            "Sem conexão. Não foi possível carregar as despesas.",
+            "Falha de conexão com o servidor. Não foi possível carregar as despesas.",
             message
         )
     }

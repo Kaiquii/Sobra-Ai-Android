@@ -51,7 +51,8 @@ fun MonthComparisonSection(
     compareMonthIndex: Int,
     compareYear: Int,
     onPrevCompareClick: () -> Unit,
-    onNextCompareClick: () -> Unit
+    onNextCompareClick: () -> Unit,
+    errorHandledExternally: Boolean = false
 ) {
     val currentLabel = monthYearLabel(currentMonthIndex + 1, currentYear)
     val comparedLabel = monthYearLabel(compareMonthIndex + 1, compareYear)
@@ -146,7 +147,7 @@ fun MonthComparisonSection(
                     return@Column
                 }
 
-                if (errorMessage != null) {
+                if (errorMessage != null && !errorHandledExternally) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = errorMessage,
@@ -160,7 +161,7 @@ fun MonthComparisonSection(
                 if (data == null) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Sem dados do comparativo mensal.",
+                        text = if (errorMessage != null) "Comparativo indisponível." else "Sem dados do comparativo mensal.",
                         color = TextMuted,
                         fontSize = 14.sp
                     )

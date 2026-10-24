@@ -96,7 +96,7 @@ fun EsqueciSenhaScreen(
                 try {
                 val response = authViewModel.forgotPassword(email)
 
-                Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
+                Toast.success(context, response.message, Toast.LENGTH_LONG).show()
                 step = ForgotPasswordStep.ResetPassword
             } catch (e: AuthProtectionException) {
                 errorMessage = "Não foi possível validar a segurança do aplicativo. ${context.installationHint}"
@@ -150,7 +150,7 @@ fun EsqueciSenhaScreen(
                             newPassword = newPassword
                         )
 
-                        Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
+                        Toast.success(context, response.message, Toast.LENGTH_LONG).show()
                         onNavigateBack()
                     } catch (e: Exception) {
                         if (e is kotlinx.coroutines.CancellationException) throw e

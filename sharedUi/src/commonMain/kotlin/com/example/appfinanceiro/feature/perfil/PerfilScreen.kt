@@ -181,7 +181,7 @@ fun PerfilScreen(
     fun uploadProfilePhoto(photo: com.example.appfinanceiro.core.network.ProfilePhoto) {
         val token = userToken
         if (token.isNullOrBlank()) {
-            Toast.makeText(context, "Sessão inválida. Faça login novamente.", Toast.LENGTH_SHORT).show()
+            Toast.error(context, "Sessão inválida. Faça login novamente.", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -197,12 +197,12 @@ fun PerfilScreen(
                     avatarUrl = response.avatar_url,
                     cacheVersion = kotlin.time.Clock.System.now().toEpochMilliseconds()
                 )
-                Toast.makeText(context, "Foto atualizada com sucesso!", Toast.LENGTH_SHORT).show()
+                Toast.success(context, "Foto atualizada com sucesso!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 localAvatarPreviewUri = null
 
-                Toast.makeText(
+                Toast.error(
                     context,
                     e.userMessageOr("Não foi possível atualizar a foto."),
                     Toast.LENGTH_SHORT
@@ -216,7 +216,7 @@ fun PerfilScreen(
     fun removeProfilePhoto() {
         val token = userToken
         if (token.isNullOrBlank()) {
-            Toast.makeText(context, "Sessão inválida. Faça login novamente.", Toast.LENGTH_SHORT).show()
+            Toast.error(context, "Sessão inválida. Faça login novamente.", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -226,11 +226,11 @@ fun PerfilScreen(
                 actionsViewModel.deleteProfilePhoto(token)
                 localAvatarPreviewUri = null
                 sessionManager.saveAvatarUrl(null)
-                Toast.makeText(context, "Foto removida com sucesso!", Toast.LENGTH_SHORT).show()
+                Toast.success(context, "Foto removida com sucesso!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
 
-                Toast.makeText(
+                Toast.error(
                     context,
                     e.userMessageOr("Não foi possível remover a foto."),
                     Toast.LENGTH_SHORT
@@ -246,7 +246,7 @@ fun PerfilScreen(
         coroutineScope.launch {
             try { context.native.pickPhoto()?.let { uploadProfilePhoto(it) } }
             catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
-            catch (error: Exception) { context.notify(error.userMessageOr("Não foi possível selecionar a foto.")) }
+            catch (error: Exception) { context.notify(error.userMessageOr("Não foi possível selecionar a foto."), com.example.appfinanceiro.core.designsystem.components.AppNotificationType.Error) }
         }
     }
 

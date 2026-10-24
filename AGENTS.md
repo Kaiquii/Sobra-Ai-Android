@@ -26,6 +26,11 @@ Antes de editar:
    substituição da implementação. Atualize o mapa quando mudar a arquitetura.
 6. Confira [rules.md](rules.md), identifique o impacto em Android e iOS e escolha
    as verificações adequadas para o código comum e os adaptadores nativos.
+7. Toda correção ou melhoria exige revisão transversal: procure componentes,
+   consumidores e fluxos semelhantes nas demais telas. Corrija a causa comum e
+   os outros casos afetados na mesma tarefa; não deixe um problema conhecido em
+   outra tela. Cubra os cenários equivalentes com regressões relevantes e informe
+   quais fluxos foram revisados e o que depende de validação manual.
 
 Responda em português brasileiro. Execute o trabalho solicitado até a validação
 adequada; se houver impedimento real, informe o que falta e a evidência. Não

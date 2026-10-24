@@ -30,6 +30,25 @@ o pedido real do sistema e seu ciclo de vida precisam ser conferidos no aparelho
 
 ## Modos e alcance
 
+### Revisão transversal obrigatória
+
+Antes de considerar o harness concluído, identificar todos os consumidores do
+componente alterado e os fluxos semelhantes, em Android e iOS. Corrigir a causa
+comum e os demais casos afetados na mesma tarefa. A entrega deve dizer quais
+fluxos foram revisados, quais testes cobrem a regressão e quais verificações
+continuam manuais; um build verde sozinho não comprova essa revisão.
+
+Para feedback e carregamento, `harnessUnit`/`harnessVerify` executam os testes
+comuns de notificações e avisos de Início, Despesas e Relatórios: falhas de rede
+compartilhadas, erros distintos de API, recuperação parcial e tentativa manual.
+Não esconder erros reais nem ampliar retentativas para fazer esses testes passarem.
+
+`NotificationInsetsTest` cobre os quadros de abertura/fechamento do teclado,
+salvar com teclado aberto e voltar à tela com barra inferior, além dos
+formulários sem barra e das áreas seguras. Não substitui o teste visual no aparelho.
+
+### Comandos
+
 | Modo PowerShell | Tarefa Gradle | Verificações | Dispositivo/ambiente |
 | --- | --- | --- | --- |
 | `verify` (padrão) | `harnessVerify` | Testes JVM dos três módulos, APK Android debug, Lint e `harnessKmp` | Sem dispositivo |

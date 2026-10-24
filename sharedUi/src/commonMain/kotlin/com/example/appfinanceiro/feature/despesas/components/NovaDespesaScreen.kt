@@ -170,7 +170,7 @@ fun NovaDespesaScreen(
                     onClick = {
                         val categoryName = newCategoryName.trim()
                         if (categoryName.isEmpty()) {
-                            Toast.makeText(
+                            Toast.warning(
                                 context,
                                 "Digite um nome para a categoria",
                                 Toast.LENGTH_SHORT
@@ -191,14 +191,14 @@ fun NovaDespesaScreen(
                                 showCreateCategoryDialog = false
                                 newCategoryName = ""
 
-                                Toast.makeText(
+                                Toast.success(
                                     context,
                                     "Categoria criada com sucesso!",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } catch (e: Exception) {
                                 if (e is kotlinx.coroutines.CancellationException) throw e
-                                Toast.makeText(
+                                Toast.error(
                                     context,
                                     "Erro ao criar categoria",
                                     Toast.LENGTH_SHORT
@@ -291,7 +291,7 @@ fun NovaDespesaScreen(
                 onExpandedChange = { shouldExpand ->
                     if (categories.isEmpty()) {
                         expandedCategory = false
-                        Toast.makeText(
+                        Toast.success(
                             context,
                             "Não tem categoria criada, crie uma por favor no botão de +",
                             Toast.LENGTH_SHORT
@@ -406,14 +406,14 @@ fun NovaDespesaScreen(
                         requiredFieldsMessage = "Preencha todos os campos obrigatórios!"
                     )
                     if (validationMessage != null) {
-                        Toast.makeText(context, validationMessage, Toast.LENGTH_SHORT).show()
+                        Toast.warning(context, validationMessage, Toast.LENGTH_SHORT).show()
                         return@Button
                     }
                     val finalAmount = amountText.toAmount() ?: 0.0
                     if (isSplitPayment) {
                         val splitMessage = paymentSplitValidationMessage(finalAmount, paymentSplits)
                         if (splitMessage != null) {
-                            Toast.makeText(context, splitMessage, Toast.LENGTH_SHORT).show()
+                            Toast.warning(context, splitMessage, Toast.LENGTH_SHORT).show()
                             return@Button
                         }
                     }
@@ -444,11 +444,11 @@ fun NovaDespesaScreen(
 
 
                             actionsViewModel.createExpense(userToken ?: return@launch, request)
-                            Toast.makeText(context, "Despesa salva com sucesso!", Toast.LENGTH_SHORT).show()
+                            Toast.success(context, "Despesa salva com sucesso!", Toast.LENGTH_SHORT).show()
                             onNavigateBack()
                         } catch (e: Exception) {
                             if (e is kotlinx.coroutines.CancellationException) throw e
-                            Toast.makeText(context, e.userMessageOr("Erro ao salvar"), Toast.LENGTH_SHORT).show()
+                            Toast.error(context, e.userMessageOr("Erro ao salvar"), Toast.LENGTH_SHORT).show()
                         } finally { isLoading = false }
                     }
                 },

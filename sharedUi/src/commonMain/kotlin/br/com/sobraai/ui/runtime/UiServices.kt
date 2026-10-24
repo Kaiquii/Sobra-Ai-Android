@@ -8,6 +8,12 @@ import com.example.appfinanceiro.feature.relatorios.export.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import com.example.appfinanceiro.core.designsystem.components.AppNotificationType
+import com.example.appfinanceiro.core.designsystem.components.AppNotificationVisuals
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 
 /** Native capabilities are injected once by the host; all routes and presentation stay common. */
 class UiServices(
@@ -23,8 +29,11 @@ class UiServices(
     val installationHint: String = "Atualize ou reinstale o aplicativo pela loja oficial.",
     val updates: com.example.appfinanceiro.core.update.AppUpdates? = null
 ) {
-    val messages = MutableSharedFlow<String>(extraBufferCapacity = 16)
-    fun notify(message: String) { messages.tryEmit(message) }
+    val messages = MutableSharedFlow<AppNotificationVisuals>(extraBufferCapacity = 16)
+    fun notify(message: String, type: AppNotificationType = AppNotificationType.Info, long: Boolean = false) {
+        if (message.isNotBlank()) messages.tryEmit(AppNotificationVisuals(message, type,
+            if (long) SnackbarDuration.Long else SnackbarDuration.Short))
+    }
     suspend fun persistProfileIdentity(token: String, name: String, email: String, role: String, avatarUrl: String?) {
         val previousEmail = session.userEmail.first()
         if (session.isBiometricEnabledForUser(previousEmail).first()) session.setBiometricEnabledForUser(email, true)
@@ -80,12 +89,22 @@ fun <T : PresentationModel> rememberPresentation(key: String, factory: (UiServic
     return model
 }
 
+/** New feedback replaces stale feedback instead of waiting in a long snackbar queue. */
+suspend fun SnackbarHostState.collectAppNotifications(events: Flow<AppNotificationVisuals>) {
+    events.collectLatest { showSnackbar(it) }
+}
+
 /** Screen messages have one common host, including on iPhone. */
 object UiToast {
     const val LENGTH_SHORT = 0
     const val LENGTH_LONG = 1
-    fun makeText(context: UiServices, message: String, duration: Int): Message = Message(context, message)
-    class Message(private val services: UiServices, private val text: String) {
-        fun show() = services.notify(text)
+    fun makeText(context: UiServices, message: String, duration: Int,
+        type: AppNotificationType = AppNotificationType.Info): Message = Message(context, message, duration, type)
+    fun success(context: UiServices, message: String, duration: Int) = makeText(context, message, duration, AppNotificationType.Success)
+    fun error(context: UiServices, message: String, duration: Int) = makeText(context, message, duration, AppNotificationType.Error)
+    fun warning(context: UiServices, message: String, duration: Int) = makeText(context, message, duration, AppNotificationType.Warning)
+    class Message(private val services: UiServices, private val text: String, private val duration: Int,
+        private val type: AppNotificationType) {
+        fun show() = services.notify(text, type, duration == LENGTH_LONG)
     }
 }

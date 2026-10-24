@@ -102,7 +102,7 @@ fun RegisterScreen(
                     code = ""
                     codeSent = true
                     step = RegisterStep.Confirmation
-                    Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
+                    Toast.success(context, response.message, Toast.LENGTH_LONG).show()
                 } catch (e: AuthProtectionException) {
                     errorMessage = "Não foi possível validar a segurança do aplicativo. ${context.installationHint}"
 
@@ -149,7 +149,7 @@ fun RegisterScreen(
                     password = password,
                     code = code
                 )
-                Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
+                Toast.success(context, response.message, Toast.LENGTH_LONG).show()
                 onRegisterSuccess()
             } catch (e: ApiRequestException) {
                 errorMessage = when (e.statusCode) {
