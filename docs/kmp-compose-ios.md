@@ -42,9 +42,10 @@ Não basta compartilhar cards: [regra obrigatória](../rules.md#interface-única
 - O `AppController` comum solicita a biometria automaticamente para sessões salvas
   com a preferência ativada, após o host entrar em primeiro plano. O host Swift
   informa também a primeira aparição já ativa. Cancelar/falhar não reabre o pedido
-  em ciclo; os botões de nova tentativa e senha continuam disponíveis. Somente a
-  ida real para segundo plano arma uma nova tentativa automática, sem tratar a
-  cena temporariamente inativa do Face ID como saída do app.
+  em ciclo; os botões de nova tentativa e senha continuam disponíveis. Alternar
+  aplicativos preserva a sessão já desbloqueada e a tela atual. Uma nova instância
+  volta a exigir biometria. Se a autenticação inicial ainda estiver pendente,
+  ir para segundo plano cancela a tentativa e o retorno permite autenticar novamente.
 - O ícone original Android está em `iosApp/SobraAi/Assets.xcassets/AppIcon.appiconset`,
   incluído no target Xcode com `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`.
 - Envio de códigos Apple e consulta de versão da App Store dependem de contrato

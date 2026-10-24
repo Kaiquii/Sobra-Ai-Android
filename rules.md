@@ -46,7 +46,9 @@ arquivo concentra a política KMP; os comandos estão no
   com Touch ID, apresentar Touch ID e impressão digital. Detectar o sensor com
   LocalAuthentication; não oferecer os dois nomes juntos como se fossem a mesma opção.
 - Com sessão salva e biometria já ativada pelo usuário, solicitar autenticação
-  automaticamente ao abrir ou retornar ao app, tanto no Android quanto no iOS.
+  automaticamente ao iniciar uma nova instância do app, tanto no Android quanto no iOS.
+  Alternar aplicativos e retornar à mesma instância já desbloqueada não deve
+  bloquear a sessão, descartar a tela nem solicitar biometria novamente.
   Não exigir um toque prévio para iniciar Face ID/Touch ID. Cancelamento ou falha
   mantém o bloqueio e permite nova tentativa manual ou entrada com senha, sem
   repetir o pedido em ciclo. A ativação inicial da preferência continua explícita.

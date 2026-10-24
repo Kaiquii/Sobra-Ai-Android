@@ -233,6 +233,25 @@ class AppControllerTest {
         assertNull(memory.content.value.token)
     }
 
+    @Test fun switchingAppsPreservesFinancialWorkspaceAndDrafts() = runTest {
+        val memory = MemoryPersistence(SessionData(token = "synthetic-token", email = "pessoa@example.invalid",
+            biometricEnabledEmails = setOf("pessoa@example.invalid")))
+        val controller = AppController({ _, _ -> response() }, PersistentSessionStore(memory), FakeBiometrics(true, true), backgroundScope)
+        val fake = EditingFake()
+        runCurrent(); controller.unlock(); runCurrent()
+        val home = controller.attachHome { HomePresenter(fake, it, backgroundScope, Period(10, 2026)) {} }
+        val workspace = controller.attachWorkspace { token, presenter -> FinanceWorkspace(presenter, fake, fake, token, backgroundScope) {} }!!
+        workspace.editExpense(1); runCurrent()
+        val editor = workspace.expenseEditor
+        assertNotNull(editor)
+        controller.enterBackground(); runCurrent()
+        controller.enterForeground(); runCurrent()
+        assertEquals(AppRoute.Home, controller.state.value.route)
+        assertSame(home, controller.home)
+        assertSame(workspace, controller.workspace)
+        assertSame(editor, workspace.expenseEditor)
+    }
+
     @Test fun biometricLockDisposesTheFinancialWorkspaceAndDrafts() = runTest {
         val memory = MemoryPersistence(SessionData(token = "synthetic-token", email = "pessoa@example.invalid",
             biometricEnabledEmails = setOf("pessoa@example.invalid")))

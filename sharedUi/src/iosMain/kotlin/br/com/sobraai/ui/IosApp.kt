@@ -32,7 +32,7 @@ class IosApp(apiBaseUrl: String, sessionService: String) {
         SobraAiApp(services)
     }.also { native.host = it }
 
-    fun enterBackground() { native.cancelInteractions(); controller.lock() }
+    fun enterBackground() { native.cancelInteractions(); controller.enterBackground() }
     fun enterForeground() { controller.enterForeground() }
     fun close() { native.cancelInteractions(); scope.cancel(); client.close() }
 }

@@ -224,6 +224,17 @@ class AppController(
         }
     }
 
+    fun enterBackground() {
+        // Switching apps preserves an already unlocked session and its presentation.
+        // A pending initial unlock must still reject late biometric callbacks.
+        if (mutable.value.route == AppRoute.Locked) {
+            lock()
+        } else {
+            background = true
+            foreground = false
+        }
+    }
+
     fun lock() {
         background = true
         foreground = false

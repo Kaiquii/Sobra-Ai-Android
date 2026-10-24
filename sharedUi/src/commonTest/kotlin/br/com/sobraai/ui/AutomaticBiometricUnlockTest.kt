@@ -85,16 +85,31 @@ class AutomaticBiometricUnlockTest {
         assertNull(memory.content.value.token)
     }
 
-    @Test fun backgroundLocksContentAndReturningStartsAnotherAutomaticAttempt() = runTest {
+    @Test fun switchingAppsPreservesUnlockedSessionWithoutAnotherBiometricAttempt() = runTest {
         val bio = Biometrics()
         val app = controller(backgroundScope, bio)
         app.enterForeground(); runCurrent()
-        app.lock(); runCurrent()
-        assertEquals(AppRoute.Locked, app.state.value.route)
-        assertEquals(1, bio.calls)
-        app.enterForeground(); runCurrent()
-        assertEquals(AppRoute.Home, app.state.value.route)
+        repeat(3) {
+            app.enterBackground(); runCurrent()
+            assertEquals(AppRoute.Home, app.state.value.route)
+            app.enterForeground(); runCurrent()
+            assertEquals(AppRoute.Home, app.state.value.route)
+            assertEquals(1, bio.calls)
+        }
+    }
+
+    @Test fun newControllerStillRequiresBiometricsAfterPreviousSessionWasUnlocked() = runTest {
+        val bio = Biometrics()
+        val memory = MemoryPersistence(savedSession())
+        val previous = controller(backgroundScope, bio, memory)
+        previous.enterForeground(); runCurrent()
+        previous.enterBackground(); runCurrent()
+        val reopened = controller(backgroundScope, bio, memory)
+        runCurrent()
+        assertEquals(AppRoute.Locked, reopened.state.value.route)
+        reopened.enterForeground(); runCurrent()
         assertEquals(2, bio.calls)
+        assertEquals(AppRoute.Home, reopened.state.value.route)
     }
 
     @Test fun inactiveCallbacksDuringPromptDoNotStartConcurrentAuthentication() = runTest {
@@ -114,7 +129,7 @@ class AutomaticBiometricUnlockTest {
         val bio = Biometrics().apply { result = { withContext(NonCancellable) { accepted.await() } } }
         val app = controller(backgroundScope, bio)
         app.enterForeground(); runCurrent()
-        app.lock(); runCurrent()
+        app.enterBackground(); runCurrent()
         accepted.complete(true); runCurrent()
         assertEquals(AppRoute.Locked, app.state.value.route)
         assertFalse(app.state.value.busy)

@@ -63,6 +63,9 @@ As pastas nem sempre coincidem com o package: `RegisterScreen.kt` usa o pacote
   Consultas idênticas em andamento são reutilizadas; mês, filtro e revisão de dados
   salvos identificam uma consulta nova. Categorias não bloqueiam a lista de despesas.
 - Cancelamento, expiração e bloqueio não podem publicar sucesso da sessão antiga.
+- Biometria é exigida ao restaurar sessão em uma nova instância; alternar apps
+  preserva sessão desbloqueada, tela e rascunhos. Hosts chamam `enterBackground()`,
+  não `lock()`, ao minimizar. Autenticação inicial pendente continua protegida.
 - Senhas, tokens e dados pessoais não entram em logs, fixtures ou documentos.
 - O backend ainda precisa definir proteção Apple para envio de códigos e versão
   de loja: [pendências externas](pendencias-backend-ios.md). Não enviar prova fictícia.

@@ -41,7 +41,7 @@ class MainActivity : FragmentActivity() {
     override fun onStop() {
         if (::native.isInitialized && !native.externalInteraction) {
             native.cancelInteractions()
-            controller.lock()
+            controller.enterBackground()
         }
         super.onStop()
     }

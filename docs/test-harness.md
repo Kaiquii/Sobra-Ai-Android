@@ -23,7 +23,9 @@ abrem `SobraAiApp(services)`. A guarda estrutural não substitui a comparação 
 Os testes comuns de `AutomaticBiometricUnlockTest` entram em `harnessUnit` e
 `harnessVerify`: cobrem solicitação automática de Face ID/Touch ID/biometria,
 ordem de restauração/primeiro plano, cancelamento sem repetição, nova tentativa,
-segundo plano e rejeição de respostas após logout. Usam sensores simulados;
+preservação da sessão desbloqueada ao alternar apps, novo bloqueio ao recriar o
+controlador, segundo plano durante autenticação inicial e rejeição de respostas
+após logout. Usam sensores simulados;
 o pedido real do sistema e seu ciclo de vida precisam ser conferidos no aparelho.
 
 ## Modos e alcance
