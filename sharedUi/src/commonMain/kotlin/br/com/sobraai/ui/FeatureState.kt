@@ -22,7 +22,7 @@ class FeatureQuery<K, T>(initial: K, private val scope: CoroutineScope, private 
         started = true; job?.cancel()
         val version = ++revision
         val key = mutable.value.key
-        mutable.update { it.copy(loading = true) }
+        mutable.update { it.copy(loading = true, error = if (it.data != null) it.error else null) }
         job = scope.launch {
             try {
                 val value = load(key); ensureActive()

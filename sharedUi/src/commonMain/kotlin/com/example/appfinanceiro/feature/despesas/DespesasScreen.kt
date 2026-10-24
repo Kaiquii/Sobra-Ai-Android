@@ -44,7 +44,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -261,7 +261,7 @@ fun DespesasScreen(
         modifier = Modifier.swipeNavigation(1, onNavigate),
         containerColor = backgroundColor,
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         "Despesas Mensais",
@@ -389,7 +389,8 @@ fun DespesasScreen(
                             onView = { expenseToView = expense },
                             onEdit = { onEditClick(expense.id) },
                             onDelete = { expenseToDelete = expense },
-                            onPaymentStatusClick = { expensePaymentStatusToChange = expense }
+                            onPaymentStatusClick = { expensePaymentStatusToChange = expense },
+                            onAdvanceClick = { expenseToAdvance = expense }
                         )
                     }
                     if (filteredIncomingAdvanced.isNotEmpty()) {
@@ -609,10 +610,6 @@ fun DespesasScreen(
             expense = expense,
             categoryName = uiState.categoriesMap[expense.category_id] ?: "Outros",
             onDismiss = { expenseToView = null },
-            onAdvanceClick = {
-                expenseToView = null
-                expenseToAdvance = expense
-            },
             onChangeAdvanceDateClick = if (expense.isAdvanced) {
                 {
                     expenseToView = null
@@ -682,7 +679,8 @@ fun DespesaListItem(
     onView: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onPaymentStatusClick: () -> Unit
+    onPaymentStatusClick: () -> Unit,
+    onAdvanceClick: (() -> Unit)? = null
 ) {
     val dateFormat = remember { SimpleDateFormat("dd/MM", Locale("pt", "BR")) }
     val formattedDate = try {
@@ -728,7 +726,8 @@ fun DespesaListItem(
         onView = onView,
         onEdit = onEdit,
         onDelete = onDelete,
-        onPaymentStatusClick = onPaymentStatusClick
+        onPaymentStatusClick = onPaymentStatusClick,
+        onAdvanceClick = onAdvanceClick
     )
 }
 

@@ -13,7 +13,6 @@ import com.example.appfinanceiro.core.network.YearlySummaryResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -39,12 +38,11 @@ class RelatoriosViewModel(
 
     private val _uiState = MutableStateFlow(RelatoriosUiState())
     val uiState: StateFlow<RelatoriosUiState> = _uiState
-    private var monthComparisonJob: Job? = null
-
-    fun loadReports(token: String, month: Int, year: Int) {
-        launchLatest("reports") {
+    fun loadReports(token: String, month: Int, year: Int, refreshKey: Any? = null) {
+        launchLatest("reports", listOf(token, month, year, refreshKey)) {
             _uiState.update {
-                it.copy(isLoading = true, isSessionExpired = false)
+                it.copy(isLoading = true, isSessionExpired = false,
+                    errorMessage = if (it.summaryData != null) it.errorMessage else null)
             }
 
             try {
@@ -90,14 +88,14 @@ class RelatoriosViewModel(
         month: Int,
         year: Int,
         compareMonth: Int,
-        compareYear: Int
+        compareYear: Int,
+        refreshKey: Any? = null
     ) {
-        monthComparisonJob?.cancel()
-        monthComparisonJob = launchLatest("comparison") {
+        launchLatest("comparison", listOf(token, month, year, compareMonth, compareYear, refreshKey)) {
             _uiState.update {
                 it.copy(
                     isComparisonLoading = true,
-                    comparisonErrorMessage = null,
+                    comparisonErrorMessage = if (it.monthComparison != null) it.comparisonErrorMessage else null,
                     isSessionExpired = false
                 )
             }
@@ -113,7 +111,7 @@ class RelatoriosViewModel(
 
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
-                    it.copy(monthComparison = comparison)
+                    it.copy(monthComparison = comparison, comparisonErrorMessage = null)
                 }
             } catch (e: SessionExpiredException) {
                 currentCoroutineContext().ensureActive()

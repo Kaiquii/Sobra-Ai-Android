@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import com.example.appfinanceiro.core.designsystem.components.AppDataErrorBanner
+import com.example.appfinanceiro.core.designsystem.components.dataRequestErrorMessage
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -111,7 +113,8 @@ fun InstallmentCommitmentsScreen(
                 month = selectedMonth,
                 year = selectedYear,
                 months = selectedCalendarMonths,
-                includeCurrentMonthAsPaid = includeCurrentMonthAsPaid
+                includeCurrentMonthAsPaid = includeCurrentMonthAsPaid,
+                refreshKey = financeRevision
             )
         }
     }
@@ -168,7 +171,7 @@ fun InstallmentCommitmentsScreen(
                 }
             }
 
-            uiState.errorMessage != null -> {
+            uiState.errorMessage != null && data == null -> {
                 ErrorState(
                     message = uiState.errorMessage ?: "Erro ao carregar compromissos parcelados",
                     onRetry = {
@@ -200,6 +203,22 @@ fun InstallmentCommitmentsScreen(
                         ),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        uiState.errorMessage?.let { error ->
+                            item(key = "load_error") {
+                                AppDataErrorBanner(
+                                    message = dataRequestErrorMessage(error, showingPreviousData = true,
+                                        dataLabel = "os compromissos"),
+                                    isRetrying = uiState.isLoading,
+                                    onRetry = {
+                                        userToken?.let { token ->
+                                            viewModel.loadCommitments(token, selectedMonth, selectedYear,
+                                                selectedCalendarMonths, includeCurrentMonthAsPaid,
+                                                refreshKey = financeRevision)
+                                        }
+                                    }
+                                )
+                            }
+                        }
                         item {
                             MonthSwitcher(
                                 month = selectedMonth,
@@ -244,6 +263,22 @@ fun InstallmentCommitmentsScreen(
                         ),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        uiState.errorMessage?.let { error ->
+                            item(key = "load_error") {
+                                AppDataErrorBanner(
+                                    message = dataRequestErrorMessage(error, showingPreviousData = true,
+                                        dataLabel = "os compromissos"),
+                                    isRetrying = uiState.isLoading,
+                                    onRetry = {
+                                        userToken?.let { token ->
+                                            viewModel.loadCommitments(token, selectedMonth, selectedYear,
+                                                selectedCalendarMonths, includeCurrentMonthAsPaid,
+                                                refreshKey = financeRevision)
+                                        }
+                                    }
+                                )
+                            }
+                        }
                         item {
                             MonthSwitcher(
                                 month = selectedMonth,

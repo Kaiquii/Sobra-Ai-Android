@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.EventAvailable
+import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
@@ -61,7 +62,8 @@ fun ExpenseCard(
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     onPaymentStatusClick: (() -> Unit)? = null,
-    expenseType: String
+    expenseType: String,
+    onAdvanceClick: (() -> Unit)? = null
 ) {
     val typeAccent = expenseTypeStyle(expenseType).accent()
     when (style) {
@@ -95,7 +97,8 @@ fun ExpenseCard(
             onView = onView,
             onEdit = onEdit ?: {},
             onDelete = onDelete ?: {},
-            onPaymentStatusClick = onPaymentStatusClick
+            onPaymentStatusClick = onPaymentStatusClick,
+            onAdvanceClick = onAdvanceClick
         )
     }
 }
@@ -238,7 +241,8 @@ private fun DetailedExpenseCard(
     onView: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onPaymentStatusClick: (() -> Unit)?
+    onPaymentStatusClick: (() -> Unit)?,
+    onAdvanceClick: (() -> Unit)?
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val cardBg = colorScheme.surface
@@ -308,7 +312,7 @@ private fun DetailedExpenseCard(
             Spacer(modifier = Modifier.width(8.dp))
 
             Column(
-                modifier = Modifier.width(120.dp),
+                modifier = Modifier.width(if (onAdvanceClick != null) 148.dp else 120.dp),
                 horizontalAlignment = Alignment.End
             ) {
                 Row(
@@ -350,6 +354,14 @@ private fun DetailedExpenseCard(
                                 modifier = Modifier.size(12.dp)
                             )
                         }
+                    }
+                    onAdvanceClick?.let { onClick ->
+                        Icon(
+                            imageVector = if (isAdvanced) Icons.Default.EventAvailable else Icons.Default.EventRepeat,
+                            contentDescription = if (isAdvanced) "Alterar data do adiantamento" else "Adiantar despesa",
+                            tint = PrimaryBlue,
+                            modifier = Modifier.size(18.dp).clickable { onClick() }
+                        )
                     }
                     Box(
                         modifier = Modifier

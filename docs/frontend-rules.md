@@ -51,7 +51,21 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
 - Não assumir uma largura fixa disponível. Componentes, indicadores, diálogos, cards e áreas de navegação devem respeitar os limites do contêiner, manter margens mínimas e encolher, reorganizar ou permitir rolagem quando o espaço for reduzido.
 - Antes de concluir uma mudança visual, conferir o comportamento em diferentes larguras de viewport e com os ajustes de tamanho da interface e da fonte aumentados. Nenhum elemento pode encostar indevidamente nas bordas, sobrepor outro conteúdo, ficar cortado ou perder sua área mínima de toque.
 - Sempre considerar celulares com telas pequenas e estreitas, além de fontes maiores e teclado aberto.
+- Os títulos das barras superiores ficam alinhados à esquerda (`TopAppBar`),
+  inclusive Despesas Mensais, com os mesmos botões de voltar e ações de cada tela.
+  Quando houver subtítulo, alinhar também à esquerda. Preservar os cabeçalhos de
+  formulários de autenticação que fazem parte do conteúdo rolável.
 - Em telas com conteúdo extenso, usar rolagem vertical e `imePadding()` para que os campos e botões não fiquem inacessíveis pelo teclado.
+- O host Android usa `windowSoftInputMode="adjustResize"`: o teclado deve reduzir
+  a área disponível, sem deslocar a janela inteira sobre a barra de status. No
+  Assistente, o Scaffold trata o espaço do teclado uma vez e a lista reposiciona
+  a última mensagem ao reduzir a altura, usando `requestScrollToItem` na medição,
+  sem reiniciar animações de rolagem a cada quadro do teclado. As boas-vindas
+  ficam compactas com pouca altura, mantendo o ícone menor e o conteúdo rolável;
+  o aviso abaixo do campo
+  aparece com o teclado fechado. Conferir abertura/fechamento do teclado,
+  mensagem multilinha e rotação em Android e iPhone; não duplicar `imePadding()`
+  no compositor e na lista.
 - Respeitar áreas seguras do sistema. Ações no topo, como voltar, devem usar `statusBarsPadding()`; ações no rodapé devem respeitar a barra de navegação.
 - No iOS, respeitar também notch e indicador de início. Conferir os insets já aplicados por Scaffold/host para não duplicar espaçamentos ao adaptar componentes comuns.
 - Manter alvos de toque de no mínimo 48 dp, principalmente ícones e ações secundárias.
@@ -78,10 +92,19 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   observações continua nos detalhes.
 - Somente o marcador do tipo usa azul para Única, roxo para Parcelada e verde-água
   para Fixa, com tons adequados ao tema. Não colorir nem adicionar bordas ao card,
-  não reposicionar suas ações e preservar o layout original. `ExpenseTypeStyle`
+  preservar a hierarquia de nome, categoria, tipo, valor e origem. `ExpenseTypeStyle`
   recebe o tipo original da API, separado do rótulo de parcela (`Parc. 3/10`). Não usar origem, categoria
   ou status de pagamento para escolher essa cor. Manter o texto do tipo: a cor
   sozinha não identifica a despesa para todos os usuários.
+- Nos cards detalhados de Despesas, preservar o tamanho compacto e as ações no
+  canto superior direito, na mesma linha: pagar, adiantar, visualizar,
+  editar e excluir. O usuário pediu explicitamente essa disposição como na web;
+  não criar uma linha de ações no rodapé nem aumentar a altura dos cards para
+  acrescentar um botão. A referência web orienta somente a posição; manter os
+  ícones e cores do Android: calendário azul com seta para adiantar e calendário
+  com marca de confirmação nas despesas já adiantadas, para alterar a data.
+  Remover o adiantamento continua nos detalhes. Não alterar Paga como consequência
+  de adiantar ou remover o adiantamento.
 
 ## Textos e idioma
 
@@ -110,6 +133,7 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
 - Exibir o carregamento central apenas na primeira abertura, quando ainda não existe conteúdo disponível.
 - Em atualizações de mês, data ou filtros, manter o conteúdo atual na tela e mostrar somente o indicador compacto no topo. A interface não deve piscar nem ser substituída por uma tela vazia.
 - Se uma atualização falhar e a tela continuar mostrando dados anteriores, avisar claramente que eles podem estar desatualizados. Para falhas de conexão, usar o componente compacto `AppDataErrorBanner` com a mensagem “Sem conexão. Exibindo os últimos dados carregados.” e oferecer a ação “Tentar novamente”.
-- Ao tocar em “Tentar novamente”, manter o aviso visível, trocar a ação por “Tentando...” com indicador de progresso e impedir toques repetidos até a requisição terminar. Remover o aviso somente após uma resposta bem-sucedida.
+- Ao tocar em “Tentar novamente” com dados antigos visíveis, manter o aviso, trocar a ação por “Tentando...” com indicador de progresso e impedir toques repetidos até a requisição terminar. Remover esse aviso somente após uma resposta bem-sucedida.
+- Sem conteúdo carregado, uma nova tentativa deve mostrar carregamento e limpar o erro da tentativa anterior. Se a nova tentativa também falhar, mostrar o erro terminal; não esconder falhas reais nem repetir consultas em ciclo. Reabrir uma aba não deve cancelar uma leitura idêntica ainda em andamento.
 - Em telas de painel, como Relatórios, uma falha inicial não deve desmontar a estrutura nem deixar uma grande área vazia. Manter ações e cards em seus estados vazios ou zerados, acompanhados do aviso de erro para deixar claro que os valores não foram carregados.
 - Nunca apresentar dados antigos como se pertencessem ao novo mês, data ou filtro sem informar o usuário.

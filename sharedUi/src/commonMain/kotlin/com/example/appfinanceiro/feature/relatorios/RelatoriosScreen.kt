@@ -154,7 +154,8 @@ fun RelatoriosScreen(
             viewModel.loadReports(
                 token = token,
                 month = currentMonthNumber,
-                year = currentYear
+                year = currentYear,
+                refreshKey = financeRevision
             )
         }
     }
@@ -173,7 +174,8 @@ fun RelatoriosScreen(
                 month = currentMonthNumber,
                 year = currentYear,
                 compareMonth = compareMonthNumber,
-                compareYear = compareYear
+                compareYear = compareYear,
+                refreshKey = financeRevision
             )
         }
     }

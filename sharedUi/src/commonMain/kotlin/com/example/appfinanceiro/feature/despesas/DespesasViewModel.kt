@@ -45,7 +45,8 @@ class DespesasViewModel(
     fun loadExpenses(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null) {
         launchLatest("expenses", listOf(token, month, year, paymentStatus, refreshKey)) {
             _uiState.update {
-                it.copy(isLoading = true, isSessionExpired = false)
+                it.copy(isLoading = true, isSessionExpired = false,
+                    errorMessage = if (it.expensesData.isNotEmpty() || it.effectiveExpensesData.isNotEmpty()) it.errorMessage else null)
             }
 
             try {
@@ -85,7 +86,8 @@ class DespesasViewModel(
 
     fun loadCategories(token: String, refreshKey: Any? = null) {
         launchLatest("categories", listOf(token, refreshKey)) {
-            _uiState.update { it.copy(isCategoriesLoading = true) }
+            _uiState.update { it.copy(isCategoriesLoading = true,
+                categoriesError = if (it.categoriesMap.isNotEmpty()) it.categoriesError else null) }
             try {
                 val categories = repository.getCategories(token)
                 currentCoroutineContext().ensureActive()

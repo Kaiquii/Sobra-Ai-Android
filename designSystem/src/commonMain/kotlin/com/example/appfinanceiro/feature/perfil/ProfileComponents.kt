@@ -3,6 +3,7 @@ package com.example.appfinanceiro.feature.perfil
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.*
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -12,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.*
 import com.example.appfinanceiro.core.designsystem.theme.*
 @Composable
@@ -195,6 +197,61 @@ fun SectionTitle(title: String) {
             .fillMaxWidth()
             .padding(start = 2.dp, bottom = 8.dp)
     )
+}
+
+@Composable
+fun SettingsToggleItem(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    enabled: Boolean,
+    loading: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .background(colors.surface, RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch,
+                onValueChange = onCheckedChange)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            Modifier.size(44.dp).background(colors.primary.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = colors.primary)
+        }
+        Column(Modifier.weight(1f)) {
+            Text(title, color = colors.onBackground, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, color = colors.onSurfaceVariant, fontSize = 12.sp)
+        }
+        Box(Modifier.width(52.dp).heightIn(min = 48.dp), contentAlignment = Alignment.Center) {
+            if (loading) {
+                com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator(size = 24.dp)
+            } else {
+                Switch(
+                    checked = checked,
+                    onCheckedChange = null,
+                    enabled = enabled,
+                    colors = SwitchDefaults.colors(
+                        checkedTrackColor = colors.primary,
+                        checkedThumbColor = Color.White,
+                        checkedBorderColor = Color.Transparent,
+                        uncheckedTrackColor = colors.surfaceVariant,
+                        uncheckedThumbColor = colors.onSurfaceVariant,
+                        uncheckedBorderColor = colors.outlineVariant
+                    )
+                )
+            }
+        }
+    }
 }
 
 @Composable

@@ -39,16 +39,22 @@ Na base `sharedUi/src/commonMain/kotlin/com/example/appfinanceiro/`:
 | Visão mensal | `feature/home/HomeScreen.kt`, `HomeViewModel.kt`, resumo e diálogos em `feature/home/components/` |
 | Despesas | `feature/despesas/DespesasScreen.kt`, `DespesasViewModel.kt`, filtros, detalhes, pagamento e adiantamentos |
 | Criar/editar despesa | `feature/despesas/components/NovaDespesaScreen.kt`, `EditarDespesaScreen.kt`, seletores de data, rateio e categorias |
+| Adiantar despesa | Calendário azul no topo do `ExpenseCard` detalhado, conectado por `DespesaListItem` ao diálogo existente de adiantar/alterar data; remoção nos detalhes, sem alterar Paga |
 | Relatórios | `feature/relatorios/RelatoriosScreen.kt`, `RelatoriosViewModel.kt`; gráficos comuns em `designSystem` |
 | Parcelados | `feature/relatorios/InstallmentCommitmentsScreen.kt`, `InstallmentCommitmentsViewModel.kt` |
 | Exportar | `feature/relatorios/export/ReportExportSheet.kt`, `ReportExportViewModel.kt`, `ReportExportModels.kt`; `ReportFiles` isola o sistema de arquivos |
-| Assistente | `feature/assistant/AssistantScreen.kt`, `AssistantViewModel.kt`; histórico completo, nova conversa, exclusão, cota e ditado |
+| Assistente | `feature/assistant/AssistantScreen.kt`, `AssistantViewModel.kt`; componentes em `designSystem/.../feature/assistant/AssistantComponents.kt`; boas-vindas sem sugestões de mensagens, compositor integrado, histórico completo, nova conversa, exclusão, cota e ditado |
 | Perfil | `feature/perfil/PerfilScreen.kt`, `feature/perfil/components/EditarPerfilScreen.kt` |
 | Rendas/categorias | `feature/perfil/components/ConfiguracoesRendaScreen.kt`, `CategoriasScreen.kt` |
 | Mutação de dados | `core/data/FinanceActionsViewModel.kt`; repositórios/contratos em `shared` |
 
 As pastas nem sempre coincidem com o package: `RegisterScreen.kt` usa o pacote
 `feature.login`. Não renomear globalmente os packages, `applicationId` ou namespace.
+
+O carregamento do Perfil é retido em `feature/perfil/ProfileLoadViewModel.kt`:
+trocar de aba não cancela uma leitura em andamento nem repete automaticamente uma
+leitura que falhou; o usuário pode tentar novamente pelo banner. A persistência
+da identidade continua em `UiServices.persistProfileIdentity`, preservando biometria.
 
 ## Regras que precisam sobreviver a alterações
 
@@ -62,10 +68,18 @@ As pastas nem sempre coincidem com o package: `RegisterScreen.kt` usa o pacote
   timeouts, respostas HTTP, JSON inválido e gravações não são repetidos pelo transporte.
   Consultas idênticas em andamento são reutilizadas; mês, filtro e revisão de dados
   salvos identificam uma consulta nova. Categorias não bloqueiam a lista de despesas.
+- Relatórios, comparativo e compromissos também identificam consultas pelo período,
+  filtros e revisão de dados. Ao repetir um carregamento inicial sem conteúdo,
+  o erro anterior é limpo; quando existem dados antigos, o aviso permanece até sucesso.
 - Cancelamento, expiração e bloqueio não podem publicar sucesso da sessão antiga.
 - Biometria é exigida ao restaurar sessão em uma nova instância; alternar apps
   preserva sessão desbloqueada, tela e rascunhos. Hosts chamam `enterBackground()`,
   não `lock()`, ao minimizar. Autenticação inicial pendente continua protegida.
+- Perfil oferece um interruptor em Segurança usando `SettingsToggleItem` do
+  designSystem. A preferência vem de `SessionStore.biometricEnabledEmails` e a
+  alteração passa por `AppController.setBiometricEnabled`: ativar exige biometria,
+  desativar não altera o token nem consulta o backend. O estado só muda após salvar.
+  A confirmação fica no status do próprio card, sem aviso flutuante de sucesso.
 - Senhas, tokens e dados pessoais não entram em logs, fixtures ou documentos.
 - O backend ainda precisa definir proteção Apple para envio de códigos e versão
   de loja: [pendências externas](pendencias-backend-ios.md). Não enviar prova fictícia.

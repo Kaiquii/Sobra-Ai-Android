@@ -255,9 +255,7 @@ fun NovaDespesaScreen(
                     Text(
                         "Nova Despesa",
                         color = textColor,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {

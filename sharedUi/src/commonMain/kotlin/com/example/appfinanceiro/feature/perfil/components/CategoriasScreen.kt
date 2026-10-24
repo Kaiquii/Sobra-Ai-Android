@@ -60,6 +60,8 @@ import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Category
 import com.example.appfinanceiro.core.network.CategoryRequest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,16 +92,20 @@ fun CategoriasScreen(
     LaunchedEffect(userToken, refreshTrigger) {
         if (userToken != null) {
             isLoading = true
+            if (categories.isEmpty()) loadErrorMessage = null
             try {
                 val response = actionsViewModel.getCategories(userToken!!)
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
                 categories = response.categories
                 loadErrorMessage = null
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 loadErrorMessage = e.userMessageOr("Erro ao carregar categorias")
             } finally {
-                isLoading = false
-                hasLoadedOnce = true
+                if (kotlinx.coroutines.currentCoroutineContext().isActive) {
+                    isLoading = false
+                    hasLoadedOnce = true
+                }
             }
         }
     }

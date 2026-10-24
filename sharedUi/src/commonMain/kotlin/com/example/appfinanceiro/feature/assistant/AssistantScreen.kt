@@ -1,44 +1,35 @@
 package com.example.appfinanceiro.feature.assistant
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -47,20 +38,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.launch
 import br.com.sobraai.ui.runtime.LocalUiServices
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import br.com.sobraai.ui.runtime.rememberPresentation
+import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
-import br.com.sobraai.ui.runtime.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,6 +65,8 @@ fun AssistantScreen(
     val userToken by sessionManager.token.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
+    var listHeight by remember { mutableIntStateOf(0) }
+    val keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
     var input by remember { mutableStateOf("") }
     var showConversations by remember { mutableStateOf(false) }
@@ -82,7 +75,6 @@ fun AssistantScreen(
 
     val colorScheme = MaterialTheme.colorScheme
     val backgroundColor = colorScheme.background
-    val inputBgColor = colorScheme.surface
     val textColor = colorScheme.onBackground
     val canSend = input.isNotBlank() &&
             !uiState.isSending &&
@@ -113,7 +105,7 @@ fun AssistantScreen(
     LaunchedEffect(uiState.messages.size, uiState.isSending) {
         val itemCount = uiState.messages.size + if (uiState.isSending) 1 else 0
         if (itemCount > 0) {
-            listState.animateScrollToItem(itemCount - 1)
+            listState.requestScrollToItem(itemCount - 1)
         }
     }
 
@@ -126,15 +118,24 @@ fun AssistantScreen(
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize().imePadding(),
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Assistente IA",
-                        color = textColor,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column {
+                        Text(
+                            text = "Assistente IA",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = textColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "SobraAi",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = colorScheme.onSurfaceVariant
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -172,6 +173,7 @@ fun AssistantScreen(
                 quotaRetrySeconds = uiState.quotaRetrySeconds,
                 isListening = isListening,
                 voiceError = voiceError,
+                showDisclaimer = !keyboardVisible,
                 onValueChange = {
                     input = it
                     voiceError = null
@@ -190,70 +192,63 @@ fun AssistantScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (uiState.isLoadingMessages) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 48.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = PrimaryBlue)
-                    }
-                }
-            } else if (uiState.messages.isEmpty()) {
-                item {
-                    EmptyAssistantState()
-                }
-            }
-
-            items(uiState.messages) { message ->
-                ChatBubble(message)
-            }
-
-            if (uiState.isSending) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Surface(
-                            color = colorScheme.surface,
-                            shape = RoundedCornerShape(8.dp)
+        BoxWithConstraints(Modifier.fillMaxSize().padding(paddingValues)) {
+            val compactWelcome = maxHeight < 320.dp
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+                    .onSizeChanged { size ->
+                        val shrinking = listHeight > size.height && size.height > 0
+                        listHeight = size.height
+                        val itemCount = uiState.messages.size + if (uiState.isSending) 1 else 0
+                        if (shrinking && itemCount > 0) {
+                            // Acompanha o redimensionamento sem enfileirar animações de rolagem.
+                            listState.requestScrollToItem(itemCount - 1)
+                        }
+                    },
+                contentPadding = PaddingValues(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(
+                    16.dp,
+                    if (uiState.messages.isEmpty() && !uiState.isSending) Alignment.CenterVertically else Alignment.Top
+                )
+            ) {
+                if (uiState.isLoadingMessages) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp,
-                                    color = PrimaryBlue
-                                )
-                                Text("Pensando...", color = colorScheme.onSurface)
-                            }
+                            AppLoadingIndicator(size = 32.dp)
                         }
                     }
+                } else if (uiState.messages.isEmpty()) {
+                    item {
+                        EmptyAssistantState(compact = compactWelcome)
+                    }
                 }
-            }
 
-            uiState.errorMessage?.let { error ->
-                item {
-                    Text(
-                        text = error,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(horizontal = 4.dp)
-                    )
+                items(uiState.messages) { message ->
+                    ChatBubble(message)
+                }
+
+                if (uiState.isSending) {
+                    item {
+                        AssistantThinkingIndicator()
+                    }
+                }
+
+                uiState.errorMessage?.let { error ->
+                    item {
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(horizontal = 4.dp)
+                        )
+                    }
                 }
             }
         }
@@ -329,7 +324,7 @@ private fun ConversationsSheet(
                     .padding(vertical = 24.dp),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = PrimaryBlue)
+                AppLoadingIndicator(size = 32.dp)
             }
         } else if (uiState.conversations.isEmpty()) {
             Text(

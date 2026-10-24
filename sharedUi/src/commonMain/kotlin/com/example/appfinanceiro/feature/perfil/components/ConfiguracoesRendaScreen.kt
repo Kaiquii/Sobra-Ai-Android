@@ -68,6 +68,8 @@ import com.example.appfinanceiro.feature.home.components.MonthSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import br.com.sobraai.ui.runtime.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,16 +123,20 @@ fun ConfiguracoesRendaScreen(
     LaunchedEffect(userToken, refreshTrigger) {
         if (userToken != null) {
             isLoading = true
+            if (incomes.isEmpty()) loadErrorMessage = null
             try {
                 val incomesResponse = actionsViewModel.getIncomes(userToken!!)
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
                 incomes = incomesResponse.incomes
                 loadErrorMessage = null
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 loadErrorMessage = e.userMessageOr("Erro ao carregar configurações de renda")
             } finally {
-                isLoading = false
-                hasLoadedOnce = true
+                if (kotlinx.coroutines.currentCoroutineContext().isActive) {
+                    isLoading = false
+                    hasLoadedOnce = true
+                }
             }
         }
     }

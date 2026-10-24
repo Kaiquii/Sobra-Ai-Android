@@ -194,9 +194,7 @@ fun EditarDespesaScreen(
                     Text(
                         "Editar Despesa",
                         color = colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {

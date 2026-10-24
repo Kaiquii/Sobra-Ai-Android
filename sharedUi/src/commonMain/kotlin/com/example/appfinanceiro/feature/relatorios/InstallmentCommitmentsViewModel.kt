@@ -9,7 +9,6 @@ import com.example.appfinanceiro.core.network.InstallmentCommitmentsResponse
 import com.example.appfinanceiro.core.network.InstallmentCommitmentsSummary
 import com.example.appfinanceiro.core.network.InstallmentHeavyMonth
 import com.example.appfinanceiro.core.network.InstallmentTimelineMonth
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,9 +28,6 @@ data class InstallmentCommitmentsUiState(
 class InstallmentCommitmentsViewModel(
     private val repository: ReportsDataSource
 ) : ViewModel() {
-    private var loadJob: Job? = null
-    private var loadSequence: Long = 0
-
     private val _uiState = MutableStateFlow(InstallmentCommitmentsUiState())
     val uiState: StateFlow<InstallmentCommitmentsUiState> = _uiState
 
@@ -40,13 +36,13 @@ class InstallmentCommitmentsViewModel(
         month: Int,
         year: Int,
         months: Int = 12,
-        includeCurrentMonthAsPaid: Boolean = false
+        includeCurrentMonthAsPaid: Boolean = false,
+        refreshKey: Any? = null
     ) {
-        loadJob?.cancel()
-        val requestSequence = ++loadSequence
-        loadJob = launchLatest("commitments") {
+        launchLatest("commitments", listOf(token, month, year, months, includeCurrentMonthAsPaid, refreshKey)) {
             _uiState.update {
-                it.copy(isLoading = true, errorMessage = null, isSessionExpired = false)
+                it.copy(isLoading = true,
+                    errorMessage = if (it.data != null) it.errorMessage else null, isSessionExpired = false)
             }
 
             try {
@@ -63,7 +59,7 @@ class InstallmentCommitmentsViewModel(
                 )
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
-                    it.copy(data = visibleResponse)
+                    it.copy(data = visibleResponse, errorMessage = null)
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -78,14 +74,12 @@ class InstallmentCommitmentsViewModel(
                 currentCoroutineContext().ensureActive()
                 _uiState.update {
                     it.copy(
-                        data = null,
                         errorMessage = e.userMessageOr("Erro ao carregar compromissos parcelados")
                     )
                 }
             } finally {
-                if (requestSequence == loadSequence && currentCoroutineContext().isActive) {
-                    currentCoroutineContext().ensureActive()
-                _uiState.update {
+                if (currentCoroutineContext().isActive) {
+                    _uiState.update {
                         it.copy(isLoading = false)
                     }
                 }

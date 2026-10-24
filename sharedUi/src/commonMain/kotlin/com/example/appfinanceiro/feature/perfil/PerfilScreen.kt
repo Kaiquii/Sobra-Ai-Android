@@ -63,6 +63,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import br.com.sobraai.ui.runtime.LocalUiServices
+import br.com.sobraai.ui.biometricIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -81,6 +82,7 @@ import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextMuted
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -108,6 +110,30 @@ fun PerfilScreen(
     val userRole by sessionManager.userRole.collectAsState(initial = "")
     val userAvatarUrl by sessionManager.userAvatarUrl.collectAsState(initial = "")
     val userAvatarCacheVersion by sessionManager.userAvatarCacheVersion.collectAsState(initial = null)
+    val biometricEmails by sessionManager.biometricEnabledEmails.collectAsState(initial = null)
+    val biometricEnabled = biometricEmails?.contains(userEmail.trim().lowercase()) == true
+    val biometricLabel = context.controller.biometricKind.label
+    var isSavingBiometric by remember { mutableStateOf(false) }
+    var biometricError by remember { mutableStateOf<String?>(null) }
+
+    fun changeBiometricPreference(enabled: Boolean) {
+        if (isSavingBiometric || userEmail.isBlank() || biometricEmails == null) return
+        isSavingBiometric = true
+        biometricError = null
+        coroutineScope.launch {
+            try {
+                context.controller.setBiometricEnabled(enabled)
+            } catch (cancel: kotlinx.coroutines.CancellationException) {
+                throw cancel
+            } catch (_: Exception) {
+                biometricError = if (enabled)
+                    "Não foi possível confirmar ou ativar $biometricLabel. Verifique a biometria do aparelho e tente novamente. A preferência anterior foi mantida."
+                else "Não foi possível desativar $biometricLabel. A preferência anterior foi mantida. Tente novamente."
+            } finally {
+                isSavingBiometric = false
+            }
+        }
+    }
 
     val isAdmin = userRole.equals("admin", ignoreCase = true)
     val isPremium = userRole.equals("premium", ignoreCase = true)
@@ -124,10 +150,20 @@ fun PerfilScreen(
     var showRemovePhotoDialog by remember { mutableStateOf(false) }
     var showPhotoPreviewDialog by remember { mutableStateOf(false) }
     var isPhotoLoading by remember { mutableStateOf(false) }
-    var isProfileLoading by remember { mutableStateOf(false) }
-    var hasLoadedProfile by remember { mutableStateOf(false) }
-    var profileLoadError by remember { mutableStateOf<String?>(null) }
-    var profileRefreshTrigger by remember { mutableStateOf(0) }
+    val profileLoader = rememberPresentation("ProfileLoadViewModel") { services ->
+        ProfileLoadViewModel(
+            loadAndPersist = { token ->
+                val profile = services.finance.getProfile(token).user
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                services.persistProfileIdentity(token, profile.name, profile.email, profile.role, profile.avatar_url)
+            },
+            onExpired = { services.controller.logout("Sua sessão expirou. Entre novamente.") }
+        )
+    }
+    val profileLoadState by profileLoader.state.collectAsState()
+    val isProfileLoading = profileLoadState.loading
+    val hasLoadedProfile = profileLoadState.hasLoadedOnce
+    val profileLoadError = profileLoadState.error
     var localAvatarPreviewUri by remember { mutableStateOf<ByteArray?>(null) }
     val fullAvatarUrl = remember(userAvatarUrl, userAvatarCacheVersion) {
         userAvatarUrl.takeIf { it.isNotBlank() }?.let { reference ->
@@ -137,28 +173,9 @@ fun PerfilScreen(
     }
     val avatarImageModel = localAvatarPreviewUri ?: fullAvatarUrl
 
-    LaunchedEffect(userToken, profileRefreshTrigger) {
+    LaunchedEffect(userToken) {
         val token = userToken ?: return@LaunchedEffect
-
-        isProfileLoading = true
-        try {
-            val profile = actionsViewModel.getProfile(token).user
-            sessionManager.saveToken(
-                token = token,
-                name = profile.name,
-                email = profile.email,
-                role = profile.role,
-                avatarUrl = profile.avatar_url
-            )
-            profileLoadError = null
-        } catch (e: Exception) {
-            if (e is kotlinx.coroutines.CancellationException) throw e
-
-            profileLoadError = e.userMessageOr("Não foi possível carregar o perfil.")
-        } finally {
-            isProfileLoading = false
-            hasLoadedProfile = true
-        }
+        profileLoader.load(token, hasCachedData = userName.isNotBlank() || userEmail.isNotBlank())
     }
 
     fun uploadProfilePhoto(photo: com.example.appfinanceiro.core.network.ProfilePhoto) {
@@ -397,7 +414,10 @@ fun PerfilScreen(
                         dataLabel = "o perfil"
                     ),
                     isRetrying = isProfileLoading,
-                    onRetry = { profileRefreshTrigger++ }
+                    onRetry = {
+                        userToken?.let { profileLoader.load(it,
+                            hasCachedData = userName.isNotBlank() || userEmail.isNotBlank(), retry = true) }
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -444,6 +464,24 @@ fun PerfilScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            SectionTitle("Segurança")
+            SettingsToggleItem(
+                icon = biometricIcon(context.controller.biometricKind),
+                title = biometricLabel.replaceFirstChar { it.uppercase() },
+                subtitle = if (isSavingBiometric) "Confirmando..." else if (biometricEnabled)
+                    "Desbloqueio ativado" else "Desbloqueio desativado",
+                checked = biometricEnabled,
+                enabled = !isSavingBiometric && biometricEmails != null && userEmail.isNotBlank(),
+                loading = isSavingBiometric,
+                onCheckedChange = ::changeBiometricPreference
+            )
+            biometricError?.let { message ->
+                Text(message, color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
             SectionTitle("Suporte")
             SettingsItem(
                 icon = Icons.AutoMirrored.Filled.HelpOutline,

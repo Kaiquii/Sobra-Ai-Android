@@ -51,7 +51,8 @@ class HomeViewModel(
     fun loadSummary(token: String, month: Int, year: Int, refreshKey: Any? = null) {
         launchLatest("summary", listOf(token, month, year, refreshKey)) {
             _uiState.update {
-                it.copy(isSummaryLoading = true, isSessionExpired = false)
+                it.copy(isSummaryLoading = true, isSessionExpired = false,
+                    summaryError = if (it.summaryData != null) it.summaryError else null)
             }
 
             try {
@@ -83,7 +84,8 @@ class HomeViewModel(
     fun loadIncomes(token: String, month: Int, year: Int, refreshKey: Any? = null) {
         launchLatest("incomes", listOf(token, month, year, refreshKey)) {
             _uiState.update {
-                it.copy(isIncomesLoading = true, isSessionExpired = false)
+                it.copy(isIncomesLoading = true, isSessionExpired = false,
+                    incomesError = if (it.incomesData.isNotEmpty()) it.incomesError else null)
             }
 
             try {
@@ -126,7 +128,8 @@ class HomeViewModel(
     fun loadExpenses(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null) {
         launchLatest("expenses", listOf(token, month, year, paymentStatus, refreshKey)) {
             _uiState.update {
-                it.copy(isExpensesLoading = true, isSessionExpired = false)
+                it.copy(isExpensesLoading = true, isSessionExpired = false,
+                    expensesError = if (it.expensesData.isNotEmpty()) it.expensesError else null)
             }
 
             try {
@@ -162,7 +165,8 @@ class HomeViewModel(
 
     fun loadCategories(token: String, refreshKey: Any? = null) {
         launchLatest("categories", listOf(token, refreshKey)) {
-            _uiState.update { it.copy(isCategoriesLoading = true) }
+            _uiState.update { it.copy(isCategoriesLoading = true,
+                categoriesError = if (it.categoriesMap.isNotEmpty()) it.categoriesError else null) }
             try {
                 val categories = repository.getCategories(token)
                 currentCoroutineContext().ensureActive()
