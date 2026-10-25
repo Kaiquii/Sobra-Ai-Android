@@ -61,6 +61,18 @@ comuns de notificações e avisos de Início, Despesas e Relatórios: falhas de 
 compartilhadas, erros distintos de API, recuperação parcial e tentativa manual.
 Não esconder erros reais nem ampliar retentativas para fazer esses testes passarem.
 
+`TabReentryReadTest` cobre retorno rápido às abas após leitura concluída, consulta
+pendente, prazo de 60 s contado da conclusão por relógio monotônico, tentativa
+explícita, troca de período/filtro/revisão, resultados vazios nas configurações,
+cancelamento e rejeição de resposta antiga. Falhas reais continuam visíveis e
+podem ser repetidas manualmente. O transporte mantém seu limite anterior de uma
+única repetição de GET por falha de conexão; escritas/HTTP/timeout não ganham retries.
+Conferir no aparelho Android/iPhone: abrir cada aba, alternar apps e voltar em
+menos de um minuto; mudar mês, salvar despesa/renda/categoria e retornar; depois
+voltar após o prazo e testar conexão indisponível e tentativa manual. Testes com
+fakes não comprovam a causa de uma falha de rede observada no aparelho nem a
+disponibilidade histórica do backend.
+
 `NotificationInsetsTest` cobre os quadros de abertura/fechamento do teclado,
 salvar com teclado aberto e voltar à tela com barra inferior, além dos
 formulários sem barra e das áreas seguras. Não substitui o teste visual no aparelho.

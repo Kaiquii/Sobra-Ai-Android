@@ -10,6 +10,14 @@ object FinanceDataChanges {
     val revision = _revision.asStateFlow()
 
     fun notifyExpenseCreated() {
+        notifyExpenseChanged()
+    }
+
+    fun notifyExpenseChanged() {
+        _revision.update { it + 1 }
+    }
+
+    fun notifyCategoryChanged() {
         _revision.update { it + 1 }
     }
 

@@ -42,8 +42,8 @@ class RelatoriosViewModel(
 
     private val _uiState = MutableStateFlow(RelatoriosUiState())
     val uiState: StateFlow<RelatoriosUiState> = _uiState
-    fun loadReports(token: String, month: Int, year: Int, refreshKey: Any? = null) {
-        launchLatest("reports", listOf(token, month, year, refreshKey)) {
+    fun loadReports(token: String, month: Int, year: Int, refreshKey: Any? = null, reuseRecent: Boolean = false) {
+        launchLatest("reports", listOf(token, month, year, refreshKey), reuseRecent = reuseRecent) {
             _uiState.update {
                 it.copy(isLoading = true, isSessionExpired = false,
                     errorMessage = if (it.summaryData != null) it.errorMessage else null,
@@ -94,9 +94,10 @@ class RelatoriosViewModel(
         year: Int,
         compareMonth: Int,
         compareYear: Int,
-        refreshKey: Any? = null
+        refreshKey: Any? = null,
+        reuseRecent: Boolean = false
     ) {
-        launchLatest("comparison", listOf(token, month, year, compareMonth, compareYear, refreshKey)) {
+        launchLatest("comparison", listOf(token, month, year, compareMonth, compareYear, refreshKey), reuseRecent = reuseRecent) {
             _uiState.update {
                 it.copy(
                     isComparisonLoading = true,

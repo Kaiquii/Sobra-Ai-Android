@@ -61,6 +61,18 @@ trocar de aba não cancela uma leitura em andamento nem repete automaticamente u
 leitura que falhou; o usuário pode tentar novamente pelo banner. A persistência
 da identidade continua em `UiServices.persistProfileIdentity`, preservando biometria.
 
+`PresentationModel.launchLatest` distingue entrada de tela (`reuseRecent = true`)
+de atualização explícita. Entrada reutiliza a última consulta idêntica por 60 s
+após sua conclusão, usando relógio monotônico; requisição em andamento continua
+reutilizada independentemente desse prazo. Mês, filtros, token e revisão distintos
+iniciam outra consulta. Tentativa explícita ignora o prazo, sem cancelar uma
+consulta idêntica ainda em andamento. Erros existentes permanecem visíveis.
+Aplica-se a Início, Despesas, Relatórios/comparativo, Compromissos e Perfil.
+Categorias e Configurações de Renda usam `SettingsListLoadViewModel`, retido na
+navegação comum, inclusive para resultados vazios. Alterações bem-sucedidas de
+categoria/renda/despesa (inclusive pagar, adiantar e excluir) invalidam a revisão
+financeira; nenhuma dessas regras cria repetição de gravações.
+
 ## Regras que precisam sobreviver a alterações
 
 - API externa: não há servidor neste repositório. Preservar endpoints, JSON,

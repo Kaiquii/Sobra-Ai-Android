@@ -37,9 +37,10 @@ class InstallmentCommitmentsViewModel(
         year: Int,
         months: Int = 12,
         includeCurrentMonthAsPaid: Boolean = false,
-        refreshKey: Any? = null
+        refreshKey: Any? = null,
+        reuseRecent: Boolean = false
     ) {
-        launchLatest("commitments", listOf(token, month, year, months, includeCurrentMonthAsPaid, refreshKey)) {
+        launchLatest("commitments", listOf(token, month, year, months, includeCurrentMonthAsPaid, refreshKey), reuseRecent = reuseRecent) {
             _uiState.update {
                 it.copy(isLoading = true,
                     errorMessage = if (it.data != null) it.errorMessage else null, isSessionExpired = false)

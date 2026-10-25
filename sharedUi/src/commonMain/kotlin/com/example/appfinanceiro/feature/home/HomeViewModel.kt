@@ -48,14 +48,14 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
 
-    fun loadAll(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null) {
-        loadSummary(token, month, year, refreshKey)
-        loadIncomes(token, month, year, refreshKey)
-        loadExpenses(token, month, year, paymentStatus, refreshKey)
+    fun loadAll(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null, reuseRecent: Boolean = false) {
+        loadSummary(token, month, year, refreshKey, reuseRecent)
+        loadIncomes(token, month, year, refreshKey, reuseRecent)
+        loadExpenses(token, month, year, paymentStatus, refreshKey, reuseRecent)
     }
 
-    fun loadSummary(token: String, month: Int, year: Int, refreshKey: Any? = null) {
-        launchLatest("summary", listOf(token, month, year, refreshKey)) {
+    fun loadSummary(token: String, month: Int, year: Int, refreshKey: Any? = null, reuseRecent: Boolean = false) {
+        launchLatest("summary", listOf(token, month, year, refreshKey), reuseRecent = reuseRecent) {
             _uiState.update {
                 it.copy(isSummaryLoading = true, isSessionExpired = false,
                     summaryError = if (it.summaryData != null) it.summaryError else null,
@@ -88,8 +88,8 @@ class HomeViewModel(
         }
     }
 
-    fun loadIncomes(token: String, month: Int, year: Int, refreshKey: Any? = null) {
-        launchLatest("incomes", listOf(token, month, year, refreshKey)) {
+    fun loadIncomes(token: String, month: Int, year: Int, refreshKey: Any? = null, reuseRecent: Boolean = false) {
+        launchLatest("incomes", listOf(token, month, year, refreshKey), reuseRecent = reuseRecent) {
             _uiState.update {
                 it.copy(isIncomesLoading = true, isSessionExpired = false,
                     incomesError = if (it.incomesData.isNotEmpty()) it.incomesError else null,
@@ -138,8 +138,8 @@ class HomeViewModel(
         }
     }
 
-    fun loadExpenses(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null) {
-        launchLatest("expenses", listOf(token, month, year, paymentStatus, refreshKey)) {
+    fun loadExpenses(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null, reuseRecent: Boolean = false) {
+        launchLatest("expenses", listOf(token, month, year, paymentStatus, refreshKey), reuseRecent = reuseRecent) {
             _uiState.update {
                 it.copy(isExpensesLoading = true, isSessionExpired = false,
                     expensesError = if (it.expensesData.isNotEmpty()) it.expensesError else null,
@@ -174,11 +174,11 @@ class HomeViewModel(
                 }
             }
         }
-        loadCategories(token, refreshKey)
+        loadCategories(token, refreshKey, reuseRecent)
     }
 
-    fun loadCategories(token: String, refreshKey: Any? = null) {
-        launchLatest("categories", listOf(token, refreshKey)) {
+    fun loadCategories(token: String, refreshKey: Any? = null, reuseRecent: Boolean = false) {
+        launchLatest("categories", listOf(token, refreshKey), reuseRecent = reuseRecent) {
             _uiState.update { it.copy(isCategoriesLoading = true,
                 categoriesError = if (it.categoriesMap.isNotEmpty()) it.categoriesError else null,
                     categoriesNetworkFailure = if (it.categoriesMap.isNotEmpty()) it.categoriesNetworkFailure else null) }

@@ -14,6 +14,9 @@ import com.example.appfinanceiro.core.designsystem.components.AppNotificationTyp
 import com.example.appfinanceiro.core.designsystem.components.AppNotificationVisuals
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
+import kotlin.time.Duration.Companion.seconds
 
 /** Native capabilities are injected once by the host; all routes and presentation stay common. */
 class UiServices(
@@ -63,15 +66,29 @@ internal class PresentationStore {
     fun close() { models.values.forEach(PresentationModel::close); models.clear() }
 }
 
-open class PresentationModel {
+open class PresentationModel(private val readClock: TimeSource = TimeSource.Monotonic) {
     val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private class Reader(val request: Any?, val job: Job)
+    private class Reader(val request: Any?, val job: Job, var completedAt: TimeMark? = null)
     private val readers = mutableMapOf<String, Reader>()
-    protected fun launchLatest(key: String, request: Any? = null, block: suspend CoroutineScope.() -> Unit): Job {
+    protected fun launchLatest(key: String, request: Any? = null, reuseRecent: Boolean = false,
+        block: suspend CoroutineScope.() -> Unit): Job {
         val previous = readers[key]
-        if (request != null && previous?.request == request && previous.job.isActive) return previous.job
+        if (request != null && previous?.request == request &&
+            (previous.job.isActive || (reuseRecent &&
+                previous.completedAt?.elapsedNow()?.let { it < 60.seconds } == true))) return previous.job
         readers.remove(key)?.job?.cancel()
-        return viewModelScope.launch(block = block).also { readers[key] = Reader(request, it) }
+        // Register before starting: Main.immediate can complete a read synchronously.
+        // Only navigation opts in; explicit retries and mutations keep their normal semantics.
+        lateinit var reader: Reader
+        val job = viewModelScope.launch(start = CoroutineStart.LAZY) {
+            block()
+            currentCoroutineContext().ensureActive()
+            reader.completedAt = readClock.markNow()
+        }
+        reader = Reader(request, job)
+        readers[key] = reader
+        job.start()
+        return job
     }
     protected open fun onCleared() {}
     fun close() { viewModelScope.cancel(); onCleared() }

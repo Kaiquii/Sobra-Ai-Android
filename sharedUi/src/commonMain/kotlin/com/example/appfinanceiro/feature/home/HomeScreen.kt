@@ -176,7 +176,8 @@ fun HomeScreen(
                 currentMonthIndex + 1,
                 currentYear,
                 selectedPaymentStatus,
-                refreshKey = listOf(financeRevision, refreshIncomeActions)
+                refreshKey = listOf(financeRevision, refreshIncomeActions),
+                reuseRecent = true
             )
         }
     }

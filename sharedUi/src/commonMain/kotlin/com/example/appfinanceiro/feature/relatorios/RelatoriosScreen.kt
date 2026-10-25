@@ -142,7 +142,8 @@ fun RelatoriosScreen(
                 token = token,
                 month = currentMonthNumber,
                 year = currentYear,
-                refreshKey = financeRevision
+                refreshKey = financeRevision,
+                reuseRecent = true
             )
         }
     }
@@ -162,7 +163,8 @@ fun RelatoriosScreen(
                 year = currentYear,
                 compareMonth = compareMonthNumber,
                 compareYear = compareYear,
-                refreshKey = financeRevision
+                refreshKey = financeRevision,
+                reuseRecent = true
             )
         }
     }

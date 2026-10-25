@@ -23,25 +23,25 @@ class FinanceActionsViewModel(
         request { repository.getCategories(token) }
 
     suspend fun createCategory(token: String, request: CategoryRequest): CategoryResponse =
-        this.request { repository.createCategory(token, request) }
+        this.request { repository.createCategory(token, request) }.also { FinanceDataChanges.notifyCategoryChanged() }
 
     suspend fun updateCategory(token: String, id: Int, request: CategoryRequest): DefaultResponse =
-        this.request { repository.updateCategory(token, id, request) }
+        this.request { repository.updateCategory(token, id, request) }.also { FinanceDataChanges.notifyCategoryChanged() }
 
     suspend fun deleteCategory(token: String, id: Int): DefaultResponse =
-        request { repository.deleteCategory(token, id) }
+        request { repository.deleteCategory(token, id) }.also { FinanceDataChanges.notifyCategoryChanged() }
 
     suspend fun getExpense(token: String, id: Int): Expense =
         request { repository.getExpenseById(token, id) }
 
     suspend fun createExpense(token: String, expense: ExpenseRequest): DefaultResponse =
-        request { repository.createExpense(token, expense) }
+        request { repository.createExpense(token, expense) }.also { FinanceDataChanges.notifyExpenseChanged() }
 
     suspend fun updateExpense(
         token: String,
         id: Int,
         expense: ExpenseUpdateRequest
-    ): DefaultResponse = request { repository.updateExpense(token, id, expense) }
+    ): DefaultResponse = request { repository.updateExpense(token, id, expense) }.also { FinanceDataChanges.notifyExpenseChanged() }
 
     suspend fun getIncomes(
         token: String,

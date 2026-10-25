@@ -2,6 +2,9 @@ package com.example.appfinanceiro.feature.perfil.components
 
 import br.com.sobraai.ui.runtime.UiServices as Context
 import br.com.sobraai.ui.runtime.UiToast as Toast
+import com.example.appfinanceiro.feature.perfil.SettingsListLoadViewModel
+import com.example.appfinanceiro.core.data.FinanceDataChanges
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
@@ -69,8 +72,6 @@ import com.example.appfinanceiro.feature.home.components.MonthSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.isActive
 import br.com.sobraai.ui.runtime.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,11 +100,14 @@ fun ConfiguracoesRendaScreen(
         selectedYear = target.year
     }
 
-    var incomes by remember { mutableStateOf<List<Income>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var hasLoadedOnce by remember { mutableStateOf(false) }
-    var loadErrorMessage by remember { mutableStateOf<String?>(null) }
-    var refreshTrigger by remember { mutableIntStateOf(0) }
+    val listModel = rememberPresentation("SettingsListLoadViewModel") { SettingsListLoadViewModel<Income>() }
+    val listState by listModel.state.collectAsState()
+    val incomes = listState.items
+    val isLoading = listState.loading
+    val hasLoadedOnce = listState.hasLoadedOnce
+    val loadErrorMessage = listState.error
+    val financeRevision by FinanceDataChanges.revision.collectAsState()
+    var refreshTrigger by rememberSaveable { mutableIntStateOf(0) }
     var isDeleting by remember { mutableStateOf(false) }
 
     var salarioAmount by remember { mutableStateOf("") }
@@ -126,23 +130,10 @@ fun ConfiguracoesRendaScreen(
 
     val selectedMonth = selectedMonthIndex + 1
 
-    LaunchedEffect(userToken, refreshTrigger) {
-        if (userToken != null) {
-            isLoading = true
-            if (incomes.isEmpty()) loadErrorMessage = null
-            try {
-                val incomesResponse = actionsViewModel.getIncomes(userToken!!)
-                kotlinx.coroutines.currentCoroutineContext().ensureActive()
-                incomes = incomesResponse.incomes
-                loadErrorMessage = null
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                loadErrorMessage = e.userMessageOr("Erro ao carregar configurações de renda")
-            } finally {
-                if (kotlinx.coroutines.currentCoroutineContext().isActive) {
-                    isLoading = false
-                    hasLoadedOnce = true
-                }
+    LaunchedEffect(userToken, refreshTrigger, financeRevision) {
+        userToken?.let { token ->
+            listModel.load(token, listOf(financeRevision, refreshTrigger), "Erro ao carregar configurações de renda") {
+                actionsViewModel.getIncomes(token).incomes
             }
         }
     }

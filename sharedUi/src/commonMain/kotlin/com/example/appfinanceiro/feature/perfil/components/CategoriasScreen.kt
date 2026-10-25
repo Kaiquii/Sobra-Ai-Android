@@ -1,6 +1,9 @@
 package com.example.appfinanceiro.feature.perfil.components
 
 import br.com.sobraai.ui.runtime.UiToast as Toast
+import com.example.appfinanceiro.feature.perfil.SettingsListLoadViewModel
+import com.example.appfinanceiro.core.data.FinanceDataChanges
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material.icons.filled.Category
@@ -60,8 +63,6 @@ import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Category
 import com.example.appfinanceiro.core.network.CategoryRequest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.isActive
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,11 +77,14 @@ fun CategoriasScreen(
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColor = MaterialTheme.colorScheme.onBackground
 
-    var categories by remember { mutableStateOf<List<Category>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var hasLoadedOnce by remember { mutableStateOf(false) }
-    var loadErrorMessage by remember { mutableStateOf<String?>(null) }
-    var refreshTrigger by remember { mutableIntStateOf(0) }
+    val listModel = rememberPresentation("SettingsListLoadViewModel") { SettingsListLoadViewModel<Category>() }
+    val listState by listModel.state.collectAsState()
+    val categories = listState.items
+    val isLoading = listState.loading
+    val hasLoadedOnce = listState.hasLoadedOnce
+    val loadErrorMessage = listState.error
+    val financeRevision by FinanceDataChanges.revision.collectAsState()
+    var refreshTrigger by rememberSaveable { mutableIntStateOf(0) }
 
     var newCategoryName by remember { mutableStateOf("") }
     var editingCategory by remember { mutableStateOf<Category?>(null) }
@@ -89,23 +93,10 @@ fun CategoriasScreen(
     var categoryToDelete by remember { mutableStateOf<Category?>(null) }
     var deleteErrorMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(userToken, refreshTrigger) {
-        if (userToken != null) {
-            isLoading = true
-            if (categories.isEmpty()) loadErrorMessage = null
-            try {
-                val response = actionsViewModel.getCategories(userToken!!)
-                kotlinx.coroutines.currentCoroutineContext().ensureActive()
-                categories = response.categories
-                loadErrorMessage = null
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                loadErrorMessage = e.userMessageOr("Erro ao carregar categorias")
-            } finally {
-                if (kotlinx.coroutines.currentCoroutineContext().isActive) {
-                    isLoading = false
-                    hasLoadedOnce = true
-                }
+    LaunchedEffect(userToken, refreshTrigger, financeRevision) {
+        userToken?.let { token ->
+            listModel.load(token, listOf(financeRevision, refreshTrigger), "Erro ao carregar categorias") {
+                actionsViewModel.getCategories(token).categories
             }
         }
     }

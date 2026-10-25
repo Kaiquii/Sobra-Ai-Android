@@ -153,7 +153,8 @@ fun DespesasScreen(
                 token,
                 currentMonthIndex + 1,
                 currentYear,
-                refreshKey = listOf(financeRevision, refreshTrigger)
+                refreshKey = listOf(financeRevision, refreshTrigger),
+                reuseRecent = true
             )
         }
     }

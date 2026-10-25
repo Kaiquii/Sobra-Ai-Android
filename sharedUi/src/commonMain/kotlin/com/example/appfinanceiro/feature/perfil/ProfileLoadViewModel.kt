@@ -28,7 +28,7 @@ class ProfileLoadViewModel(
         // Reopening a failed tab is not a user request to retry; keep the error stable.
         if (lastToken == token && mutable.value.error != null && !retry) return
         lastToken = token
-        launchLatest("profile", token) {
+        launchLatest("profile", token, reuseRecent = !retry) {
             mutable.value = mutable.value.copy(loading = true,
                 error = if (hasCachedData) mutable.value.error else null)
             try {

@@ -5,6 +5,7 @@ import com.example.appfinanceiro.core.network.supportsAdvance
 import br.com.sobraai.ui.runtime.PresentationModel as ViewModel
 import com.example.appfinanceiro.core.data.SharedFinanceRepository
 import com.example.appfinanceiro.core.data.ExpensesDataSource
+import com.example.appfinanceiro.core.data.FinanceDataChanges
 import com.example.appfinanceiro.core.data.SessionExpiredException
 import com.example.appfinanceiro.core.data.userMessageOr
 import com.example.appfinanceiro.core.data.NetworkRequestException
@@ -48,8 +49,8 @@ class DespesasViewModel(
     private val _uiState = MutableStateFlow(DespesasUiState())
     val uiState: StateFlow<DespesasUiState> = _uiState
 
-    fun loadExpenses(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null) {
-        launchLatest("expenses", listOf(token, month, year, paymentStatus, refreshKey)) {
+    fun loadExpenses(token: String, month: Int, year: Int, paymentStatus: String? = null, refreshKey: Any? = null, reuseRecent: Boolean = false) {
+        launchLatest("expenses", listOf(token, month, year, paymentStatus, refreshKey), reuseRecent = reuseRecent) {
             _uiState.update {
                 it.copy(isLoading = true, isSessionExpired = false,
                     errorMessage = if (it.expensesData.isNotEmpty() || it.effectiveExpensesData.isNotEmpty()) it.errorMessage else null,
@@ -90,11 +91,11 @@ class DespesasViewModel(
                 }
             }
         }
-        loadCategories(token, refreshKey)
+        loadCategories(token, refreshKey, reuseRecent)
     }
 
-    fun loadCategories(token: String, refreshKey: Any? = null) {
-        launchLatest("categories", listOf(token, refreshKey)) {
+    fun loadCategories(token: String, refreshKey: Any? = null, reuseRecent: Boolean = false) {
+        launchLatest("categories", listOf(token, refreshKey), reuseRecent = reuseRecent) {
             _uiState.update { it.copy(isCategoriesLoading = true,
                 categoriesError = if (it.categoriesMap.isNotEmpty()) it.categoriesError else null,
                 categoriesNetworkFailure = if (it.categoriesMap.isNotEmpty()) it.categoriesNetworkFailure else null) }
@@ -137,6 +138,7 @@ class DespesasViewModel(
 
             try {
                 repository.deleteExpense(token, expenseId, deleteFuture)
+                FinanceDataChanges.notifyExpenseChanged()
                 _uiState.update {
                     it.copy(deleteSuccessMessage = "Excluído com sucesso!")
                 }
@@ -176,6 +178,7 @@ class DespesasViewModel(
 
             try {
                 val response = repository.updateExpensePaymentStatus(token, expense.id, isPaid)
+                FinanceDataChanges.notifyExpenseChanged()
                 _uiState.update { state ->
                     state.copy(
                         expensesData = state.expensesData.map { currentExpense ->
@@ -233,6 +236,7 @@ class DespesasViewModel(
                     isAdvanced = isAdvanced,
                     advancedAt = advancedAt
                 )
+                FinanceDataChanges.notifyExpenseChanged()
                 _uiState.update { state ->
                     state.copy(
                         expensesData = state.expensesData.replaceExpense(response.expense),

@@ -117,7 +117,8 @@ fun InstallmentCommitmentsScreen(
                 year = selectedYear,
                 months = selectedCalendarMonths,
                 includeCurrentMonthAsPaid = includeCurrentMonthAsPaid,
-                refreshKey = financeRevision
+                refreshKey = financeRevision,
+                reuseRecent = true
             )
         }
     }
