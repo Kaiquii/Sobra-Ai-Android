@@ -44,6 +44,7 @@ Na base `sharedUi/src/commonMain/kotlin/com/example/appfinanceiro/`:
 | Criar/editar despesa | `feature/despesas/components/NovaDespesaScreen.kt`, `EditarDespesaScreen.kt`, seletores de data, rateio e categorias |
 | Adiantar despesa | Apenas Única/Parcelada, pela regra comum `supportsExpenseAdvance` em `shared/.../core/network/ExpenseAdvanceEligibility.kt`; calendário azul no topo do `ExpenseCard`, diálogos e mutações protegidos. Fixa não oferece adiantamento; Paga continua independente |
 | Relatórios | `feature/relatorios/RelatoriosScreen.kt`, `RelatoriosViewModel.kt`; gráficos comuns em `designSystem` |
+| Gastos por categoria | `designSystem/.../feature/relatorios/components/CategoryExpensesCard.kt` e `CategoryDonutChart.kt`: rosca e lista usam os mesmos dados/cores; `categoryDonutSlices` calcula apenas geometria; privacidade pelo `PrivateReportContent` |
 | Parcelados | `feature/relatorios/InstallmentCommitmentsScreen.kt`, `InstallmentCommitmentsViewModel.kt` |
 | Exportar | `feature/relatorios/export/ReportExportSheet.kt`, `ReportExportViewModel.kt`, `ReportExportModels.kt`; `ReportFiles` isola o sistema de arquivos |
 | Assistente | `feature/assistant/AssistantScreen.kt`, `AssistantViewModel.kt`; componentes em `designSystem/.../feature/assistant/AssistantComponents.kt`; boas-vindas sem sugestões de mensagens, compositor integrado, histórico completo, nova conversa, exclusão, cota e ditado |

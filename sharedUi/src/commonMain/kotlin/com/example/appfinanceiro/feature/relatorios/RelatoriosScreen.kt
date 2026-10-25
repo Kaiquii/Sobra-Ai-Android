@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.key
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -337,10 +338,12 @@ fun RelatoriosScreen(
 
                     item(key = "category_expenses", contentType = "card") {
                         PrivateReportContent("Gastos por Categoria") {
-                            CategoryExpensesCard(
-                                totalExpense = uiState.summaryData?.total_expense ?: 0.0,
-                                categories = uiState.categoryData
-                            )
+                            key(currentMonthIndex, currentYear) {
+                                CategoryExpensesCard(
+                                    totalExpense = uiState.summaryData?.total_expense ?: 0.0,
+                                    categories = uiState.categoryData
+                                )
+                            }
                         }
                     }
 

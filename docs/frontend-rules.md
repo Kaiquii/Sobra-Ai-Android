@@ -113,6 +113,31 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   e status Paga não alteram a elegibilidade. A regra vale para todos os cards e
   detalhes, tanto Android quanto iOS.
 
+## Gráfico de gastos por categoria
+
+- `CategoryExpensesCard` apresenta um gráfico de rosca acima da lista existente,
+  no componente comum Android/iOS. Preservar o card, total, legenda, valores e
+  percentuais da API. Fatias e legenda usam a mesma ordem e `categoryColor`.
+- A geometria usa os valores positivos, sem alterar os dados financeiros nem
+  calcular novos totais de negócio a partir do desenho. Lista vazia/zerada não
+  gera fatias fictícias; valores negativos ou não finitos impedem desenhar uma
+  rosca enganosa e mantêm a lista acompanhada de uma indicação de indisponibilidade.
+- Rosca centralizada em área de até 192 dp, com margens para destacar levemente a
+  fatia selecionada e separação sutil entre cores. Toque na fatia abre um balão
+  dentro do card com nome e valor; tocar no centro/espaço externo do gráfico ou no
+  balão fecha o detalhe. As linhas da legenda também abrem a mesma consulta,
+  oferecendo alternativa acessível para fatias pequenas. Limpar seleção ao mudar
+  mês ou dados; o balão não pode mostrar uma categoria do mês anterior.
+- Seleção sincronizada entre fatia e legenda: manter fundo suave e contorno na
+  cor da categoria na linha selecionada, com realce da fatia e atenuação das demais.
+  Tocar novamente na mesma linha/fatia desmarca e remove todos os realces; outra
+  categoria troca a seleção. O realce não pode mudar o tamanho/posição da linha.
+- Legenda compacta: nome, percentual com uma casa decimal e valor na mesma linha,
+  barra abaixo, alvos de toque de 48 dp. Em telas estreitas ou fonte ampliada,
+  permitir valor na linha seguinte sem cortar o nome. Preservar as cores e valores
+  da API; não alterar outros cards. `PrivateReportContent` deve ocultar também o
+  gráfico, o balão e suas semânticas quando a privacidade estiver ativada.
+
 ## Textos e idioma
 
 - Dropdowns usam `AppSelectField` e `AppSelectDialog` do designSystem. Usar o

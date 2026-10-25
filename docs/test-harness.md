@@ -38,6 +38,18 @@ comum e os demais casos afetados na mesma tarefa. A entrega deve dizer quais
 fluxos foram revisados, quais testes cobrem a regressão e quais verificações
 continuam manuais; um build verde sozinho não comprova essa revisão.
 
+`CategoryDonutChartTest` cobre proporções, ordem de cores, meses vazios/zerados,
+uma ou muitas categorias, valores pequenos, soma grande sem overflow e recusa
+de representar ajustes negativos como fatias positivas. Conferir visualmente a
+rosca nos temas claro/escuro, largura estreita, fonte ampliada, troca de mês e
+modo de valores ocultos (inclusive semânticas), em Android/iPhone. Os testes de
+geometria não substituem essa comparação nos aparelhos.
+O mesmo teste verifica identificação de fatias por toque (quadrantes e transição
+de ângulo), índices da legenda após valores zerados, centro vazio, área fora do
+anel e coordenadas inválidas. Conferir no aparelho: balão com nome/valor corretos,
+seleção pela lista, fechar pelo centro/balão, reset ao mudar mês e privacidade,
+contraste claro/escuro e legenda compacta com fonte ampliada.
+
 `ExpenseAdvanceEligibilityTest` cobre a permissão somente para Única/Parcelada,
 ausência de gravações para Fixa, preservação da ação Paga, aliases legados e
 independência da origem do pagamento. Conferir manualmente cards/detalhes: Fixa
