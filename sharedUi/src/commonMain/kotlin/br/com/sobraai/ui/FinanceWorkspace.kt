@@ -71,6 +71,10 @@ class FinanceWorkspace(val home: HomePresenter, private val source: ExpensesData
         runner.run({ source.updateExpensePaymentStatus(token, expense.id, paid) }, ::refreshAll)
     }
     fun advance(expense: Expense, date: FinancialDate?, runner: MutationRunner) {
+        if (!expense.supportsAdvance) {
+            runner.error("Somente despesas únicas ou parceladas podem ser adiantadas.")
+            return
+        }
         if (date != null) {
             val scheduled = FinancialDate.parseApi(expense.date)
             if (scheduled == null || date >= scheduled) { runner.error("O adiantamento deve ser anterior à data prevista da despesa."); return }

@@ -1,5 +1,7 @@
 package com.example.appfinanceiro.feature.despesas
 
+import com.example.appfinanceiro.core.network.supportsAdvance
+
 import br.com.sobraai.ui.runtime.UiToast as Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -377,7 +379,7 @@ fun DespesasScreen(
                             onEdit = { onEditClick(expense.id) },
                             onDelete = { expenseToDelete = expense },
                             onPaymentStatusClick = { expensePaymentStatusToChange = expense },
-                            onAdvanceClick = { expenseToAdvance = expense }
+                            onAdvanceClick = if (expense.supportsAdvance) ({ expenseToAdvance = expense }) else null
                         )
                     }
                     if (filteredIncomingAdvanced.isNotEmpty()) {
@@ -597,7 +599,7 @@ fun DespesasScreen(
             expense = expense,
             categoryName = uiState.categoriesMap[expense.category_id] ?: "Outros",
             onDismiss = { expenseToView = null },
-            onChangeAdvanceDateClick = if (expense.isAdvanced) {
+            onChangeAdvanceDateClick = if (expense.supportsAdvance && expense.isAdvanced) {
                 {
                     expenseToView = null
                     expenseToAdvance = expense
@@ -605,7 +607,7 @@ fun DespesasScreen(
             } else {
                 null
             },
-            onRemoveAdvanceClick = if (expense.isAdvanced) {
+            onRemoveAdvanceClick = if (expense.supportsAdvance && expense.isAdvanced) {
                 {
                     expenseToView = null
                     expenseToRemoveAdvance = expense

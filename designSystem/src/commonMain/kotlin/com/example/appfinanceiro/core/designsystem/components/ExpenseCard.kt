@@ -1,5 +1,7 @@
 package com.example.appfinanceiro.core.designsystem.components
 
+import com.example.appfinanceiro.core.network.supportsExpenseAdvance
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -98,7 +100,7 @@ fun ExpenseCard(
             onEdit = onEdit ?: {},
             onDelete = onDelete ?: {},
             onPaymentStatusClick = onPaymentStatusClick,
-            onAdvanceClick = onAdvanceClick
+            onAdvanceClick = onAdvanceClick.takeIf { supportsExpenseAdvance(expenseType) }
         )
     }
 }

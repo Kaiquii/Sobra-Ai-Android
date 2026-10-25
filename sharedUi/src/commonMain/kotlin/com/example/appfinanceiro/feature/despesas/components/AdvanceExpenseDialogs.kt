@@ -1,5 +1,7 @@
 package com.example.appfinanceiro.feature.despesas.components
 
+import com.example.appfinanceiro.core.network.supportsAdvance
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +52,8 @@ fun AdvanceExpenseDialog(
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit
 ) {
+    if (!expense.supportsAdvance) return
+
     val utc = remember { TimeZone.getTimeZone("UTC") }
     val todayMillis = remember { utcDayMillis(Calendar.getInstance()) }
     val scheduledMillis = remember(expense.date) { parseApiDateToUtcMillis(expense.date) }
@@ -183,6 +187,8 @@ fun RemoveAdvanceDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    if (!expense.supportsAdvance) return
+
     val formattedAmount = remember(expense.amount) {
         NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR")).format(expense.amount)
     }

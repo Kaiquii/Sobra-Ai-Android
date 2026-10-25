@@ -42,7 +42,7 @@ Na base `sharedUi/src/commonMain/kotlin/com/example/appfinanceiro/`:
 | Visão mensal | `feature/home/HomeScreen.kt`, `HomeViewModel.kt`, resumo e diálogos em `feature/home/components/` |
 | Despesas | `feature/despesas/DespesasScreen.kt`, `DespesasViewModel.kt`, filtros, detalhes, pagamento e adiantamentos |
 | Criar/editar despesa | `feature/despesas/components/NovaDespesaScreen.kt`, `EditarDespesaScreen.kt`, seletores de data, rateio e categorias |
-| Adiantar despesa | Calendário azul no topo do `ExpenseCard` detalhado, conectado por `DespesaListItem` ao diálogo existente de adiantar/alterar data; remoção nos detalhes, sem alterar Paga |
+| Adiantar despesa | Apenas Única/Parcelada, pela regra comum `supportsExpenseAdvance` em `shared/.../core/network/ExpenseAdvanceEligibility.kt`; calendário azul no topo do `ExpenseCard`, diálogos e mutações protegidos. Fixa não oferece adiantamento; Paga continua independente |
 | Relatórios | `feature/relatorios/RelatoriosScreen.kt`, `RelatoriosViewModel.kt`; gráficos comuns em `designSystem` |
 | Parcelados | `feature/relatorios/InstallmentCommitmentsScreen.kt`, `InstallmentCommitmentsViewModel.kt` |
 | Exportar | `feature/relatorios/export/ReportExportSheet.kt`, `ReportExportViewModel.kt`, `ReportExportModels.kt`; `ReportFiles` isola o sistema de arquivos |

@@ -38,7 +38,7 @@ class FinanceWorkspaceTest {
         val fake = EditingFake()
         val home = HomePresenter(fake, "synthetic-token", backgroundScope, Period(10, 2026)) {}
         val workspace = FinanceWorkspace(home, fake, fake, "synthetic-token", backgroundScope) {}
-        val expense = testExpense(date = "2026-10-20T00:00:00-03:00")
+        val expense = testExpense(type = "Única", date = "2026-10-20T00:00:00-03:00")
         val invalid = workspace.newAction()
         workspace.advance(expense, FinancialDate(2026, 10, 20), invalid); runCurrent()
         assertEquals(0, fake.writes)

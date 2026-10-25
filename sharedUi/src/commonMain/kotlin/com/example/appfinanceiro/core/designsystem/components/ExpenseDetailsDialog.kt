@@ -1,5 +1,7 @@
 package com.example.appfinanceiro.core.designsystem.components
 
+import com.example.appfinanceiro.core.network.supportsAdvance
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -111,7 +113,7 @@ fun ExpenseDetailsDialog(
                     textColor = dialogTextColor
                 )
 
-                if (!expense.type.equals("Fixa", ignoreCase = true)) {
+                if (expense.supportsAdvance) {
                     AdvanceDetailsBlock(
                         isAdvanced = expense.isAdvanced,
                         advancedAtLabel = advancedAtLabel,

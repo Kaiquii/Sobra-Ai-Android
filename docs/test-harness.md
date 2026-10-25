@@ -38,6 +38,12 @@ comum e os demais casos afetados na mesma tarefa. A entrega deve dizer quais
 fluxos foram revisados, quais testes cobrem a regressão e quais verificações
 continuam manuais; um build verde sozinho não comprova essa revisão.
 
+`ExpenseAdvanceEligibilityTest` cobre a permissão somente para Única/Parcelada,
+ausência de gravações para Fixa, preservação da ação Paga, aliases legados e
+independência da origem do pagamento. Conferir manualmente cards/detalhes: Fixa
+sem calendário de adiantar e Única/Parcelada com as ações existentes, incluindo
+alteração/remoção de adiantamento. A validação é comum a Android e iOS.
+
 Para feedback e carregamento, `harnessUnit`/`harnessVerify` executam os testes
 comuns de notificações e avisos de Início, Despesas e Relatórios: falhas de rede
 compartilhadas, erros distintos de API, recuperação parcial e tentativa manual.

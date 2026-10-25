@@ -105,6 +105,13 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   com marca de confirmação nas despesas já adiantadas, para alterar a data.
   Remover o adiantamento continua nos detalhes. Não alterar Paga como consequência
   de adiantar ou remover o adiantamento.
+- Adiantamento é permitido somente para Única (incluindo `Unica` legado) e
+  Parcelada. Despesa Fixa não exibe ação de adiantar/alterar/remover adiantamento,
+  nem abre esses diálogos. Usar a regra comum `supportsExpenseAdvance` também
+  antes das mutações; tipos vazios/desconhecidos não ganham permissão. Marcar uma
+  Fixa como paga continua permitido e não muda o gasto de mês. Fonte do pagamento
+  e status Paga não alteram a elegibilidade. A regra vale para todos os cards e
+  detalhes, tanto Android quanto iOS.
 
 ## Textos e idioma
 

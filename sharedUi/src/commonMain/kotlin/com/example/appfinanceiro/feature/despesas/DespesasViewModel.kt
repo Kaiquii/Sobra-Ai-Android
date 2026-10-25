@@ -1,5 +1,7 @@
 package com.example.appfinanceiro.feature.despesas
 
+import com.example.appfinanceiro.core.network.supportsAdvance
+
 import br.com.sobraai.ui.runtime.PresentationModel as ViewModel
 import com.example.appfinanceiro.core.data.SharedFinanceRepository
 import com.example.appfinanceiro.core.data.ExpensesDataSource
@@ -208,6 +210,13 @@ class DespesasViewModel(
         advancedAt: String?,
         onUpdated: () -> Unit
     ) {
+        if (!expense.supportsAdvance) {
+            _uiState.update { it.copy(
+                advanceStatusSuccessMessage = null,
+                advanceStatusErrorMessage = "Somente despesas únicas ou parceladas podem ser adiantadas."
+            ) }
+            return
+        }
         viewModelScope.launch {
             _uiState.update {
                 it.copy(

@@ -13,6 +13,10 @@ somar VA/VR outra vez. O aplicativo lê `va`, `vr`, `total_gasto_va`,
 `total_gasto_vr`, `restante_va` e `restante_vr`, com zero como default para
 respostas antigas. O restante é o valor recebido da API, inclusive se negativo.
 
+A origem VA/VR não altera a elegibilidade para adiantar: somente despesas Única
+ou Parcelada permitem adiantamento. Fixa pode ser marcada como paga, mantendo o
+gasto no mês previsto, e não oferece ações de adiantamento.
+
 ## Pontos compartilhados
 
 - `shared/.../core/network/PaymentSources.kt`: fontes canônicas, rótulos e seleção
