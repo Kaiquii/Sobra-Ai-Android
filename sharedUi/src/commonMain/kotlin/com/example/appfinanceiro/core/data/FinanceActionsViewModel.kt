@@ -50,19 +50,19 @@ class FinanceActionsViewModel(
     ): IncomesResponse = request { repository.getIncomes(token, month, year) }
 
     suspend fun createIncome(token: String, income: IncomeRequest): DefaultResponse =
-        request { repository.createIncome(token, income) }
+        request { repository.createIncome(token, income) }.also { FinanceDataChanges.notifyIncomeChanged() }
 
     suspend fun updateIncome(
         token: String,
         id: Int,
         income: IncomeUpdateRequest
-    ): DefaultResponse = request { repository.updateIncome(token, id, income) }
+    ): DefaultResponse = request { repository.updateIncome(token, id, income) }.also { FinanceDataChanges.notifyIncomeChanged() }
 
     suspend fun deleteIncome(
         token: String,
         id: Int,
         deleteFuture: Boolean? = null
-    ): DefaultResponse = request { repository.deleteIncome(token, id, deleteFuture) }
+    ): DefaultResponse = request { repository.deleteIncome(token, id, deleteFuture) }.also { FinanceDataChanges.notifyIncomeChanged() }
 
     suspend fun getProfile(token: String): ProfileResponse = request { repository.getProfile(token) }
 

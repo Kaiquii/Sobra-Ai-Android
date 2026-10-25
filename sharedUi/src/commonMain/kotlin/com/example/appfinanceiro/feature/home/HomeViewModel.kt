@@ -99,17 +99,22 @@ class HomeViewModel(
             try {
                 val response = repository.getIncomes(token, month, year)
 
-                val totals = calculateIncomeTotals(response.incomes)
+                val monthlyIncomes = response.incomes.filter { it.month == month && it.year == year }
+                val totals = calculateIncomeTotals(monthlyIncomes)
 
                 currentCoroutineContext().ensureActive()
                 _uiState.update { state ->
                     state.copy(
-                        incomesData = response.incomes,
-                        summaryData = state.summaryData?.copy(
-                            salario = totals.salary,
-                            adiantamento = totals.advance,
-                            renda_extra_amt = totals.extraIncome
-                        ),
+                        incomesData = monthlyIncomes,
+                        summaryData = state.summaryData?.let { summary ->
+                            if (summary.month == month && summary.year == year) summary.copy(
+                                salario = totals.salary,
+                                adiantamento = totals.advance,
+                                renda_extra_amt = totals.extraIncome,
+                                va = totals.va,
+                                vr = totals.vr
+                            ) else summary
+                        },
                         incomesError = null, incomesNetworkFailure = null
                     )
                 }

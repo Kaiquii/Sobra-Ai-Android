@@ -1,5 +1,7 @@
 package com.example.appfinanceiro.feature.despesas
 
+import com.example.appfinanceiro.core.network.canonicalPaymentSource
+
 import com.example.appfinanceiro.core.network.Expense
 import com.example.appfinanceiro.core.network.paymentSources
 import br.com.sobraai.ui.runtime.NumberFormat
@@ -45,7 +47,7 @@ fun filterExpenses(
         matchesSearch && matchesExpenseType(expense, selectedFilter) &&
             (categoryId == null || expense.category_id == categoryId) &&
             (paymentSource == null || expense.paymentSources().any {
-                it.equals(paymentSource, ignoreCase = true)
+                canonicalPaymentSource(it) == canonicalPaymentSource(paymentSource)
             }) && when (paymentStatus) {
                 "paid" -> expense.is_paid
                 "pending" -> !expense.is_paid

@@ -18,7 +18,13 @@ data class SummaryResponse(
     val total_gasto_renda_extra: Double,
     val total_expense: Double,
     val total_geral_disponivel: Double,
-    val total_income: Double
+    val total_income: Double,
+    val va: Double = 0.0,
+    val vr: Double = 0.0,
+    val total_gasto_va: Double = 0.0,
+    val total_gasto_vr: Double = 0.0,
+    val restante_va: Double = 0.0,
+    val restante_vr: Double = 0.0
 )
 
 @Serializable

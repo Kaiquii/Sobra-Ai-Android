@@ -1,5 +1,8 @@
 package com.example.appfinanceiro.feature.despesas.components
 
+import com.example.appfinanceiro.core.network.canonicalPaymentSource
+import com.example.appfinanceiro.core.network.PAYMENT_SOURCE_VALUES
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,12 +41,13 @@ data class PaymentSplitInput(
 
 fun paymentSplitValidationMessage(amount: Double, splits: List<PaymentSplitInput>): String? {
     if (splits.isEmpty()) return "Adicione pelo menos uma origem de pagamento."
-    if (splits.map { it.source }.distinct().size != splits.size) {
+    if (splits.map { canonicalPaymentSource(it.source) }.distinct().size != splits.size) {
         return "Não repita uma origem de pagamento."
     }
 
+    if (splits.any { canonicalPaymentSource(it.source) !in PAYMENT_SOURCE_VALUES }) return "Selecione uma origem de pagamento válida."
     val splitTotal = splits.sumOf { it.amountText.toAmount() ?: 0.0 }
-    if (splits.any { (it.amountText.toAmount() ?: 0.0) <= 0.0 }) {
+    if (splits.any { (it.amountText.toAmount()?.takeIf { value -> value.isFinite() } ?: 0.0) <= 0.0 }) {
         return "Cada valor da divisão deve ser maior que zero."
     }
     if (kotlin.math.abs(splitTotal - amount) > 0.009) {

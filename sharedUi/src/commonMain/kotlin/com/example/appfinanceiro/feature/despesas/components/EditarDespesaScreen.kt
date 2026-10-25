@@ -1,5 +1,8 @@
 package com.example.appfinanceiro.feature.despesas.components
 
+import com.example.appfinanceiro.core.network.canonicalPaymentSource
+import com.example.appfinanceiro.core.network.PAYMENT_SOURCE_VALUES
+
 import br.com.sobraai.ui.runtime.UiToast as Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -92,7 +95,7 @@ fun EditarDespesaScreen(
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
     var expandedCategory by remember { mutableStateOf(false) }
 
-    val sources = listOf("Salário", "Adiantamento", "Renda Extra")
+    val sources = PAYMENT_SOURCE_VALUES
     var selectedSource by remember { mutableStateOf(sources[0]) }
     var expandedSource by remember { mutableStateOf(false) }
     var isSplitPayment by remember { mutableStateOf(false) }
@@ -123,12 +126,11 @@ fun EditarDespesaScreen(
                 notes = expense.notes.orEmpty()
                 selectedCategory = categories.find { it.id == expense.category_id }
 
-                if (sources.contains(expense.payment_source)) {
-                    selectedSource = expense.payment_source ?: sources[0]
-                }
+                val loadedSource = canonicalPaymentSource(expense.payment_splits.singleOrNull()?.payment_source ?: expense.payment_source.orEmpty())
+                if (loadedSource in sources) selectedSource = loadedSource
                 val loadedSplits = expense.payment_splits.map { split ->
                     PaymentSplitInput(
-                        source = split.payment_source,
+                        source = canonicalPaymentSource(split.payment_source),
                         amountText = split.amount.toString().replace(".", ",")
                     )
                 }

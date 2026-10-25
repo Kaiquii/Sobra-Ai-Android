@@ -81,7 +81,7 @@ fun AjudaScreen(
             Text("Explore o aplicativo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             HelpSection(
                 title = "Como usar o app",
-                text = "O SobraAi ajuda você a organizar suas rendas, despesas e acompanhar o seu saldo mensal. Na tela inicial, você visualiza um resumo do mês selecionado, incluindo salário, adiantamento, renda extra, total gasto e valores restantes."
+                text = "O SobraAi ajuda você a organizar suas rendas, despesas e acompanhar o seu saldo mensal. Na tela inicial, você visualiza um resumo do mês selecionado, incluindo salário, adiantamento, renda extra, VA, VR, total gasto e valores restantes."
             )
 
             HelpSection(
@@ -101,7 +101,7 @@ fun AjudaScreen(
 
             HelpSection(
                 title = "Rendas",
-                text = "Na área de Perfil, acesse Configurações de Renda para cadastrar salário, adiantamento e renda extra. Salário e adiantamento são usados para calcular o orçamento mensal. A renda extra pode ser cadastrada apenas no mês atual ou repetida nos próximos meses, caso você marque essa opção."
+                text = "Na área de Perfil, acesse Configurações de Renda para cadastrar salário, adiantamento, renda extra, vale-alimentação (VA) e vale-refeição (VR). VA e VR são separados e seguem a mesma regra mensal de salário e adiantamento, sem acumular saldo entre meses. A renda extra pode ser cadastrada apenas no mês atual ou repetida nos próximos meses, caso você marque essa opção."
             )
 
             HelpSection(

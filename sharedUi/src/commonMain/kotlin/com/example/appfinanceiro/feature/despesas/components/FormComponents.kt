@@ -1,5 +1,8 @@
 package com.example.appfinanceiro.feature.despesas.components
 
+import com.example.appfinanceiro.core.designsystem.components.AppSelectField
+import com.example.appfinanceiro.core.designsystem.components.AppSelectOption
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,18 +13,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,8 +39,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.appfinanceiro.core.designsystem.theme.GreenPositive
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
+import com.example.appfinanceiro.core.designsystem.theme.GreenPositive
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 
 @Composable
 fun ExpenseValueInput(amountText: String, onAmountChange: (String) -> Unit) {
@@ -107,47 +112,24 @@ fun CustomDropdown(
     onExpandedChange: (Boolean) -> Unit,
     onSelect: (Int) -> Unit
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val inputBgColor = colorScheme.surface
-
-    FormLabel(label)
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = onExpandedChange
-    ) {
-        CustomInput(
-            value = selectedValue,
-            onValueChange = {},
-            icon = null,
-            placeholder = "",
-            bgColor = inputBgColor,
-            readOnly = true,
-            trailingIcon = Icons.Default.ArrowDropDown,
-            modifier = Modifier.menuAnchor()
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { onExpandedChange(false) },
-            containerColor = colorScheme.surface
-        ) {
-            options.forEachIndexed { index, text ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = text,
-                            color = colorScheme.onSurface
-                        )
-                    },
-                    onClick = { onSelect(index) }
-                )
+    AppSelectField(
+        label = label, value = selectedValue,
+        options = options.mapIndexed { index, text -> AppSelectOption(index, text) },
+        selected = options.indexOf(selectedValue), expanded = expanded,
+        onExpandedChange = onExpandedChange, onSelect = onSelect,
+        anchor = { open ->
+            FormLabel(label)
+            Box {
+                CustomInput(value = selectedValue, onValueChange = {}, icon = null, placeholder = "",
+                    bgColor = MaterialTheme.colorScheme.surface, readOnly = true,
+                    trailingIcon = Icons.Default.ArrowDropDown)
+                Box(Modifier.matchParentSize().semantics { contentDescription = "$label: $selectedValue" }
+                    .clickable(role = Role.Button, onClick = open))
             }
         }
-    }
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryDropdown(
     selectedValue: String,
@@ -157,73 +139,33 @@ fun CategoryDropdown(
     onSelect: (Int) -> Unit,
     onAddCategoryClick: () -> Unit
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val inputBgColor = colorScheme.surface
-
-    FormLabel("Categoria")
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { shouldExpand ->
-            if (options.isEmpty()) {
-                onExpandedChange(false)
-            } else {
-                onExpandedChange(shouldExpand)
-            }
-        }
-    ) {
-        CustomInput(
-            value = selectedValue,
-            onValueChange = {},
-            icon = null,
-            placeholder = "",
-            bgColor = inputBgColor,
-            readOnly = true,
-            modifier = Modifier.menuAnchor(),
-            trailingContent = {
-                Row(
-                    modifier = Modifier.padding(end = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    IconButton(
-                        onClick = onAddCategoryClick,
-                        modifier = Modifier.size(22.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Criar categoria",
-                            tint = GreenPositive
-                        )
+    AppSelectField(
+        label = "Categoria", value = selectedValue,
+        options = options.mapIndexed { index, text -> AppSelectOption(index, text) },
+        selected = options.indexOf(selectedValue), expanded = expanded,
+        onExpandedChange = onExpandedChange, onSelect = onSelect,
+        anchor = { open ->
+            FormLabel("Categoria")
+            Box {
+                CustomInput(
+                    value = selectedValue, onValueChange = {}, icon = null, placeholder = "",
+                    bgColor = MaterialTheme.colorScheme.surface, readOnly = true,
+                    trailingContent = {
+                        Row(Modifier.heightIn(min = 48.dp).clickable(role = Role.Button, onClick = open).padding(end = 8.dp), verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            IconButton(onClick = onAddCategoryClick, modifier = Modifier.size(22.dp)) {
+                                Icon(Icons.Default.Add, "Criar categoria", tint = GreenPositive)
+                            }
+                            Icon(Icons.Default.ArrowDropDown, "Abrir categorias", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
-
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = "Abrir categorias",
-                        tint = colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded && options.isNotEmpty(),
-            onDismissRequest = { onExpandedChange(false) },
-            containerColor = colorScheme.surface
-        ) {
-            options.forEachIndexed { index, text ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = text,
-                            color = colorScheme.onSurface
-                        )
-                    },
-                    onClick = { onSelect(index) }
                 )
+                Box(Modifier.matchParentSize().padding(end = 96.dp)
+                    .semantics { contentDescription = "Categoria: $selectedValue" }
+                    .clickable(role = Role.Button, onClick = open))
             }
         }
-    }
+    )
 }
 
 @Composable

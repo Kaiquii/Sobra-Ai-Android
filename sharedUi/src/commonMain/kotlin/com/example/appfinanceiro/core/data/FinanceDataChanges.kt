@@ -12,4 +12,8 @@ object FinanceDataChanges {
     fun notifyExpenseCreated() {
         _revision.update { it + 1 }
     }
+
+    fun notifyIncomeChanged() {
+        _revision.update { it + 1 }
+    }
 }

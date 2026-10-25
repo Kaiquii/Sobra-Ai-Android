@@ -1,5 +1,7 @@
 package com.example.appfinanceiro.feature.home.components
 
+import com.example.appfinanceiro.core.network.paymentSourceDisplayName
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -66,7 +68,9 @@ fun ResumoFinanceiroSection(
     month: Int,
     year: Int,
     onRefresh: () -> Unit,
-    errorHandledExternally: Boolean = false
+    errorHandledExternally: Boolean = false,
+    vaIncome: Income? = null,
+    vrIncome: Income? = null
 ) {
     val isDark = isSystemInDarkTheme()
     val textColor = MaterialTheme.colorScheme.onBackground
@@ -144,10 +148,10 @@ fun ResumoFinanceiroSection(
         } else {
             FinanceSummaryContent(data, salarioIncome, adiantamentoIncome, rendaExtraIncome,
                 onEdit = { source, income -> editorState = IncomeEditorState(
-                    title = if (source == "Salario") "salário" else source.lowercase(),
+                    title = paymentSourceDisplayName(source),
                     source = source, existingIncome = income) },
                 onDelete = { income, label -> deleteState = IncomeDeleteState(income = income, label = label) },
-                formatCurrency = ::formatCurrency)
+                formatCurrency = ::formatCurrency, vaIncome = vaIncome, vrIncome = vrIncome)
         }
     }
 }

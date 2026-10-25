@@ -1,5 +1,12 @@
 package com.example.appfinanceiro.feature.relatorios
 
+import androidx.compose.runtime.setValue
+
+import androidx.compose.runtime.getValue
+
+import com.example.appfinanceiro.core.designsystem.components.AppSelectOption
+import com.example.appfinanceiro.core.designsystem.components.AppSelectDialog
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -34,8 +41,6 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,11 +58,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -428,35 +431,14 @@ private fun CalendarPeriodFilter(
             }
         }
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            containerColor = MaterialTheme.colorScheme.surface
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = "$option meses",
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    },
-                    trailingIcon = {
-                        if (option == selectedMonths) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                tint = PrimaryBlue
-                            )
-                        }
-                    },
-                    onClick = {
-                        expanded = false
-                        onSelectedMonthsChange(option)
-                    }
-                )
-            }
+        if (expanded) {
+            AppSelectDialog(
+                title = "Período da projeção",
+                options = options.map { AppSelectOption(it, "$it meses") },
+                selected = selectedMonths,
+                onDismiss = { expanded = false },
+                onSelect = { expanded = false; onSelectedMonthsChange(it) }
+            )
         }
     }
 }
@@ -1086,12 +1068,11 @@ private fun InstallmentParcel.paymentSourceLabel(): String =
     fonte_pagamento.paymentSourceLabel(shortLabel = false)
 
 private fun String.paymentSourceLabel(shortLabel: Boolean): String {
-    val normalized = lowercase()
-    val sourceNames = listOf("salário", "salario", "adiantamento", "renda extra")
-    val isSplitPayment =
-        contains("|") ||
-            sourceNames.count { source -> normalized.contains(source) } > 1 ||
-            normalized.contains("pagamento dividido")
+    val tokens = split('|', '+', ',', '/').map { it.trim() }.filter { it.isNotEmpty() }
+    val legacySources = listOf("salário", "salario", "adiantamento", "renda extra")
+    val sourceCount = legacySources.count { contains(it, ignoreCase = true) } +
+        Regex("\\b(?:va|vr)\\b", RegexOption.IGNORE_CASE).findAll(this).map { it.value.lowercase() }.distinct().count()
+    val isSplitPayment = tokens.size > 1 || sourceCount > 1 || contains("pagamento dividido", ignoreCase = true)
 
     return if (isSplitPayment) {
         if (shortLabel) "Pag. dividido" else "Pagamento dividido"

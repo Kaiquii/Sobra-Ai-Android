@@ -47,6 +47,26 @@ Não esconder erros reais nem ampliar retentativas para fazer esses testes passa
 salvar com teclado aberto e voltar à tela com barra inferior, além dos
 formulários sem barra e das áreas seguras. Não substitui o teste visual no aparelho.
 
+Para seletores compartilhados (`AppSelectField`/`AppSelectDialog`), conferir
+manualmente em Android/iPhone: seis origens visíveis em tela convencional,
+lista longa de categorias rolável, nomes completos, opção selecionada, fechar
+por X/voltar/fora sem alterar valor, campos desabilitados durante exportação e
+criação de categoria. No filtro de Despesas, selecionar muda somente o rascunho;
+Aplicar confirma e fechar o filtro cancela. Incluir telas pequenas, fonte ampliada,
+temas e teclado. `BenefitsTest` verifica os rótulos e as siglas VA/VR.
+`SelectSearchTest` cobre busca sem acentos/caixa, múltiplos termos, resultado
+vazio, limpar busca e preservação de IDs/ordem, inclusive rótulos repetidos.
+Conferir também que abrir a busca não abre o teclado automaticamente e que o
+“+” de Categoria e os rótulos dos formulários mantêm o desenho anterior.
+Durante a busca, conferir que modal e campo mantêm tamanho/posição ao passar
+de muitos resultados para um/nenhum e ao limpar. A lista deve voltar ao início
+sem animação por tecla; abertura do teclado e fonte ampliada podem reduzir a
+área disponível, mantendo busca e fechamento acessíveis.
+`SelectorDialogWindowTest` verifica que a janela Android de largura personalizada
+desativa o ajuste decorativo da janela flutuante, preservando os gestos de fechar.
+O vídeo de abertura/fechamento do teclado ainda deve ser conferido no aparelho;
+o teste de propriedades não comprova a animação do sistema nem o comportamento iOS.
+
 ### Comandos
 
 | Modo PowerShell | Tarefa Gradle | Verificações | Dispositivo/ambiente |

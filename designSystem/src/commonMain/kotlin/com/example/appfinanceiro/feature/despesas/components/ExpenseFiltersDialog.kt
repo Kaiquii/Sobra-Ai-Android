@@ -1,12 +1,17 @@
 package com.example.appfinanceiro.feature.despesas.components
 
+import com.example.appfinanceiro.core.designsystem.components.AppSelectField
+import com.example.appfinanceiro.core.designsystem.components.AppSelectOption
+
+import com.example.appfinanceiro.core.network.PAYMENT_SOURCE_VALUES
+import com.example.appfinanceiro.core.network.paymentSourceDisplayName
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -114,14 +119,9 @@ fun ExpenseFiltersDialog(
                 value = when (draftSource) {
                     "Renda Extra" -> "Renda extra"
                     null -> "Todas"
-                    else -> draftSource.orEmpty()
+                    else -> paymentSourceDisplayName(draftSource.orEmpty())
                 },
-                options = listOf(
-                    null to "Todas",
-                    "Salário" to "Salário",
-                    "Adiantamento" to "Adiantamento",
-                    "Renda Extra" to "Renda extra"
-                ),
+                options = listOf(null to "Todas") + PAYMENT_SOURCE_VALUES.map { it to paymentSourceDisplayName(it) },
                 selected = draftSource,
                 onSelect = { draftSource = it }
             )
@@ -172,56 +172,10 @@ private fun <T> FilterSelector(
     onSelect: (T?) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val colors = MaterialTheme.colorScheme
-
-    Text(label, fontWeight = FontWeight.SemiBold)
-    Spacer(Modifier.height(8.dp))
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it }
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
-                .semantics { contentDescription = "$label: $value" },
-            shape = RoundedCornerShape(12.dp)
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.heightIn(max = 280.dp),
-            shape = RoundedCornerShape(12.dp),
-            containerColor = colors.surface
-        ) {
-            options.forEach { (key, text) ->
-                val isSelected = selected == key
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = text,
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                            color = if (isSelected) colors.primary else colors.onSurface
-                        )
-                    },
-                    trailingIcon = if (isSelected) {
-                        { Icon(Icons.Default.Check, contentDescription = null, tint = colors.primary) }
-                    } else null,
-                    modifier = Modifier.semantics {
-                        stateDescription = if (isSelected) "Selecionada" else "Não selecionada"
-                    },
-                    onClick = {
-                        onSelect(key)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
+    AppSelectField(
+        label = label, value = value,
+        options = options.map { AppSelectOption(it.first, it.second) },
+        selected = selected, expanded = expanded,
+        onExpandedChange = { expanded = it }, onSelect = onSelect
+    )
 }

@@ -14,6 +14,8 @@ Multiplatform**. A referência visual é o Android anterior à migração. Leia
 | Despesas: apresentação | `designSystem/.../feature/despesas/components/ExpenseListControls.kt`, `core/designsystem/components/ExpenseCard.kt`, `ExpenseTypeStyle.kt` | Cabeçalho de mês/resumo/busca/filtros e cards usados em Início/Despesas; cor apenas no marcador do tipo da API; seletor de mês padrão e ações originais |
 | Serviços da interface | `sharedUi/src/commonMain/kotlin/br/com/sobraai/ui/runtime/` | `UiServices`, contratos de arquivos, escopos de apresentação e formatação/data com adaptadores |
 | Notificações de ações | `designSystem/.../core/designsystem/components/AppNotification.kt` | Card compacto reutilizável nos dois temas; eventos tipados de `UiServices`/`UiToast`, host acima da barra inferior medida, em `SharedApplication` |
+| Seletores e dropdowns | `designSystem/.../core/designsystem/components/AppSelectField.kt` | Campo e modal de seleção únicos: formulários, rateios, filtros, exportação e projeção. Listas independentes do espaço da âncora, com seleção destacada e rolagem para listas longas |
+| Janela dos seletores | `designSystem/.../core/designsystem/components/SelectorDialogWindow` (`commonMain`/`androidMain`/`iosMain`) | Somente propriedades nativas da janela. Android deixa Compose controlar os insets do teclado; layout e seleção continuam únicos em commonMain |
 | Host Android | `app/src/main/java/com/example/appfinanceiro/MainActivity.kt` | Splash, proteção, injeção e ciclo de vida; abre `SobraAiApp(services)` |
 | Adaptadores Android | `app/src/main/java/com/example/appfinanceiro/platform/` | Biometria, galeria, permissões, voz e arquivos do sistema |
 | Host Apple Kotlin | `sharedUi/src/iosMain/kotlin/br/com/sobraai/ui/IosApp.kt` | Keychain, clientes, injeção, LocalAuthentication e ciclo de vida; abre o mesmo `SobraAiApp(services)` |
@@ -47,6 +49,7 @@ Na base `sharedUi/src/commonMain/kotlin/com/example/appfinanceiro/`:
 | Assistente | `feature/assistant/AssistantScreen.kt`, `AssistantViewModel.kt`; componentes em `designSystem/.../feature/assistant/AssistantComponents.kt`; boas-vindas sem sugestões de mensagens, compositor integrado, histórico completo, nova conversa, exclusão, cota e ditado |
 | Perfil | `feature/perfil/PerfilScreen.kt`, `feature/perfil/components/EditarPerfilScreen.kt` |
 | Rendas/categorias | `feature/perfil/components/ConfiguracoesRendaScreen.kt`, `CategoriasScreen.kt` |
+| VA e VR | Fontes canônicas em `shared/.../core/network/PaymentSources.kt`; renda mensal, despesas, filtros e resumo comuns. Contrato e validação em [beneficios-va-vr.md](beneficios-va-vr.md) |
 | Mutação de dados | `core/data/FinanceActionsViewModel.kt`; repositórios/contratos em `shared` |
 
 As pastas nem sempre coincidem com o package: `RegisterScreen.kt` usa o pacote

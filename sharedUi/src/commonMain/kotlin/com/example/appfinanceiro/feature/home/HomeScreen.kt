@@ -1,12 +1,21 @@
 package com.example.appfinanceiro.feature.home
 
+import androidx.compose.runtime.setValue
+
+import androidx.compose.runtime.getValue
+
+import com.example.appfinanceiro.core.designsystem.components.AppSelectOption
+import com.example.appfinanceiro.core.designsystem.components.AppSelectDialog
+
+import com.example.appfinanceiro.core.network.canonicalPaymentSource
+import com.example.appfinanceiro.core.network.PAYMENT_SOURCE_VALUES
+import com.example.appfinanceiro.core.network.paymentSourceDisplayName
+import com.example.appfinanceiro.core.network.incomeFor
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,7 +28,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -27,13 +35,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import br.com.sobraai.ui.runtime.LocalUiServices
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +63,6 @@ import com.example.appfinanceiro.core.network.paymentSources
 import com.example.appfinanceiro.feature.home.components.AddExpenseButton
 import com.example.appfinanceiro.feature.home.components.DespesasHeaderSection
 import com.example.appfinanceiro.feature.home.components.ExpenseItem
-import com.example.appfinanceiro.feature.home.components.FilterOptionItem
 import com.example.appfinanceiro.feature.home.components.MonthSelector
 import com.example.appfinanceiro.feature.home.components.ResumoFinanceiroSection
 import com.example.appfinanceiro.feature.home.utils.formatExpenseDate
@@ -108,12 +113,7 @@ fun HomeScreen(
 
     var refreshIncomeActions by remember { mutableIntStateOf(0) }
     val selectedCategoryName = selectedCategoryId?.let { uiState.categoriesMap[it] }
-    val selectedPaymentSourceName = when (selectedPaymentSource) {
-        "Salario" -> "Salário"
-        "Adiantamento" -> "Adiantamento"
-        "Renda Extra" -> "Renda Extra"
-        else -> null
-    }
+    val selectedPaymentSourceName = selectedPaymentSource?.let(::paymentSourceDisplayName)
     val selectedPaymentStatusName = when (selectedPaymentStatus) {
         "paid" -> "Pagas"
         "pending" -> "Pendentes"
@@ -124,22 +124,8 @@ fun HomeScreen(
         val matchesCategory =
             selectedCategoryId == null || expense.category_id == selectedCategoryId
 
-        val matchesPaymentSource = when (selectedPaymentSource) {
-            null -> true
-
-            "Salario" ->
-                expense.paymentSources().any {
-                    it.equals("Salario", ignoreCase = true) ||
-                        it.equals("Salário", ignoreCase = true)
-                }
-
-            "Adiantamento" ->
-                expense.paymentSources().any { it.equals("Adiantamento", ignoreCase = true) }
-
-            "Renda Extra" ->
-                expense.paymentSources().any { it.equals("Renda Extra", ignoreCase = true) }
-
-            else -> true
+        val matchesPaymentSource = selectedPaymentSource == null || expense.paymentSources().any {
+            canonicalPaymentSource(it) == canonicalPaymentSource(selectedPaymentSource!!)
         }
 
         matchesCategory && matchesPaymentSource
@@ -306,6 +292,8 @@ fun HomeScreen(
                     salarioIncome = salarioAtual,
                     adiantamentoIncome = adiantamentoAtual,
                     rendaExtraIncome = rendaExtraAtual,
+                    vaIncome = uiState.incomesData.incomeFor("VA", currentMonthIndex + 1, currentYear),
+                    vrIncome = uiState.incomesData.incomeFor("VR", currentMonthIndex + 1, currentYear),
                     token = userToken,
                     month = currentMonthIndex + 1,
                     year = currentYear,
@@ -392,157 +380,37 @@ fun HomeScreen(
     }
 
     if (showCategoryFilterModal) {
-        val categoryOptions = uiState.categoriesMap.toList()
-
-        ModalBottomSheet(
-            onDismissRequest = { showCategoryFilterModal = false },
-            containerColor = backgroundColor
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.9f)
-                    .padding(start = 24.dp, end = 24.dp)
-            ) {
-                Text(
-                    text = "Filtrar por Categoria",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentPadding = PaddingValues(bottom = 32.dp)
-                ) {
-                    item(key = "all") {
-                        FilterOptionItem(
-                            label = "Todas",
-                            isSelected = selectedCategoryId == null,
-                            onClick = {
-                                selectedCategoryId = null
-                                showCategoryFilterModal = false
-                            }
-                        )
-                    }
-
-                    items(
-                        items = categoryOptions,
-                        key = { (id, _) -> id }
-                    ) { (id, name) ->
-                        FilterOptionItem(
-                            label = name,
-                            isSelected = selectedCategoryId == id,
-                            onClick = {
-                                selectedCategoryId = id
-                                showCategoryFilterModal = false
-                            }
-                        )
-                    }
-                }
-            }
-        }
+        AppSelectDialog(
+            title = "Filtrar por categoria",
+            options = listOf(AppSelectOption<Int?>(null, "Todas")) +
+                uiState.categoriesMap.entries.sortedBy { it.value.lowercase() }.map { AppSelectOption<Int?>(it.key, it.value) },
+            selected = selectedCategoryId,
+            onDismiss = { showCategoryFilterModal = false },
+            onSelect = { selectedCategoryId = it; showCategoryFilterModal = false }
+        )
     }
-
     if (showPaymentSourceFilterModal) {
-        ModalBottomSheet(
-            onDismissRequest = { showPaymentSourceFilterModal = false },
-            containerColor = backgroundColor
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp, start = 24.dp, end = 24.dp)
-            ) {
-                Text(
-                    text = "Filtrar por Origem",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                FilterOptionItem(
-                    label = "Todas",
-                    isSelected = selectedPaymentSource == null,
-                    onClick = {
-                        selectedPaymentSource = null
-                        showPaymentSourceFilterModal = false
-                    }
-                )
-
-                FilterOptionItem(
-                    label = "Salário",
-                    isSelected = selectedPaymentSource == "Salario",
-                    onClick = {
-                        selectedPaymentSource = "Salario"
-                        showPaymentSourceFilterModal = false
-                    }
-                )
-
-                FilterOptionItem(
-                    label = "Adiantamento",
-                    isSelected = selectedPaymentSource == "Adiantamento",
-                    onClick = {
-                        selectedPaymentSource = "Adiantamento"
-                        showPaymentSourceFilterModal = false
-                    }
-                )
-
-                FilterOptionItem(
-                    label = "Renda Extra",
-                    isSelected = selectedPaymentSource == "Renda Extra",
-                    onClick = {
-                        selectedPaymentSource = "Renda Extra"
-                        showPaymentSourceFilterModal = false
-                    }
-                )
-            }
-        }
+        AppSelectDialog(
+            title = "Origem do pagamento",
+            options = listOf(AppSelectOption<String?>(null, "Todas")) +
+                PAYMENT_SOURCE_VALUES.map { AppSelectOption<String?>(it, paymentSourceDisplayName(it)) },
+            selected = selectedPaymentSource?.let(::canonicalPaymentSource),
+            onDismiss = { showPaymentSourceFilterModal = false },
+            onSelect = { selectedPaymentSource = it; showPaymentSourceFilterModal = false }
+        )
     }
-
     if (showPaymentStatusFilterModal) {
-        ModalBottomSheet(
-            onDismissRequest = { showPaymentStatusFilterModal = false },
-            containerColor = backgroundColor
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp, start = 24.dp, end = 24.dp)
-            ) {
-                Text(
-                    text = "Filtrar por Status",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                listOf(null to "Todas", "pending" to "Pendentes", "paid" to "Pagas")
-                    .forEach { (status, label) ->
-                        FilterOptionItem(
-                            label = label,
-                            isSelected = selectedPaymentStatus == status,
-                            onClick = {
-                                selectedPaymentStatus = status
-                                showPaymentStatusFilterModal = false
-                                userToken?.let { token ->
-                                    viewModel.loadExpenses(
-                                        token,
-                                        currentMonthIndex + 1,
-                                        currentYear,
-                                        status
-                                    )
-                                }
-                            }
-                        )
-                    }
+        AppSelectDialog(
+            title = "Status do pagamento",
+            options = listOf(AppSelectOption<String?>(null, "Todas"), AppSelectOption("pending", "Pendentes"), AppSelectOption("paid", "Pagas")),
+            selected = selectedPaymentStatus,
+            onDismiss = { showPaymentStatusFilterModal = false },
+            onSelect = { status ->
+                selectedPaymentStatus = status
+                showPaymentStatusFilterModal = false
+                userToken?.let { token -> viewModel.loadExpenses(token, currentMonthIndex + 1, currentYear, status) }
             }
-        }
+        )
     }
 
     if (showExitDialog) {

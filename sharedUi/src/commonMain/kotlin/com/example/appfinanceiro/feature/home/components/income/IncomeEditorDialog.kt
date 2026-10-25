@@ -74,15 +74,19 @@ fun IncomeEditorDialog(
         titleContentColor = dialogTextColor,
         textContentColor = dialogTextColor,
         title = {
-            Text(
-                text = if (state.existingIncome == null) {
-                    "Criar ${state.title}"
-                } else {
-                    "Editar ${state.title}"
-                },
-                color = dialogTextColor,
-                fontWeight = FontWeight.Bold
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = if (isCreating) "Criar renda" else "Editar renda",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = dialogTextColor,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = state.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = dialogSecondaryTextColor
+                )
+            }
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -156,7 +160,7 @@ fun IncomeEditorDialog(
 
                                 Toast.success(
                                     context,
-                                    "${state.title} criado!",
+                                    "Renda cadastrada.",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } else {
@@ -171,7 +175,7 @@ fun IncomeEditorDialog(
 
                                 Toast.success(
                                     context,
-                                    "${state.title} atualizado!",
+                                    "Renda atualizada.",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }

@@ -1,5 +1,7 @@
 package com.example.appfinanceiro.feature.despesas.components
 
+import com.example.appfinanceiro.core.network.PAYMENT_SOURCE_VALUES
+
 import br.com.sobraai.ui.runtime.UiToast as Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -89,7 +91,7 @@ fun NovaDespesaScreen(
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
     var expandedCategory by remember { mutableStateOf(false) }
 
-    val sources = listOf("Salário", "Adiantamento", "Renda Extra")
+    val sources = PAYMENT_SOURCE_VALUES
     var selectedSource by remember { mutableStateOf(sources[0]) }
     var expandedSource by remember { mutableStateOf(false) }
     var isSplitPayment by remember { mutableStateOf(false) }

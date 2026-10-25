@@ -4,9 +4,9 @@ import com.example.appfinanceiro.core.network.*
 import com.example.appfinanceiro.feature.despesas.validateExpenseForm
 import kotlin.math.abs
 
-val PAYMENT_SOURCES = listOf("Salário", "Adiantamento", "Renda Extra")
+val PAYMENT_SOURCES = PAYMENT_SOURCE_VALUES
 val EXPENSE_TYPES = listOf("Única", "Fixa", "Parcelada")
-fun sourceKey(value: String): String = value.lowercase().replace("á", "a")
+fun sourceKey(value: String): String = canonicalPaymentSource(value).lowercase().replace("á", "a")
 fun sourceLabel(value: String): String = if (sourceKey(value) == "salario") "Salário" else value
 fun amountInput(value: Double): String {
     val sign = if (value < 0) "-" else ""
@@ -57,15 +57,15 @@ data class ExpenseDraft(
     fun createRequest(): ExpenseRequest {
         require(validate() == null)
         return ExpenseRequest(parseAmount(amount, allowZero = true)!!, description, categoryId!!,
-            if (split) null else source, if (split) splits.map { PaymentSplitRequest(it.source, parseAmount(it.amount)!!) } else null,
+            if (split) null else canonicalPaymentSource(source), if (split) splits.map { PaymentSplitRequest(canonicalPaymentSource(it.source), parseAmount(it.amount)!!) } else null,
             apiDate(FinancialDate.parseDisplay(date)!!), type, if (type == "Parcelada") installments.toInt() else 1, notes.trim())
     }
 
     fun updateRequest(original: Expense): ExpenseUpdateRequest {
         require(validate(editing = true) == null)
         return ExpenseUpdateRequest(amount = parseAmount(amount, allowZero = true, allowNegative = true)!!, description = description,
-            category_id = categoryId, payment_source = if (split) null else source,
-            payment_splits = if (split) splits.map { PaymentSplitRequest(it.source, parseAmount(it.amount)!!) } else null,
+            category_id = categoryId, payment_source = if (split) null else canonicalPaymentSource(source),
+            payment_splits = if (split) splits.map { PaymentSplitRequest(canonicalPaymentSource(it.source), parseAmount(it.amount)!!) } else null,
             date = apiDate(FinancialDate.parseDisplay(date)!!), notes = notes.trim(),
             update_future = if (original.isRecurring) updateFuture else null)
     }
@@ -86,7 +86,7 @@ val Expense.isRecurring: Boolean get() = type.equals("Fixa", true) || type.equal
 data class IncomeDraft(val source: String, val period: Period, val existing: Income? = null,
     val amount: String = existing?.amount?.let(::amountInput).orEmpty(),
     val updateFuture: Boolean = true, val repeatFuture: Boolean = false, val deleteFuture: Boolean = false) {
-    fun createRequest(): IncomeRequest = IncomeRequest(source, requireNotNull(parseAmount(amount)), period.month, period.year,
+    fun createRequest(): IncomeRequest = IncomeRequest(if (canonicalPaymentSource(source) in listOf("VA", "VR")) canonicalPaymentSource(source) else source, requireNotNull(parseAmount(amount)), period.month, period.year,
         "Fixa", if (sourceKey(source) == "renda extra") repeatFuture else null)
     fun updateRequest() = IncomeUpdateRequest(requireNotNull(parseAmount(amount)), updateFuture)
 }

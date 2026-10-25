@@ -41,7 +41,7 @@ data class HomeState(
     }
 }
 
-private fun normalizeSource(value: String) = value.lowercase().replace("á", "a")
+private fun normalizeSource(value: String) = sourceKey(value)
 
 /** One atomic snapshot per period. Cancellation and generation both prevent stale responses. */
 class HomePresenter(
@@ -85,7 +85,9 @@ class HomePresenter(
                     HomeSnapshot(period, summaryData.copy(
                         salario = incomeList.filter { normalizeSource(it.source) == "salario" }.sumOf { it.amount },
                         adiantamento = incomeList.filter { normalizeSource(it.source) == "adiantamento" }.sumOf { it.amount },
-                        renda_extra_amt = incomeList.filter { normalizeSource(it.source) == "renda extra" }.sumOf { it.amount }
+                        renda_extra_amt = incomeList.filter { normalizeSource(it.source) == "renda extra" }.sumOf { it.amount },
+                        va = incomeList.filter { canonicalPaymentSource(it.source) == "VA" }.sumOf { it.amount },
+                        vr = incomeList.filter { canonicalPaymentSource(it.source) == "VR" }.sumOf { it.amount }
                     ), incomeList, expenses.await().expenses, categories.await().categories.associate { it.id to it.name })
                 }
                 if (version == generation) mutable.value = mutable.value.copy(snapshot = snapshot, loading = false, error = null)

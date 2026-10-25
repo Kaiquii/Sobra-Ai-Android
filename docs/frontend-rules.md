@@ -108,6 +108,33 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
 
 ## Textos e idioma
 
+- Dropdowns usam `AppSelectField` e `AppSelectDialog` do designSystem. Usar o
+  mesmo campo e lista de seleção nos formulários, rateios, filtros e relatórios;
+  não reintroduzir menus ancorados que comprimem listas curtas. O modal adapta
+  a largura e a altura à área segura, permite rolagem quando necessário e mantém
+  opções com 48 dp mínimos, sem cortar nomes. Fechar a seleção não aplica uma
+  opção; filtros continuam sujeitos à confirmação no botão Aplicar filtros.
+  A padronização da lista não autoriza redesenhar os controles ao redor: preservar
+  `CustomInput`, `FormLabel`, margens, tipografia e os botões existentes (incluindo
+  o “+” verde dentro do campo Categoria). Usar o slot `anchor` quando necessário
+  para conservar a apresentação original. A busca discreta pertence ao modal,
+  ignora caixa/acentos e filtra os rótulos sem mudar IDs nem aplicar uma seleção.
+  Manter o modal intermediário (largura máxima de 440 dp e cerca de sete opções por
+  vez), com opções em `bodyLarge`, sem ocupar quase toda a tela nem reduzir demais
+  a lista. A altura depende da lista original e do espaço seguro, nunca da quantidade
+  de resultados da busca: digitar não deve encolher/recentralizar a janela.
+  Reservar o espaço do botão de limpar mesmo com a busca vazia e reiniciar a
+  lista no primeiro resultado ao alterar a consulta, sem rolagem animada.
+  O seletor usa um host de janela de tamanho integral, com painel visual limitado
+  e fechamento ao tocar fora. No Android, `selectorDialogProperties` define
+  `decorFitsSystemWindows=false`: os insets animados de Compose são o único dono
+  do deslocamento pelo teclado, evitando pan/redimensionamento concorrente da
+  janela flutuante. O adaptador Apple mantém as propriedades comuns. Não adicionar
+  animação de tamanho ou um segundo `imePadding` por cima da área segura.
+- Manter nomes como “Vale-alimentação (VA)” e “Vale-refeição (VR)”, com acentos e
+  siglas maiúsculas. Nos editores de renda, separar a ação do nome completo com
+  hierarquia tipográfica para evitar um título excessivamente grande.
+
 - Todo texto exibido ao usuário deve estar em português brasileiro, com ortografia, acentuação, concordância e pontuação revisadas.
 - Manter os arquivos de código e recursos em UTF-8; limitações técnicas não justificam remover acentos dos textos da interface.
 - Antes de concluir uma mudança, revisar títulos, botões, campos, mensagens de erro, estados vazios, notificações e descrições de acessibilidade.

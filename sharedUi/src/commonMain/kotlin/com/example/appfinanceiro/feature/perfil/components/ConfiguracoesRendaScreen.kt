@@ -62,6 +62,7 @@ import com.example.appfinanceiro.core.designsystem.components.dataRequestErrorMe
 import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.network.Income
+import com.example.appfinanceiro.core.network.incomeFor
 import com.example.appfinanceiro.core.network.IncomeRequest
 import com.example.appfinanceiro.core.network.IncomeUpdateRequest
 import com.example.appfinanceiro.feature.home.components.MonthSelector
@@ -107,6 +108,11 @@ fun ConfiguracoesRendaScreen(
 
     var salarioAmount by remember { mutableStateOf("") }
     var adiantamentoAmount by remember { mutableStateOf("") }
+    var vaAmount by remember { mutableStateOf("") }
+    var vrAmount by remember { mutableStateOf("") }
+    var vaUpdateFuture by remember { mutableStateOf(true) }
+    var vrUpdateFuture by remember { mutableStateOf(true) }
+
     var rendaExtraAmount by remember { mutableStateOf("") }
 
     var salarioUpdateFuture by remember { mutableStateOf(true) }
@@ -163,7 +169,12 @@ fun ConfiguracoesRendaScreen(
     )
 
 
-    LaunchedEffect(salarioAtual, adiantamentoAtual, rendaExtraAtual) {
+    val vaAtual = incomes.incomeFor("VA", selectedMonth, selectedYear)
+    val vrAtual = incomes.incomeFor("VR", selectedMonth, selectedYear)
+
+    LaunchedEffect(salarioAtual, adiantamentoAtual, rendaExtraAtual, vaAtual, vrAtual, selectedMonth, selectedYear) {
+        vaAmount = vaAtual?.amount?.toString()?.replace(".", ",") ?: ""
+        vrAmount = vrAtual?.amount?.toString()?.replace(".", ",") ?: ""
         salarioAmount = salarioAtual?.amount?.toString()?.replace(".", ",") ?: ""
         adiantamentoAmount = adiantamentoAtual?.amount?.toString()?.replace(".", ",") ?: ""
         rendaExtraAmount = rendaExtraAtual?.amount?.toString()?.replace(".", ",") ?: ""
@@ -386,6 +397,70 @@ fun ConfiguracoesRendaScreen(
                             adiantamentoAtual?.let {
                                 incomeToDelete = it
                                 incomeDeleteLabel = "o adiantamento"
+                                deleteFutureSelected = false
+                            }
+                        },
+                    )
+                }
+
+                item {
+                    IncomeCard(
+                        title = "Vale-alimentação (VA)",
+                        amount = vaAmount,
+                        onAmountChange = { vaAmount = it },
+                        existingIncome = vaAtual,
+                        updateFuture = vaUpdateFuture,
+                        onUpdateFutureChange = { vaUpdateFuture = it },
+                        onSave = {
+                            saveIncome(
+                                actionsViewModel = actionsViewModel,
+                                context = context,
+                                source = "VA",
+                                amountText = vaAmount,
+                                existingIncome = vaAtual,
+                                updateFuture = vaUpdateFuture,
+                                month = selectedMonth,
+                                year = selectedYear,
+                                token = userToken,
+                                refresh = { refreshTrigger++ }
+                            )
+                        },
+                        onDelete = {
+                            vaAtual?.let {
+                                incomeToDelete = it
+                                incomeDeleteLabel = "o vale-alimentação (VA)"
+                                deleteFutureSelected = false
+                            }
+                        },
+                    )
+                }
+
+                item {
+                    IncomeCard(
+                        title = "Vale-refeição (VR)",
+                        amount = vrAmount,
+                        onAmountChange = { vrAmount = it },
+                        existingIncome = vrAtual,
+                        updateFuture = vrUpdateFuture,
+                        onUpdateFutureChange = { vrUpdateFuture = it },
+                        onSave = {
+                            saveIncome(
+                                actionsViewModel = actionsViewModel,
+                                context = context,
+                                source = "VR",
+                                amountText = vrAmount,
+                                existingIncome = vrAtual,
+                                updateFuture = vrUpdateFuture,
+                                month = selectedMonth,
+                                year = selectedYear,
+                                token = userToken,
+                                refresh = { refreshTrigger++ }
+                            )
+                        },
+                        onDelete = {
+                            vrAtual?.let {
+                                incomeToDelete = it
+                                incomeDeleteLabel = "o vale-refeição (VR)"
                                 deleteFutureSelected = false
                             }
                         },

@@ -23,7 +23,7 @@ import com.example.appfinanceiro.feature.home.components.income.EditableIncomeSu
 @Composable
 fun FinanceSummaryContent(data: SummaryResponse?, salarioIncome: Income?, adiantamentoIncome: Income?, rendaExtraIncome: Income?,
     onEdit: (String, Income?) -> Unit, onDelete: (Income, String) -> Unit,
-    formatCurrency: (Double) -> String) {
+    formatCurrency: (Double) -> String, vaIncome: Income? = null, vrIncome: Income? = null) {
     val isDark = isSystemInDarkTheme()
     val textColor = MaterialTheme.colorScheme.onBackground
     val cardBg = MaterialTheme.colorScheme.surface
@@ -117,6 +117,19 @@ fun FinanceSummaryContent(data: SummaryResponse?, salarioIncome: Income?, adiant
                     )
                 }
 
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    listOf(Triple("VA", data?.va ?: 0.0, vaIncome), Triple("VR", data?.vr ?: 0.0, vrIncome)).forEach { (source, amount, income) ->
+                        EditableIncomeSummaryCard(
+                            title = source, value = formatCurrency(amount), bgColor = cardBg,
+                            valueColor = textColor, existingIncome = income, actionsEnabled = !valuesHidden,
+                            modifier = Modifier.weight(1f),
+                            onCreate = { onEdit(source, null) },
+                            onEdit = { onEdit(source, it) },
+                            onDelete = { onDelete(it, "o $source") }
+                        )
+                    }
+                }
+
                 EditableIncomeSummaryCard(
                     title = "Renda Extra",
                     value = formatCurrency(rendaExtra),
@@ -154,6 +167,14 @@ fun FinanceSummaryContent(data: SummaryResponse?, salarioIncome: Income?, adiant
                     )
                 }
 
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    listOf("VA" to (data?.restante_va ?: 0.0), "VR" to (data?.restante_vr ?: 0.0)).forEach { (source, amount) ->
+                        SummaryCard(title = "Restante $source", value = formatCurrency(amount), bgColor = cardPurple,
+                            valueColor = if (!valuesHidden && amount < 0) alertColor else textColor,
+                            modifier = Modifier.weight(1f))
+                    }
+                }
+
                 SummaryCard(
                     title = "Restante Renda Extra",
                     value = formatCurrency(restRendaExtra),
@@ -178,6 +199,13 @@ fun FinanceSummaryContent(data: SummaryResponse?, salarioIncome: Income?, adiant
                         valueColor = textColor,
                         modifier = Modifier.weight(1f)
                     )
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    listOf("VA" to (data?.total_gasto_va ?: 0.0), "VR" to (data?.total_gasto_vr ?: 0.0)).forEach { (source, amount) ->
+                        SummaryCard(title = "Gasto $source", value = formatCurrency(amount), bgColor = cardBg,
+                            valueColor = textColor, modifier = Modifier.weight(1f))
+                    }
                 }
 
                 SummaryCard(

@@ -28,6 +28,67 @@ class ApiContractTest {
     }
 
     @Test
+    fun benefitsSummarySupportsNewAndLegacyResponsesWithoutRecalculatingTotals() {
+        val legacy = FinanceJson.decodeFromString<SummaryResponse>(summary)
+        assertEquals(0.0, legacy.va)
+        assertEquals(0.0, legacy.vr)
+        assertEquals(0.0, legacy.restante_va)
+        val payload = FinanceJson.parseToJsonElement(summary).jsonObject.toMutableMap().apply {
+            put("va", JsonPrimitive(600.0)); put("vr", JsonPrimitive(400.0))
+            put("total_gasto_va", JsonPrimitive(100.0)); put("total_gasto_vr", JsonPrimitive(50.0))
+            put("restante_va", JsonPrimitive(500.0)); put("restante_vr", JsonPrimitive(350.0))
+            put("total_income", JsonPrimitive(3000.0))
+        }
+        val parsed = FinanceJson.decodeFromString<SummaryResponse>(JsonObject(payload).toString())
+        assertEquals(600.0, parsed.va); assertEquals(400.0, parsed.vr)
+        assertEquals(100.0, parsed.total_gasto_va); assertEquals(50.0, parsed.total_gasto_vr)
+        assertEquals(500.0, parsed.restante_va); assertEquals(350.0, parsed.restante_vr)
+        assertEquals(3000.0, parsed.total_income)
+    }
+
+    @Test
+    fun benefitIncomeMutationContractsPreserveSourceIdAndFutureScope() = runTest {
+        for (source in listOf("VA", "VR")) {
+            var writes = 0
+            withTransport({ request ->
+                assertEquals("Bearer $token", request.headers[HttpHeaders.Authorization])
+                when (request.method) {
+                    HttpMethod.Post -> {
+                        val body = FinanceJson.parseToJsonElement((request.body as TextContent).text).jsonObject
+                        assertEquals(source, body["source"]?.jsonPrimitive?.content)
+                        assertEquals("Fixa", body["type"]?.jsonPrimitive?.content)
+                        assertEquals(12, body["month"]?.jsonPrimitive?.int)
+                        assertEquals(2026, body["year"]?.jsonPrimitive?.int)
+                        assertFalse("repeat_future" in body)
+                    }
+                    HttpMethod.Patch -> {
+                        assertTrue(request.url.encodedPath.endsWith("/incomes/42"))
+                        val body = FinanceJson.parseToJsonElement((request.body as TextContent).text).jsonObject
+                        assertEquals(setOf("amount", "update_future"), body.keys)
+                        assertEquals(650.0, body["amount"]?.jsonPrimitive?.double)
+                        assertEquals(writes == 2, body["update_future"]?.jsonPrimitive?.boolean)
+                    }
+                    HttpMethod.Delete -> {
+                        assertTrue(request.url.encodedPath.endsWith("/incomes/42"))
+                        assertEquals(if (writes == 4) "true" else null, request.url.parameters["delete_future"])
+                    }
+                    else -> error("Unexpected request")
+                }
+                writes++
+                respond("""{"message":"OK"}""")
+            }) { transport ->
+                val api = KtorFinanceApi(transport)
+                api.createIncome("Bearer $token", IncomeRequest(source, 600.0, 12, 2026, "Fixa"))
+                api.updateIncome("Bearer $token", 42, IncomeUpdateRequest(650.0, false))
+                api.updateIncome("Bearer $token", 42, IncomeUpdateRequest(650.0, true))
+                api.deleteIncome("Bearer $token", 42, null)
+                api.deleteIncome("Bearer $token", 42, true)
+            }
+            assertEquals(5, writes)
+        }
+    }
+
+    @Test
     fun disconnectedReadRetriesOnceWithTheSameCredentialsAndQuery() = runTest {
         var calls = 0
         withTransport({ request ->

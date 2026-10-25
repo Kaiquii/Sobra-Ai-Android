@@ -97,7 +97,7 @@ fun IncomeDeleteDialog(
 
                             Toast.success(
                                 context,
-                                "${state.label} removido!",
+                                "Renda excluída.",
                                 Toast.LENGTH_SHORT
                             ).show()
 

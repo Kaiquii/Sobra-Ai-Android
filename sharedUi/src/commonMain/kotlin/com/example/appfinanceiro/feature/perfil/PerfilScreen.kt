@@ -450,7 +450,7 @@ fun PerfilScreen(
                 icon = Icons.Default.AccountBalance,
                 iconColor = Color(0xFF2E9D57),
                 title = "Rendas",
-                subtitle = "Salário, adiantamento e renda extra",
+                subtitle = "Salário, adiantamento, renda extra, VA e VR",
                 onClick = onIncomeSettingsClick
             )
 
