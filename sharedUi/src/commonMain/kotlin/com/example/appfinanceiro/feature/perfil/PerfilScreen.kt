@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
@@ -96,6 +97,7 @@ fun PerfilScreen(
     onCategoriesClick: () -> Unit = {},
     onEditProfileClick: () -> Unit = {},
     onHelpClick: () -> Unit = {},
+    onPatrimonyClick: () -> Unit = {},
     actionsViewModel: FinanceActionsViewModel = rememberPresentation("FinanceActionsViewModel") { services -> FinanceActionsViewModel(services.finance, services.files) }
 ) {
     val context = LocalUiServices.current
@@ -452,6 +454,14 @@ fun PerfilScreen(
                 title = "Rendas",
                 subtitle = "Salário, adiantamento, renda extra, VA e VR",
                 onClick = onIncomeSettingsClick
+            )
+
+            SettingsItem(
+                icon = Icons.Default.AccountBalanceWallet,
+                iconColor = PrimaryBlue,
+                title = "Patrimônio",
+                subtitle = "FGTS e investimentos",
+                onClick = onPatrimonyClick
             )
 
             SettingsItem(

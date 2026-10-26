@@ -31,7 +31,8 @@ class MainActivity : FragmentActivity() {
         controller = AppController(auth::login, session, AndroidBiometrics(this), lifecycleScope)
         val services = UiServices(session, FinanceRepository(), auth,
             KtorFinanceFiles(fileClient, ApiConfiguration(BuildConfig.API_BASE_URL)), native, controller, native, BuildConfig.API_BASE_URL,
-            installationHint = "Atualize ou instale o app pela Google Play.", updates = AndroidAppUpdates(native))
+            installationHint = "Atualize ou instale o app pela Google Play.", updates = AndroidAppUpdates(native), patrimony = AndroidApiClient.patrimony,
+            investmentCategories = AndroidApiClient.patrimony)
         setContent { SobraAiApp(services) }
     }
     override fun onStart() {

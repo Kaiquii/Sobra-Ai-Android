@@ -25,8 +25,9 @@ class IosApp(apiBaseUrl: String, sessionService: String) {
     private val files = KtorFinanceFiles(client, configuration)
     private val biometrics = AppleBiometrics()
     private val controller = AppController(auth::login, session, biometrics, scope)
+    private val patrimony = SharedPatrimonyRepository(transport)
     private val services = br.com.sobraai.ui.runtime.UiServices(session, finance, auth, files, native, controller,
-        IosReportFiles(files, native), apiBaseUrl, codeDeliveryAvailable = false)
+        IosReportFiles(files, native), apiBaseUrl, codeDeliveryAvailable = false, patrimony = patrimony, investmentCategories = patrimony)
 
     fun viewController(): UIViewController = ComposeUIViewController {
         SobraAiApp(services)

@@ -56,6 +56,15 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   Quando houver subtítulo, alinhar também à esquerda. Preservar os cabeçalhos de
   formulários de autenticação que fazem parte do conteúdo rolável.
 - Em telas com conteúdo extenso, usar rolagem vertical e `imePadding()` para que os campos e botões não fiquem inacessíveis pelo teclado.
+- Painéis inferiores usam `AppModalBottomSheet`, do designSystem comum, para
+  proteger o formulário com o teclado aberto: deslizar, tocar na alça, tocar fora
+  ou voltar não devem fechar o painel e descartar o rascunho. Com o teclado
+  fechado, preservar o fechamento por deslize e os demais gestos normais.
+  O “X” e as ações explícitas continuam disponíveis conforme o estado do fluxo;
+  bloqueios de salvamento/exportação impedem o fechamento durante a operação.
+  A regra é a mesma nos editores de FGTS/investimentos, filtros de despesas,
+  exportação e histórico do Assistente; não implementar proteções divergentes
+  em cada consumidor nem desabilitar o arraste permanentemente.
 - O host Android usa `windowSoftInputMode="adjustResize"`: o teclado deve reduzir
   a área disponível, sem deslocar a janela inteira sobre a barra de status. No
   Assistente, o Scaffold trata o espaço do teclado uma vez e a lista reposiciona
@@ -112,6 +121,38 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   Fixa como paga continua permitido e não muda o gasto de mês. Fonte do pagamento
   e status Paga não alteram a elegibilidade. A regra vale para todos os cards e
   detalhes, tanto Android quanto iOS.
+
+## Patrimônio
+
+- Acesso no Início pelo botão flutuante azul somente com ícone de carteira de
+  24 dp, sem texto visível, com área de toque de 48 dp e descrição acessível
+  “Abrir patrimônio”, à direita perto da barra. Preservar o espaço medido na lista.
+  Manter o “+” e as quatro abas
+  existentes; reservar espaço ao fim da lista para não encobrir seu último item.
+- Perfil > Finanças mantém um segundo acesso à mesma tela comum. FGTS e
+  investimentos usam saldos atuais, formulários e confirmação de exclusão; não
+  integrar esses valores ao resumo mensal nem oferecer categoria de despesa.
+- Investimentos usam AppSelectField com IDs e rótulos do catálogo da API, com
+  criação e gerenciamento de categorias pessoais. Categorias padrão mostram
+  proteção, sem ações de renomear/excluir. A categoria criada fica selecionada;
+  alterações recarregam catálogo e patrimônio. Só GET 404 permite o formulário
+  legado por texto enquanto a API de catálogo não estiver publicada. Falhas de
+  autenticação ou conexão não devem ativar esse fallback. Um 404 antigo não deve
+  prender a tela no formulário legado: reabrir a tela/editor deve consultar o
+  catálogo novamente, sem cancelar leitura idêntica em andamento nem criar polling.
+- Resumo e cards compactos, sem título de seção duplicando o card FGTS nem texto
+  introdutório extenso. Toque no card abre a atualização em painel inferior
+  rolável, com botão principal de salvar visível e exclusão com confirmação.
+  Os formulários de FGTS e investimentos usam `AppModalBottomSheet`: com o teclado
+  aberto, preservar o rascunho contra fechamento por gesto, alça, toque fora ou
+  voltar; com o teclado fechado, permitir deslizar para fechar. Preservar a
+  rolagem interna, o “X” e os bloqueios durante o salvamento.
+- Gerenciar categorias mantém título, fechar, descrição e Nova categoria fixos.
+  Apenas a lista de categorias/seções rola; mensagens longas de status têm espaço
+  limitado sem empurrar o cabeçalho para fora da área segura. Em pouca altura,
+  ocultar a descrição opcional para reservar espaço à lista.
+- Respeitar FinancialValue, temas, fonte ampliada, teclado, estados sem conteúdo
+  e erros persistentes. Detalhes e cenários em [patrimonio.md](patrimonio.md).
 
 ## Gráfico de gastos por categoria
 

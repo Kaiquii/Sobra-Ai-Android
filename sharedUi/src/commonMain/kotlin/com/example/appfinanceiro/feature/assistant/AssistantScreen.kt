@@ -27,7 +27,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -51,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.com.sobraai.ui.runtime.rememberPresentation
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
+import com.example.appfinanceiro.core.designsystem.components.AppModalBottomSheet
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -255,7 +255,7 @@ fun AssistantScreen(
     }
 
     if (showConversations) {
-        ModalBottomSheet(
+        AppModalBottomSheet(
             onDismissRequest = { showConversations = false },
             containerColor = backgroundColor
         ) {

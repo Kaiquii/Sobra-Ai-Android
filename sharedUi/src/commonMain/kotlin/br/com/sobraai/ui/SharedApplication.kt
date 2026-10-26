@@ -24,6 +24,7 @@ import com.example.appfinanceiro.core.designsystem.components.AppNotification
 import com.example.appfinanceiro.core.designsystem.components.LocalBottomBarHeightReporter
 import com.example.appfinanceiro.feature.login.*
 import com.example.appfinanceiro.feature.login.components.*
+import com.example.appfinanceiro.feature.patrimonio.PatrimonyScreen
 import com.example.appfinanceiro.feature.home.HomeScreen
 import com.example.appfinanceiro.feature.despesas.DespesasScreen
 import com.example.appfinanceiro.feature.despesas.components.*
@@ -74,7 +75,7 @@ fun SobraAiApp(services: UiServices) {
     }
 }
 
-internal enum class Screen { Home, Expenses, Reports, Profile, Assistant, NewExpense, EditExpense, Incomes, Categories, EditProfile, Commitments, Help }
+internal enum class Screen { Home, Expenses, Reports, Profile, Assistant, NewExpense, EditExpense, Incomes, Categories, EditProfile, Commitments, Help, Patrimony }
 
 @Composable
 private fun SignedInScreens(services: UiServices) {
@@ -96,11 +97,13 @@ private fun SignedInScreens(services: UiServices) {
       CompositionLocalProvider(LocalPresentationStore provides models, LocalPresentationRoute provides screen) {
       key(screen, expenseId) {
         when (Screen.valueOf(screen)) {
-            Screen.Home -> HomeScreen(::tab, ::add, { open(Screen.Assistant) }, ::expired)
+            Screen.Home -> HomeScreen(::tab, ::add, { open(Screen.Assistant) }, ::expired,
+                onPatrimonyClick = { open(Screen.Patrimony) })
             Screen.Expenses -> DespesasScreen(::tab, ::add, { id -> expenseId = id; open(Screen.EditExpense) }, ::expired)
             Screen.Reports -> RelatoriosScreen(::tab, ::add, { open(Screen.Commitments) }, ::expired)
             Screen.Profile -> PerfilScreen({ services.controller.logout() }, ::tab, ::add,
-                { open(Screen.Incomes) }, { open(Screen.Categories) }, { open(Screen.EditProfile) }, { open(Screen.Help) })
+                { open(Screen.Incomes) }, { open(Screen.Categories) }, { open(Screen.EditProfile) }, { open(Screen.Help) },
+                onPatrimonyClick = { open(Screen.Patrimony) })
             Screen.Assistant -> AssistantScreen(::back, ::expired)
             Screen.NewExpense -> NovaDespesaScreen(::back)
             Screen.EditExpense -> EditarDespesaScreen(expenseId, ::back)
@@ -108,6 +111,7 @@ private fun SignedInScreens(services: UiServices) {
             Screen.Categories -> CategoriasScreen(::back)
             Screen.EditProfile -> EditarPerfilScreen(::back)
             Screen.Commitments -> InstallmentCommitmentsScreen(::back, ::expired)
+            Screen.Patrimony -> PatrimonyScreen(::back, ::expired)
             Screen.Help -> AjudaScreen(::back)
         }
       }

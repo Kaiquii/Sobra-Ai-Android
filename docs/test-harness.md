@@ -65,8 +65,12 @@ Não esconder erros reais nem ampliar retentativas para fazer esses testes passa
 pendente, prazo de 60 s contado da conclusão por relógio monotônico, tentativa
 explícita, troca de período/filtro/revisão, resultados vazios nas configurações,
 cancelamento e rejeição de resposta antiga. Falhas reais continuam visíveis e
-podem ser repetidas manualmente. O transporte mantém seu limite anterior de uma
-única repetição de GET por falha de conexão; escritas/HTTP/timeout não ganham retries.
+podem ser repetidas manualmente. `ApiContractTest` cobre até três novas tentativas
+de GET sem corpo, com pausas de 500/1.500/3.000 ms após falhas de conexão, limite
+de quatro tentativas totais e cancelamento durante a pausa. Escritas, HTTP e
+timeout não ganham retries. `PatrimonyHttpTest` cobre o mesmo transporte no GET
+de Patrimônio; `PatrimonyViewModelTest` cobre leitura demorada sem cancelamento,
+reconciliação sem reenvio de cadastro e bloqueio de gravações com dados incertos.
 Conferir no aparelho Android/iPhone: abrir cada aba, alternar apps e voltar em
 menos de um minuto; mudar mês, salvar despesa/renda/categoria e retornar; depois
 voltar após o prazo e testar conexão indisponível e tentativa manual. Testes com

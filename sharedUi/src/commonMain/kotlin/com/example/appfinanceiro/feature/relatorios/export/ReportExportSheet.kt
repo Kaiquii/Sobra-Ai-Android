@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 
 import com.example.appfinanceiro.core.designsystem.components.AppSelectField
 import com.example.appfinanceiro.core.designsystem.components.AppSelectOption
+import com.example.appfinanceiro.core.designsystem.components.AppModalBottomSheet
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,7 +30,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -74,8 +74,9 @@ fun ReportExportSheet(
     val selectedType = selectedTypeName?.let(ReportExportType::valueOf)
     val selectedFormat = selectedFormatName?.let(ReportExportFormat::valueOf)
 
-    ModalBottomSheet(
-        onDismissRequest = { if (!isExporting) onDismiss() },
+    AppModalBottomSheet(
+        onDismissRequest = onDismiss,
+        dismissEnabled = !isExporting,
         containerColor = MaterialTheme.colorScheme.background
     ) {
         Column(

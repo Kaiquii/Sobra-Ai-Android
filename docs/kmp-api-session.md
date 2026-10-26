@@ -35,8 +35,12 @@ Serializers específicos toleram somente texto de apresentação e rateios legad
 API. 403 contendo “Acesso revogado” em chamada autenticada emite
 `SessionAccessEvents`, observado pelo Android existente. Outros erros preservam
 `error`, `message` ou `detail`. Timeout e falha de conexão mantêm mensagens próprias;
-cancelamento é propagado. Não há retry de aplicação nem replay automático de POST.
-O engine OkHttp desabilita retry de conexão. Leituras seguem redirecionamentos
+cancelamento é propagado. GET sem corpo admite até três novas tentativas somente
+por falha de conexão, com pausas de 500, 1.500 e 3.000 ms; o limite evita um ciclo
+de consultas durante indisponibilidade. Erros HTTP, timeouts e gravações não são
+repetidos. Conexão mantém limite de 30 s e leitura de 90 s.
+O engine OkHttp desabilita retry próprio de conexão; a política é comum aos dois
+hosts no ApiTransport. Leituras seguem redirecionamentos
 HTTPS; Ktor remove o Bearer se o host mudar e recusa downgrade para HTTP.
 Escritas não são reenviadas automaticamente por redirecionamento.
 

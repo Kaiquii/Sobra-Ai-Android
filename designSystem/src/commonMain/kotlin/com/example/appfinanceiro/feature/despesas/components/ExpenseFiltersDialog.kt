@@ -2,6 +2,7 @@ package com.example.appfinanceiro.feature.despesas.components
 
 import com.example.appfinanceiro.core.designsystem.components.AppSelectField
 import com.example.appfinanceiro.core.designsystem.components.AppSelectOption
+import com.example.appfinanceiro.core.designsystem.components.AppModalBottomSheet
 
 import com.example.appfinanceiro.core.network.PAYMENT_SOURCE_VALUES
 import com.example.appfinanceiro.core.network.paymentSourceDisplayName
@@ -60,11 +61,10 @@ fun ExpenseFiltersDialog(
     var draftSource by rememberSaveable { mutableStateOf(paymentSource) }
     var draftStatus by rememberSaveable { mutableStateOf(paymentStatus) }
     val colors = MaterialTheme.colorScheme
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(
+    AppModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
+        skipPartiallyExpanded = true,
         containerColor = colors.background,
         contentColor = colors.onBackground
     ) {

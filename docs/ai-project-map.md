@@ -16,6 +16,7 @@ Multiplatform**. A referência visual é o Android anterior à migração. Leia
 | Notificações de ações | `designSystem/.../core/designsystem/components/AppNotification.kt` | Card compacto reutilizável nos dois temas; eventos tipados de `UiServices`/`UiToast`, host acima da barra inferior medida, em `SharedApplication` |
 | Seletores e dropdowns | `designSystem/.../core/designsystem/components/AppSelectField.kt` | Campo e modal de seleção únicos: formulários, rateios, filtros, exportação e projeção. Listas independentes do espaço da âncora, com seleção destacada e rolagem para listas longas |
 | Janela dos seletores | `designSystem/.../core/designsystem/components/SelectorDialogWindow` (`commonMain`/`androidMain`/`iosMain`) | Somente propriedades nativas da janela. Android deixa Compose controlar os insets do teclado; layout e seleção continuam únicos em commonMain |
+| Painéis inferiores | `designSystem/.../core/designsystem/components/AppModalBottomSheet.kt` | Proteção comum contra fechamento por gesto, alça, toque fora e voltar com o teclado aberto; fechamento por deslize mantido com teclado fechado e bloqueios de operação preservados. Consumido por FGTS/investimentos, filtros de despesas, exportação e histórico do Assistente |
 | Host Android | `app/src/main/java/com/example/appfinanceiro/MainActivity.kt` | Splash, proteção, injeção e ciclo de vida; abre `SobraAiApp(services)` |
 | Adaptadores Android | `app/src/main/java/com/example/appfinanceiro/platform/` | Biometria, galeria, permissões, voz e arquivos do sistema |
 | Host Apple Kotlin | `sharedUi/src/iosMain/kotlin/br/com/sobraai/ui/IosApp.kt` | Keychain, clientes, injeção, LocalAuthentication e ciclo de vida; abre o mesmo `SobraAiApp(services)` |
@@ -49,6 +50,7 @@ Na base `sharedUi/src/commonMain/kotlin/com/example/appfinanceiro/`:
 | Exportar | `feature/relatorios/export/ReportExportSheet.kt`, `ReportExportViewModel.kt`, `ReportExportModels.kt`; `ReportFiles` isola o sistema de arquivos |
 | Assistente | `feature/assistant/AssistantScreen.kt`, `AssistantViewModel.kt`; componentes em `designSystem/.../feature/assistant/AssistantComponents.kt`; boas-vindas sem sugestões de mensagens, compositor integrado, histórico completo, nova conversa, exclusão, cota e ditado |
 | Perfil | `feature/perfil/PerfilScreen.kt`, `feature/perfil/components/EditarPerfilScreen.kt` |
+| Patrimônio | `feature/patrimonio/PatrimonyScreen.kt`, `PatrimonyViewModel.kt`, `InvestmentCategoriesViewModel.kt` e `InvestmentCategoriesDialog.kt`; `shared/.../core/data/PatrimonyDataSource.kt` e `core/network/PatrimonyModels.kt`. Atalho no Início e entrada em Perfil. FGTS/investimentos isolados do mês; [contrato](patrimonio.md) |
 | Rendas/categorias | `feature/perfil/components/ConfiguracoesRendaScreen.kt`, `CategoriasScreen.kt` |
 | VA e VR | Fontes canônicas em `shared/.../core/network/PaymentSources.kt`; renda mensal, despesas, filtros e resumo comuns. Contrato e validação em [beneficios-va-vr.md](beneficios-va-vr.md) |
 | Mutação de dados | `core/data/FinanceActionsViewModel.kt`; repositórios/contratos em `shared` |
@@ -113,3 +115,8 @@ as classes agora comuns. `harnessVerify` acrescenta a guarda arquitetural, APK,
 Lint e fontes/testes KLIB dos dois targets iOS. Veja [test-harness.md](test-harness.md).
 Mac/Xcode/link e comparação visual Android/iPhone são verificações separadas.
 O usuário prepara e testa os aparelhos; o agente não inicia dispositivos.
+
+Para `AppModalBottomSheet`, conferir manualmente nos quatro consumidores:
+abrir o teclado e deslizar sem fechar nem perder o rascunho; fechar o teclado e
+deslizar para fechar normalmente. Repetir alça, toque fora e voltar, além do “X”
+e dos bloqueios durante salvamento/exportação, em Android e iPhone.

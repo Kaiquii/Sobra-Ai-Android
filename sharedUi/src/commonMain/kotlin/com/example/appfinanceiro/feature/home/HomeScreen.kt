@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -41,6 +42,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import br.com.sobraai.ui.runtime.LocalUiServices
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,6 +58,7 @@ import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicato
 import com.example.appfinanceiro.core.designsystem.components.AppDataErrorBanner
 import com.example.appfinanceiro.core.designsystem.components.ExitConfirmationDialog
 import com.example.appfinanceiro.core.designsystem.components.ExpenseDetailsDialog
+import com.example.appfinanceiro.core.designsystem.components.PatrimonyAccessButton
 import com.example.appfinanceiro.core.designsystem.components.StandardBottomBar
 import com.example.appfinanceiro.core.designsystem.components.swipeNavigation
 import com.example.appfinanceiro.core.network.Expense
@@ -77,6 +81,7 @@ fun HomeScreen(
     onAddClick: () -> Unit = {},
     onAssistantClick: () -> Unit = {},
     onSessionExpired: () -> Unit = {},
+    onPatrimonyClick: () -> Unit = {},
     viewModel: HomeViewModel = rememberPresentation("HomeViewModel") { services -> HomeViewModel(services.finance) }
 ) {
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -89,6 +94,8 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val financeRevision by FinanceDataChanges.revision.collectAsState()
     val listState = rememberLazyListState()
+    val density = LocalDensity.current
+    var patrimonyButtonHeight by remember { mutableStateOf(48.dp) }
     val isLoadingMonth = uiState.isSummaryLoading ||
             uiState.isIncomesLoading ||
             uiState.isExpensesLoading
@@ -193,6 +200,11 @@ fun HomeScreen(
     Scaffold(
         modifier = Modifier.swipeNavigation(0, onNavigate),
         containerColor = backgroundColor,
+        floatingActionButton = {
+            PatrimonyAccessButton(onClick = onPatrimonyClick, modifier = Modifier.offset(y = 16.dp).onSizeChanged {
+                patrimonyButtonHeight = with(density) { it.height.toDp() }
+            })
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -243,7 +255,7 @@ fun HomeScreen(
             contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
-                bottom = paddingValues.calculateBottomPadding() + 16.dp
+                bottom = paddingValues.calculateBottomPadding() + patrimonyButtonHeight + 8.dp
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {

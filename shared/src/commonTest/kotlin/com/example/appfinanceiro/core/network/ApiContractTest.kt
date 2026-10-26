@@ -9,13 +9,14 @@ import io.ktor.http.*
 import io.ktor.http.content.TextContent
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.*
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import kotlin.test.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ApiContractTest {
     private val token = "synthetic-token"
     private val expense = """{"id":10,"category_id":4,"amount":200.25,"description":null,"date":null,"type":null,"payment_splits":[null,{"payment_source":null,"amount":200.25}],"is_paid":true,"is_advanced":true,"advanced_at":"2026-10-01"}"""
@@ -89,30 +90,36 @@ class ApiContractTest {
     }
 
     @Test
-    fun disconnectedReadRetriesOnceWithTheSameCredentialsAndQuery() = runTest {
+    fun disconnectedReadRecoversAfterTwoFailuresWithTheSameCredentialsAndQuery() = runTest {
         var calls = 0
+        val attemptsAt = mutableListOf<Long>()
         withTransport({ request ->
             calls++
+            attemptsAt += testScheduler.currentTime
             assertEquals(HttpMethod.Get, request.method)
             assertEquals("Bearer $token", request.headers[HttpHeaders.Authorization])
             assertEquals("10", request.url.parameters["month"])
             assertEquals("effective", request.url.parameters["period_mode"])
-            if (calls == 1) throw IOException("synthetic-closed-connection")
+            if (calls <= 2) throw IOException("synthetic-closed-connection")
             respond("""{"expenses":[],"total":0}""")
         }) { transport ->
             assertTrue(SharedFinanceRepository(KtorFinanceApi(transport))
                 .getEffectiveExpenses(token, 10, 2026, null).expenses.isEmpty())
         }
-        assertEquals(2, calls)
+        assertEquals(3, calls)
+        assertEquals(listOf(0L, 500L, 2_000L), attemptsAt)
     }
 
     @Test
-    fun persistentConnectionFailureStopsAfterTwoReadAttempts() = runTest {
+    fun persistentConnectionFailureStopsAfterFourReadAttemptsWithBoundedBackoff() = runTest {
         var calls = 0
-        withTransport({ calls++; throw IOException("synthetic-offline") }) { transport ->
-            assertFailsWith<NetworkRequestException> { KtorFinanceApi(transport).getCategories("Bearer $token") }
+        val attemptsAt = mutableListOf<Long>()
+        withTransport({ calls++; attemptsAt += testScheduler.currentTime; throw IOException("synthetic-offline") }) { transport ->
+            val error = assertFailsWith<NetworkRequestException> { KtorFinanceApi(transport).getCategories("Bearer $token") }
+            assertEquals(NetworkFailureKind.Connection, error.kind)
         }
-        assertEquals(2, calls)
+        assertEquals(4, calls)
+        assertEquals(listOf(0L, 500L, 2_000L, 5_000L), attemptsAt)
     }
 
     @Test
@@ -126,6 +133,19 @@ class ApiContractTest {
             }
             assertEquals(1, calls, method)
         }
+        assertEquals(0L, testScheduler.currentTime)
+    }
+
+    @Test
+    fun aGetWithABodyIsNeverAutomaticallyResubmitted() = runTest {
+        var calls = 0
+        withTransport({ calls++; throw IOException("synthetic-connection-lost-after-send") }) { transport ->
+            assertFailsWith<NetworkRequestException> {
+                transport.request<DefaultResponse>("GET", "api/synthetic", "Bearer $token", body = "{}")
+            }
+        }
+        assertEquals(1, calls)
+        assertEquals(0L, testScheduler.currentTime)
     }
 
     @Test
@@ -144,15 +164,33 @@ class ApiContractTest {
             assertFailsWith<SerializationException> { KtorFinanceApi(transport).getCategories("Bearer $token") }
         }
         assertEquals(1, calls)
+        assertEquals(0L, testScheduler.currentTime)
     }
 
     @Test
     fun configuredTimeoutIsNotExtendedByAnExtraAttempt() = runTest {
         var calls = 0
         withTransport({ request -> calls++; throw HttpRequestTimeoutException(request) }) { transport ->
-            assertFailsWith<NetworkRequestException> { KtorFinanceApi(transport).getCategories("Bearer $token") }
+            val error = assertFailsWith<NetworkRequestException> { KtorFinanceApi(transport).getCategories("Bearer $token") }
+            assertEquals(NetworkFailureKind.Timeout, error.kind)
         }
         assertEquals(1, calls)
+        assertEquals(0L, testScheduler.currentTime)
+    }
+
+    @Test
+    fun aTimeoutAfterAConnectionFailureStopsWithoutUsingTheRemainingRetries() = runTest {
+        var calls = 0
+        withTransport({ request ->
+            calls++
+            if (calls == 1) throw IOException("synthetic-closed-connection")
+            throw HttpRequestTimeoutException(request)
+        }) { transport ->
+            val error = assertFailsWith<NetworkRequestException> { KtorFinanceApi(transport).getCategories("Bearer $token") }
+            assertEquals(NetworkFailureKind.Timeout, error.kind)
+        }
+        assertEquals(2, calls)
+        assertEquals(500L, testScheduler.currentTime)
     }
 
     @Test
@@ -162,9 +200,13 @@ class ApiContractTest {
         withTransport({ calls++; failed.complete(Unit); throw IOException("synthetic-closed-connection") }) { transport ->
             val request = launch { KtorFinanceApi(transport).getCategories("Bearer $token") }
             failed.await()
+            advanceTimeBy(250)
+            assertEquals(1, calls)
             request.cancelAndJoin()
+            advanceUntilIdle()
         }
         assertEquals(1, calls)
+        assertEquals(250L, testScheduler.currentTime)
     }
 
     @Test

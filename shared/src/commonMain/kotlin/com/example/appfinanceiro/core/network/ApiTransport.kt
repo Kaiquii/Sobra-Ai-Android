@@ -62,15 +62,18 @@ class ApiTransport(
         body: String?, authenticated: Boolean
     ): String {
         require(!path.startsWith('/') && !path.contains("://") && !path.contains("..")) { "Caminho de API inválido." }
-        return try {
-            executeOnce(method, path, authorization, query, body, authenticated)
-        } catch (error: NetworkRequestException) {
-            // Reabrir uma leitura após queda de conexão é seguro; escritas nunca são repetidas.
-            // Timeouts já aguardaram o limite configurado, por isso não prolongamos a espera.
-            if (method != "GET" || body != null || error.cause is HttpRequestTimeoutException ||
-                error.cause is ConnectTimeoutException || error.cause is SocketTimeoutException) throw error
-            delay(300)
-            executeOnce(method, path, authorization, query, body, authenticated)
+        val connectionRetryDelays = longArrayOf(500, 1_500, 3_000)
+        var retries = 0
+        while (true) {
+            try {
+                return executeOnce(method, path, authorization, query, body, authenticated)
+            } catch (error: NetworkRequestException) {
+                // Dá tempo para a conexão transitória se recuperar, inclusive no retorno ao app.
+                // Somente GET sem corpo repete; timeouts e escritas mantêm os limites originais.
+                if (method != "GET" || body != null || error.kind != NetworkFailureKind.Connection ||
+                    retries >= connectionRetryDelays.size) throw error
+                delay(connectionRetryDelays[retries++])
+            }
         }
     }
 

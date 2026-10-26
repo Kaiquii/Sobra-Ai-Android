@@ -30,7 +30,9 @@ class UiServices(
     val apiBaseUrl: String,
     val codeDeliveryAvailable: Boolean = true,
     val installationHint: String = "Atualize ou reinstale o aplicativo pela loja oficial.",
-    val updates: com.example.appfinanceiro.core.update.AppUpdates? = null
+    val updates: com.example.appfinanceiro.core.update.AppUpdates? = null,
+    val patrimony: PatrimonyDataSource,
+    val investmentCategories: InvestmentCategoriesDataSource
 ) {
     val messages = MutableSharedFlow<AppNotificationVisuals>(extraBufferCapacity = 16)
     fun notify(message: String, type: AppNotificationType = AppNotificationType.Info, long: Boolean = false) {
