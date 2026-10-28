@@ -39,12 +39,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import br.com.sobraai.ui.runtime.LocalUiServices
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -52,6 +55,8 @@ import br.com.sobraai.ui.runtime.rememberPresentation
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
 import com.example.appfinanceiro.core.designsystem.components.AppModalBottomSheet
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
+
+private data class ObservedAssistantSession(val token: String?)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,14 +67,29 @@ fun AssistantScreen(
 ) {
     val context = LocalUiServices.current
     val sessionManager = remember { context.session }
-    val userToken by sessionManager.token.collectAsState(initial = null)
+    // Do not interpret the collector's initial value as a real logout on route reentry.
+    val observedSession by produceState<ObservedAssistantSession?>(null, sessionManager) {
+        sessionManager.token.collect { value = ObservedAssistantSession(it) }
+    }
+    val userToken = observedSession?.token
     val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(observedSession) {
+        if (observedSession != null) {
+            viewModel.bindSession(userToken)
+            userToken?.takeIf { it.isNotBlank() }?.let(viewModel::loadConversations)
+        }
+    }
+    if (observedSession == null || userToken.isNullOrBlank()) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { AppLoadingIndicator() }
+        return
+    }
     val listState = rememberLazyListState()
     var listHeight by remember { mutableIntStateOf(0) }
     val keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
-    var input by remember { mutableStateOf("") }
-    var showConversations by remember { mutableStateOf(false) }
+    // SignedInScreens owns this saveable scope and discards it when the account closes.
+    var input by rememberSaveable { mutableStateOf("") }
+    var showConversations by remember(userToken) { mutableStateOf(false) }
     var isListening by remember { mutableStateOf(false) }
     var voiceError by remember { mutableStateOf<String?>(null) }
 
@@ -78,6 +98,7 @@ fun AssistantScreen(
     val textColor = colorScheme.onBackground
     val canSend = input.isNotBlank() &&
             !uiState.isSending &&
+            !uiState.isLoadingMessages &&
             userToken != null &&
             (uiState.quotaRetrySeconds ?: 0) <= 0
 
@@ -95,12 +116,6 @@ fun AssistantScreen(
         }
     }
     DisposableEffect(context) { onDispose { voiceJob?.cancel(); context.native.cancelInteractions() } }
-
-    LaunchedEffect(userToken) {
-        userToken?.let { token ->
-            viewModel.loadConversations(token)
-        }
-    }
 
     LaunchedEffect(uiState.messages.size, uiState.isSending) {
         val itemCount = uiState.messages.size + if (uiState.isSending) 1 else 0
@@ -183,10 +198,13 @@ fun AssistantScreen(
                 },
                 onVoiceClick = { toggleVoiceInput() },
                 onSend = {
-                    userToken?.let { token ->
+                    val currentChat = viewModel.uiState.value
+                    userToken?.takeIf { it.isNotBlank() }?.let { token ->
                         val message = input
-                        input = ""
-                        viewModel.sendMessage(token, message)
+                        if (message.isNotBlank() && !currentChat.isSending && !currentChat.isLoadingMessages &&
+                            (currentChat.quotaRetrySeconds ?: 0) <= 0) {
+                            if (viewModel.sendMessage(token, message)) input = ""
+                        }
                     }
                 }
             )

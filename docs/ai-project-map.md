@@ -49,6 +49,7 @@ Na base `sharedUi/src/commonMain/kotlin/com/example/appfinanceiro/`:
 | Parcelados | `feature/relatorios/InstallmentCommitmentsScreen.kt`, `InstallmentCommitmentsViewModel.kt` |
 | Exportar | `feature/relatorios/export/ReportExportSheet.kt`, `ReportExportViewModel.kt`, `ReportExportModels.kt`; `ReportFiles` isola o sistema de arquivos |
 | Assistente | `feature/assistant/AssistantScreen.kt`, `AssistantViewModel.kt`; componentes em `designSystem/.../feature/assistant/AssistantComponents.kt`; boas-vindas sem sugestões de mensagens, compositor integrado, histórico completo, nova conversa, exclusão, cota e ditado |
+| Escolha automática da IA | Decisão do backend; o chat comum não expõe seletor, não consulta catálogo/preferências e não envia `model_id`. Conversa, rascunho, sessão e cotas permanecem no fluxo do Assistente; [contrato, handoff e validação](assistant-models.md) |
 | Perfil | `feature/perfil/PerfilScreen.kt`, `feature/perfil/components/EditarPerfilScreen.kt` |
 | Patrimônio | `feature/patrimonio/PatrimonyScreen.kt`, `PatrimonyViewModel.kt`, `InvestmentCategoriesViewModel.kt` e `InvestmentCategoriesDialog.kt`; `shared/.../core/data/PatrimonyDataSource.kt` e `core/network/PatrimonyModels.kt`. Atalho no Início e entrada em Perfil. FGTS/investimentos isolados do mês; [contrato](patrimonio.md) |
 | Rendas/categorias | `feature/perfil/components/ConfiguracoesRendaScreen.kt`, `CategoriasScreen.kt` |
@@ -83,7 +84,8 @@ financeira; nenhuma dessas regras cria repetição de gravações.
   adiantamentos, rateios, arredondamento e status. Não mudar saldo incidentalmente.
 - Serviços nativos são injetados: sessão, biometria, galeria, voz, arquivos e
   permissões. Sem Android/Java em commonMain e sem UIKit nas telas.
-- Leituras HTTP GET repetem uma única vez após falha de conexão, com pausa curta;
+- Leituras HTTP GET sem corpo podem repetir até três vezes após falha de conexão,
+  com pausas de 500, 1.500 e 3.000 ms;
   timeouts, respostas HTTP, JSON inválido e gravações não são repetidos pelo transporte.
   Consultas idênticas em andamento são reutilizadas; mês, filtro e revisão de dados
   salvos identificam uma consulta nova. Categorias não bloqueiam a lista de despesas.

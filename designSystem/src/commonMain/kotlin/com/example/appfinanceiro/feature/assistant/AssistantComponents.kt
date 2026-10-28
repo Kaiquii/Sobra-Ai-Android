@@ -21,6 +21,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.appfinanceiro.core.designsystem.components.AppLoadingIndicator
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
+import com.example.appfinanceiro.core.network.isAssistantError
+import com.example.appfinanceiro.core.network.isAssistantQuotaError
 
 @Composable
 fun EmptyAssistantState(modifier: Modifier = Modifier, compact: Boolean = false) {
@@ -59,16 +61,17 @@ fun EmptyAssistantState(modifier: Modifier = Modifier, compact: Boolean = false)
 @Composable
 fun ChatBubble(message: AssistantMessage) {
     val isUser = message.role == "user"
-    val isQuotaWarning = message.errorCode == "gemini_quota_exceeded"
+    val isQuotaWarning = isAssistantQuotaError(message.errorCode)
+    val isWarning = isAssistantError(message.errorCode)
     val colors = MaterialTheme.colorScheme
     val bubbleColor = when {
         isUser -> PrimaryBlue
-        isQuotaWarning -> colors.errorContainer
+        isWarning -> colors.errorContainer
         else -> colors.surface
     }
     val contentColor = when {
         isUser -> Color.White
-        isQuotaWarning -> colors.onErrorContainer
+        isWarning -> colors.onErrorContainer
         else -> colors.onSurface
     }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -96,15 +99,17 @@ fun ChatBubble(message: AssistantMessage) {
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Icon(
-                                if (isQuotaWarning) Icons.Default.Warning else Icons.Default.AutoAwesome,
+                                if (isWarning) Icons.Default.Warning else Icons.Default.AutoAwesome,
                                 contentDescription = null,
-                                tint = if (isQuotaWarning) contentColor else PrimaryBlue,
+                                tint = if (isWarning) contentColor else PrimaryBlue,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                if (isQuotaWarning) "Limite temporário do Gemini" else "Assistente SobraAi",
+                                when { isQuotaWarning -> "Limite temporário do assistente"
+                                    isWarning -> "Assistente indisponível"
+                                    else -> "Assistente SobraAi" },
                                 style = MaterialTheme.typography.labelMedium,
-                                color = if (isQuotaWarning) contentColor else PrimaryBlue,
+                                color = if (isWarning) contentColor else PrimaryBlue,
                                 fontWeight = FontWeight.SemiBold
                             )
                         }

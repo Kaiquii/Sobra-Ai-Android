@@ -43,6 +43,27 @@ class AssistantPresenterTest {
         assertEquals(1, source.calls)
         time += 60_001; p.send(); runCurrent(); assertEquals(2, source.calls)
     }
+    @Test fun newAssistantErrorsAndHttpFailuresRespectServerRetryAndNeverReplayTheSend() = runTest {
+        for (code in listOf("assistant_quota_exceeded", "assistant_user_limit", "assistant_unavailable")) {
+            for (httpFailure in listOf(false, true)) {
+                var time = 1_000L
+                val source = object : AssistantFake() {
+                    override suspend fun chatAssistant(token: String, message: String, conversationId: Int?): AssistantChatResponse {
+                        calls++
+                        if (httpFailure) throw ApiResponseException(503, "Aguarde", code, 17)
+                        return AssistantChatResponse(42, "Aguarde", error_code = code, retry_after_seconds = 17)
+                    }
+                }
+                val p = AssistantPresenter(source, NativeFake(), "synthetic", backgroundScope, {}, {}, { time })
+                p.input("Mensagem"); p.send(); runCurrent()
+                if (httpFailure) assertEquals("Mensagem", p.state.value.input)
+                p.input("Outra mensagem"); p.send(); runCurrent()
+                assertEquals(1, source.calls)
+                time += 17_001; p.send(); runCurrent()
+                assertEquals(2, source.calls)
+            }
+        }
+    }
     @Test fun openingAnotherConversationClearsOldMessagesAndIgnoresLateResponse() = runTest {
         val old = CompletableDeferred<AssistantMessagesResponse>()
         val source = object : AssistantFake() { override suspend fun getAssistantMessages(token: String, conversationId: Int): AssistantMessagesResponse =

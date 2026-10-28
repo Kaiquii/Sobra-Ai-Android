@@ -45,7 +45,7 @@ internal fun HttpClientConfig<*>.configureFinanceHttpClient() {
 class ApiTransport(
     private val client: HttpClient,
     private val configuration: ApiConfiguration,
-    private val apiErrorFactory: (Int, String?) -> Exception = ::ApiResponseException
+    private val apiErrorFactory: (Int, String?) -> Exception = { status, message -> ApiResponseException(status, message) }
 ) {
     suspend inline fun <reified T> request(
         method: String, path: String, authorization: String? = null,
@@ -95,12 +95,18 @@ class ApiTransport(
             val responseText = response.bodyAsText()
             val status = response.status.value
             if (status !in 200..299) {
-                val message = parseApiErrorMessage(responseText)
+                val details = parseApiErrorDetails(responseText)
+                val message = details.message
                 if (authenticated && status == 401) throw SessionExpiredException()
                 if (authenticated && status == 403 && message?.contains("Acesso revogado", ignoreCase = true) == true) {
                     SessionAccessEvents.notifyAccessRevoked(message)
                 }
-                throw apiErrorFactory(status, message)
+                val error = apiErrorFactory(status, message)
+                if (error is ApiResponseException) {
+                    error.errorCode = details.code
+                    error.retryAfterSeconds = details.retryAfterSeconds
+                }
+                throw error
             }
             return responseText
         } catch (error: CancellationException) {

@@ -1,15 +1,25 @@
 package com.example.appfinanceiro.core.network
 
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
+
+data class ApiErrorDetails(val message: String?, val code: String?, val retryAfterSeconds: Int?)
 
 fun parseApiErrorMessage(errorBody: String?): String? {
-    if (errorBody.isNullOrBlank()) return null
+    return parseApiErrorDetails(errorBody).message
+}
+
+fun parseApiErrorDetails(errorBody: String?): ApiErrorDetails {
+    val empty = ApiErrorDetails(null, null, null)
+    if (errorBody.isNullOrBlank()) return empty
     return runCatching {
         val json = FinanceJson.parseToJsonElement(errorBody).jsonObject
-        sequenceOf("error", "message", "detail").mapNotNull { key ->
-            json[key]?.takeUnless { it === JsonNull }?.jsonPrimitive?.content?.takeIf(String::isNotBlank)
+        fun text(vararg keys: String): String? = keys.asSequence().mapNotNull { key ->
+            (json[key] as? JsonPrimitive)?.contentOrNull?.takeIf(String::isNotBlank)
         }.firstOrNull()
-    }.getOrNull()
+        ApiErrorDetails(text("error", "message", "detail"), text("error_code", "code"),
+            (json["retry_after_seconds"] as? JsonPrimitive)?.intOrNull?.takeIf { it > 0 })
+    }.getOrDefault(empty)
 }

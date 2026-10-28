@@ -34,7 +34,11 @@ Serializers específicos toleram somente texto de apresentação e rateios legad
 401 autenticado gera `SessionExpiredException`; 401 no login continua erro de
 API. 403 contendo “Acesso revogado” em chamada autenticada emite
 `SessionAccessEvents`, observado pelo Android existente. Outros erros preservam
-`error`, `message` ou `detail`. Timeout e falha de conexão mantêm mensagens próprias;
+`error`, `message` ou `detail`. `ApiResponseException` também preserva `error_code`
+ou `code` e `retry_after_seconds` positivo, inclusive com a fábrica Android. O
+Assistente usa esses metadados para respeitar a espera indicada em erros HTTP,
+além dos erros controlados em respostas 200, sem reenviar o chat automaticamente.
+Timeout e falha de conexão mantêm mensagens próprias;
 cancelamento é propagado. GET sem corpo admite até três novas tentativas somente
 por falha de conexão, com pausas de 500, 1.500 e 3.000 ms; o limite evita um ciclo
 de consultas durante indisponibilidade. Erros HTTP, timeouts e gravações não são
@@ -114,6 +118,16 @@ mesmos endpoints, Bearer e parâmetros, upload JPEG multipart no campo `photo`,
 limites de tamanho e nomes de arquivo sanitizados. Downloads de avatar em outro
 domínio não recebem o token da API. A implementação Retrofit de arquivos do
 Android permanece ativa. O erro de uma CDN pública não encerra a sessão da conta.
+
+O Assistente não expõe seleção de modelo nem consulta catálogo/preferências ou
+imagens de fornecedores. O POST de chat mantém mensagem e `conversation_id`,
+sem `model_id`; o backend escolhe e substitui a IA. O app não redefine preferências
+legadas ao abrir a tela. O backend confirmou o tratamento dessas preferências e a
+política automática publicados e testados em produção em 28/10/2026. Isso substitui
+o status anterior de implementação apenas local. Preservar o isolamento
+da sessão, o histórico e os limites globais e por usuário. Erros `assistant_*`, compatibilidade
+legada e `retry_after_seconds` continuam preservados. Não incluir chave OpenRouter
+no cliente. [Decisão, contrato e validação](assistant-models.md).
 
 ## Verificação
 

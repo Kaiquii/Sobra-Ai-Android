@@ -62,13 +62,18 @@ class AssistantPresenter(private val source: AssistantDataSource, private val na
                 mutable.update { it.copy(conversation = response.conversation_id, sending = false,
                     messages = it.messages + ChatMessage("assistant", response.reply, errorCode = response.error_code,
                         retryAfterSeconds = response.retry_after_seconds),
-                    retryAt = if (response.error_code == "gemini_quota_exceeded" && (response.retry_after_seconds ?: 0) > 0)
-                        now() + response.retry_after_seconds!!.toLong() * 1000 else it.retryAt) }
+                    retryAt = assistantRetryDelaySeconds(response.error_code, response.retry_after_seconds)
+                        ?.let { seconds -> now() + seconds.toLong() * 1000 } ?: it.retryAt) }
                 history()
             } catch (cancel: CancellationException) { throw cancel }
             catch (_: SessionExpiredException) { onExpired() }
-            catch (error: Exception) { mutable.update { it.copy(sending = false, input = message,
-                error = error.userMessageOr("Não foi possível confirmar o envio. Confira a conversa antes de reenviar.")) } }
+            catch (error: Exception) {
+                val apiError = error as? ApiResponseException
+                val delaySeconds = assistantRetryDelaySeconds(apiError?.errorCode, apiError?.retryAfterSeconds)
+                mutable.update { it.copy(sending = false, input = message,
+                    retryAt = delaySeconds?.let { seconds -> now() + seconds.toLong() * 1000 } ?: it.retryAt,
+                    error = error.userMessageOr("Não foi possível confirmar o envio. Confira a conversa antes de reenviar.")) }
+            }
         }
     }
     fun delete(id: Int) {

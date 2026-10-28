@@ -213,6 +213,32 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
 - Antes de concluir uma mudança, revisar títulos, botões, campos, mensagens de erro, estados vazios, notificações e descrições de acessibilidade.
 - Não alterar nomes de campos, valores ou mensagens que façam parte do contrato com a API. Quando necessário, adaptar apenas o texto apresentado na interface.
 
+## Modelos do Assistente
+
+- O usuário não escolhe o modelo: o backend é responsável por selecionar e
+  substituir a IA automaticamente. A mesma tela Android/iOS apresenta o SobraAi,
+  sem seletor, nome de modelo, “Recomendado” ou diálogo de informações do modelo.
+  Não recriar essa escolha em outra tela nem incluir nomes/IDs de provedores no app.
+- A abertura e o envio do chat não consultam catálogo nem preferências de modelo
+  e não têm bloqueios ou avisos de reconciliação dessa seleção. Não gravar um
+  reset de preferência ao entrar; preferências legadas precisam ser tratadas pelo
+  backend. O POST mantém mensagem/conversation_id, sem `model_id`.
+- Preservar mensagens, conversa, rascunho, histórico, cota, rolagem e composição
+  do teclado. A troca interna de modelo não deve exigir uma nova conversa do usuário.
+  O backend confirmou a política automática publicada e testada em produção em
+  28/10/2026. Isso não representa previsão de esgotamento por modelo nem substitui
+  a validação visual do aplicativo. Detalhes e
+  tratamento de preferências antigas estão em [assistant-models.md](assistant-models.md).
+- Limites globais e por usuário continuam válidos. Preservar erros `assistant_*`,
+  compatibilidade com erros antigos e espera `retry_after_seconds`; não prometer
+  uso ilimitado nem reenviar o chat automaticamente para tentar outro modelo.
+  Não incluir chave de provedor, catálogo manual ou busca de logos no aplicativo.
+- A emissão inicial não resolvida do coletor de sessão não significa logout.
+  Limpar estado somente ao receber token realmente nulo ou troca de conta;
+  nunca salvar JWT como dono do rascunho em Bundle. O rascunho usa o escopo
+  restaurável da sessão autenticada e só é limpo quando a mensagem é aceita.
+  Contrato e cenários em [assistant-models.md](assistant-models.md).
+
 ## Entrada com biometria
 
 - Com sessão salva e biometria ativada, exibir a mesma tela de login enquanto
