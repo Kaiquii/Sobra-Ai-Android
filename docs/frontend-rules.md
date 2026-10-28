@@ -239,6 +239,23 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   restaurável da sessão autenticada e só é limpo quando a mensagem é aceita.
   Contrato e cenários em [assistant-models.md](assistant-models.md).
 
+## Mensagens do Assistente
+
+- `ChatBubble` usa uma apresentação comum Android/iOS para respostas novas e
+  histórico. Interpretar somente formatação limitada nas respostas normais do
+  assistente: negrito `**texto**`, parágrafos, quebras e listas simples, com
+  espaçamento compacto e recuo das linhas de continuação dos itens.
+- Preservar `message.content` original no estado, nos DTOs e no histórico.
+  Mensagens do usuário e avisos de cota/erro continuam literais. Marcadores
+  incompletos e asteriscos comuns não podem desaparecer por uma limpeza genérica.
+- Valores, sinais negativos, anos, IDs e emojis Unicode mantêm seu significado.
+  Não confundir uma linha monetária negativa com um marcador de lista. Emojis
+  são opcionais e não substituem informações ou estados por conta própria.
+- Manter seleção contínua, leitura acessível, tipografia, cores e largura do
+  balão. Usar Compose comum, sem HTML/WebView, imagens remotas, links ativos ou
+  dependência de Markdown completa. Conferir temas, tela estreita, fonte ampliada,
+  TalkBack e VoiceOver nos aparelhos; testes do parser não comprovam esses fluxos.
+
 ## Entrada com biometria
 
 - Com sessão salva e biometria ativada, exibir a mesma tela de login enquanto

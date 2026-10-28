@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,6 +64,9 @@ fun ChatBubble(message: AssistantMessage) {
     val isUser = message.role == "user"
     val isQuotaWarning = isAssistantQuotaError(message.errorCode)
     val isWarning = isAssistantError(message.errorCode)
+    val content = remember(message.role, message.content, message.errorCode) {
+        assistantMessageText(message)
+    }
     val colors = MaterialTheme.colorScheme
     val bubbleColor = when {
         isUser -> PrimaryBlue
@@ -115,7 +119,7 @@ fun ChatBubble(message: AssistantMessage) {
                         }
                     }
                     SelectionContainer {
-                        Text(message.content, color = contentColor, style = MaterialTheme.typography.bodyLarge)
+                        Text(content, color = contentColor, style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }

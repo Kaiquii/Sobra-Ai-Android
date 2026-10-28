@@ -58,6 +58,26 @@ aceitação. Recusa por cota, mensagem vazia, envio/leitura em andamento ou sess
 inválida preserva o texto. A escolha/troca interna do modelo no servidor deve
 preservar `conversation_id`, mensagens e contexto, sem solicitar nova conversa.
 
+## Formatação das respostas
+
+`ChatBubble` aplica `assistantMessageText` no designSystem comum para apresentar
+respostas normais do assistente com negrito, parágrafos/quebras e listas simples.
+Respostas novas e conteúdo do histórico passam pelo mesmo componente. A seleção
+continua no texto completo; fonte, cores e balão seguem os tokens existentes.
+
+O renderer é limitado e não altera `message.content`: preserva o conteúdo original
+nos DTOs, no estado e no histórico. Mensagens do usuário, avisos de cota/erro,
+asteriscos literais e marcadores malformados permanecem legíveis. Números,
+valores monetários e sinais negativos não são recalculados nem removidos.
+Emojis Unicode são preservados. HTML e links são texto inerte; não há WebView,
+carregamento de imagens remotas ou abertura automática de URLs.
+
+O contrato continua sendo `reply`/`content` como string, com Markdown simples
+opcional. Melhorias no estilo do backend não exigem nova API nem outra chamada
+de IA para formatar a resposta. O renderer também atende mensagens formatadas
+que já existem no histórico. Essa apresentação não altera envio, roteamento,
+confirmações financeiras, cotas ou sessão.
+
 ## Contrato HTTP do cliente
 
 O POST `api/assistant/chat` mantém `message` e `conversation_id` existentes, pela
@@ -87,7 +107,9 @@ resultado do `harnessVerify` correspondente à alteração.
 
 `AssistantAutomaticRoutingHttpTest` verifica POSTs de nova conversa e da mesma
 conversa com somente `message`/`conversation_id`, sem consultar catálogo ou
-preferências.
+preferências. `AssistantMessageFormattingTest` verifica negrito, listas,
+marcadores malformados, conteúdo literal, valores/sinais e preservação do original
+na apresentação comum.
 
 O harness padrão cobre JVM, APK Android, Lint e compilação KMP para os dois
 targets Apple. Build/link Xcode e execução/comparação visual no iPhone continuam
@@ -99,6 +121,9 @@ Conferência manual pelo usuário nas duas plataformas:
   por catálogo/preferência de modelo.
 - Conferir conversa, rascunho e histórico ao sair e retornar à tela; testar nova
   conversa, exclusão e ditado.
+- Conferir negrito/listas em respostas novas e antigas, seleção contínua, quebras
+  em tela estreita/fonte ampliada e leitura em TalkBack/VoiceOver. Texto do usuário
+  e avisos devem manter o tratamento literal.
 - Conferir cota, indisponibilidade, timeout e sessão expirada sem perda indevida
   do rascunho nem reenvio automático.
 - Testar logout/troca de conta, temas, tela estreita, fonte ampliada, leitor de
