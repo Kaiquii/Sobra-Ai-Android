@@ -15,17 +15,23 @@ private open class AssistantChatStateFake : AssistantDataSource {
     var deleted = 0
     val conversationIds = mutableListOf<Int?>()
     var beforeChat: suspend () -> Unit = {}
+    var beforeDelete: suspend () -> Unit = {}
+    var deleteFailure: Exception? = null
+    var conversations = emptyList<AssistantConversation>()
+    val deletedIds = mutableListOf<Int>()
     override suspend fun chatAssistant(token: String, message: String, conversationId: Int?): AssistantChatResponse {
         calls++; conversationIds += conversationId; beforeChat(); failure?.let { throw it }; return reply
     }
     override suspend fun getAssistantConversations(token: String): AssistantConversationsResponse {
-        histories++; return AssistantConversationsResponse(0, emptyList())
+        histories++; return AssistantConversationsResponse(conversations.size, conversations)
     }
     override suspend fun getAssistantMessages(token: String, conversationId: Int) = AssistantMessagesResponse(
         AssistantConversationSummary(conversationId, "Conversa sintética"),
         listOf(AssistantStoredMessage(1, conversationId, "assistant", "Histórico $conversationId")))
     override suspend fun deleteAssistantConversation(token: String, conversationId: Int): DefaultResponse {
-        deleted++; return DefaultResponse("Conversa excluída")
+        deleted++; deletedIds += conversationId; beforeDelete(); deleteFailure?.let { throw it }
+        conversations = conversations.filter { it.conversation_id != conversationId }
+        return DefaultResponse("Conversa excluída")
     }
 }
 
@@ -111,7 +117,8 @@ class AssistantViewModelCommonTest {
             assertFalse(model.sendMessage("synthetic", "Outra"))
             model.startNewConversation()
             model.openConversation("synthetic", 99)
-            model.deleteConversation("synthetic", 42)
+            model.requestDeleteConversation(42)
+            model.confirmDeleteConversation("synthetic")
             runCurrent()
             assertEquals(1, source.calls)
             assertEquals(0, source.deleted)
@@ -256,4 +263,116 @@ class AssistantViewModelCommonTest {
             assertEquals(42, chat.uiState.value.currentConversationId)
         } finally { chat.close(); Dispatchers.resetMain() }
     }
+}
+
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class AssistantDeletionConfirmationTest {
+    private fun TestScope.withMain(block: TestScope.() -> Unit) {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try { block() } finally { Dispatchers.resetMain() }
+    }
+    private fun source() = AssistantChatStateFake().apply {
+        conversations = listOf(AssistantConversation(42, "Conversa sintética", "", ""),
+            AssistantConversation(99, "Outra conversa", "", ""))
+    }
+
+    @Test fun trashAndCancelNeverDeleteOrClearTheCurrentConversation() = runTest { withMain {
+        val source = source(); val model = AssistantViewModel(source)
+        try {
+            model.loadConversations("synthetic"); model.openConversation("synthetic", 42); runCurrent()
+            val messages = model.uiState.value.messages
+            model.confirmDeleteConversation("synthetic"); runCurrent()
+            assertEquals(0, source.deleted)
+            model.requestDeleteConversation(42); runCurrent()
+            assertEquals(42, model.uiState.value.conversationToDelete?.conversation_id)
+            assertEquals(0, source.deleted)
+            model.cancelDeleteConversation()
+            model.confirmDeleteConversation("synthetic"); runCurrent()
+            assertNull(model.uiState.value.conversationToDelete)
+            assertEquals(0, source.deleted)
+            assertEquals(messages, model.uiState.value.messages)
+            assertEquals(2, model.uiState.value.conversations.size)
+            assertEquals(42, model.uiState.value.currentConversationId)
+        } finally { model.close() }
+    } }
+
+    @Test fun confirmationDeletesOnlyTheSelectedChatAndBlocksRepeatedTaps() = runTest { withMain {
+        val source = source(); val model = AssistantViewModel(source)
+        val gate = CompletableDeferred<Unit>()
+        try {
+            model.loadConversations("synthetic"); model.openConversation("synthetic", 42); runCurrent()
+            source.beforeDelete = { gate.await() }
+            model.requestDeleteConversation(42)
+            repeat(3) { model.confirmDeleteConversation("synthetic") }
+            assertTrue(model.uiState.value.isDeletingConversation)
+            model.cancelDeleteConversation(); model.requestDeleteConversation(99)
+            assertEquals(42, model.uiState.value.conversationToDelete?.conversation_id)
+            assertFalse(model.sendMessage("synthetic", "Durante exclusão"))
+            runCurrent(); assertEquals(listOf(42), source.deletedIds)
+            gate.complete(Unit); runCurrent()
+            assertFalse(model.uiState.value.isDeletingConversation)
+            assertNull(model.uiState.value.conversationToDelete)
+            assertNull(model.uiState.value.currentConversationId)
+            assertTrue(model.uiState.value.messages.isEmpty())
+            assertEquals(listOf(99), model.uiState.value.conversations.map { it.conversation_id })
+        } finally { gate.complete(Unit); model.close() }
+    } }
+
+    @Test fun deletingAnotherChatPreservesOpenMessages() = runTest { withMain {
+        val source = source(); val model = AssistantViewModel(source)
+        try {
+            model.loadConversations("synthetic"); model.openConversation("synthetic", 42); runCurrent()
+            val messages = model.uiState.value.messages
+            model.requestDeleteConversation(99); model.confirmDeleteConversation("synthetic"); runCurrent()
+            assertEquals(listOf(99), source.deletedIds)
+            assertEquals(42, model.uiState.value.currentConversationId)
+            assertEquals(messages, model.uiState.value.messages)
+        } finally { model.close() }
+    } }
+
+    @Test fun failureKeepsConfirmationAndChatUntilAnExplicitRetrySucceeds() = runTest { withMain {
+        val source = source().apply { deleteFailure = ApiResponseException(503, "Falha sintética") }
+        val model = AssistantViewModel(source)
+        try {
+            model.loadConversations("synthetic"); model.openConversation("synthetic", 42); runCurrent()
+            val messages = model.uiState.value.messages
+            model.requestDeleteConversation(42); model.confirmDeleteConversation("synthetic"); runCurrent()
+            assertEquals(1, source.deleted)
+            assertEquals(42, model.uiState.value.conversationToDelete?.conversation_id)
+            assertNotNull(model.uiState.value.deletionErrorMessage)
+            assertFalse(model.uiState.value.isDeletingConversation)
+            assertEquals(messages, model.uiState.value.messages)
+            assertEquals(2, model.uiState.value.conversations.size)
+            source.deleteFailure = null
+            model.confirmDeleteConversation("synthetic"); runCurrent()
+            assertEquals(2, source.deleted)
+            assertNull(model.uiState.value.conversationToDelete)
+            assertNull(model.uiState.value.deletionErrorMessage)
+        } finally { model.close() }
+    } }
+
+    @Test fun accountChangeInvalidatesPendingConfirmationAndRejectsLateDeleteResult() = runTest { withMain {
+        val source = source(); val model = AssistantViewModel(source)
+        val gate = CompletableDeferred<Unit>()
+        try {
+            model.loadConversations("old"); runCurrent()
+            model.requestDeleteConversation(42)
+            model.confirmDeleteConversation("other"); runCurrent()
+            assertEquals(0, source.deleted)
+            model.bindSession("new")
+            model.confirmDeleteConversation("new"); runCurrent()
+            assertNull(model.uiState.value.conversationToDelete)
+            assertEquals(0, source.deleted)
+            model.loadConversations("new"); runCurrent()
+            source.beforeDelete = { withContext(NonCancellable) { gate.await() } }
+            model.requestDeleteConversation(42); model.confirmDeleteConversation("new"); runCurrent()
+            model.bindSession(null)
+            gate.complete(Unit); runCurrent()
+            assertNull(model.uiState.value.conversationToDelete)
+            assertTrue(model.uiState.value.conversations.isEmpty())
+            assertFalse(model.uiState.value.isDeletingConversation)
+            assertNull(model.uiState.value.deletionErrorMessage)
+        } finally { gate.complete(Unit); model.close() }
+    } }
 }

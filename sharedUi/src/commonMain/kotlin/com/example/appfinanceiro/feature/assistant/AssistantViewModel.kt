@@ -20,6 +20,9 @@ data class AssistantUiState(
     val isSending: Boolean = false,
     val isLoadingConversations: Boolean = false,
     val isLoadingMessages: Boolean = false,
+    val conversationToDelete: AssistantConversation? = null,
+    val isDeletingConversation: Boolean = false,
+    val deletionErrorMessage: String? = null,
     val quotaRetrySeconds: Int? = null,
     val errorMessage: String? = null,
     val isSessionExpired: Boolean = false
@@ -63,7 +66,7 @@ class AssistantViewModel(
         bindSession(token)
         val cleanMessage = message.trim()
         val current = _uiState.value
-        if (cleanMessage.isBlank() || current.isSending || current.isLoadingMessages ||
+        if (cleanMessage.isBlank() || current.isSending || current.isLoadingMessages || current.isDeletingConversation ||
             current.isSessionExpired || (current.quotaRetrySeconds ?: 0) > 0) return false
         val generation = sessionGeneration
         val revision = conversationRevision
@@ -147,12 +150,12 @@ class AssistantViewModel(
     fun openConversation(token: String, conversationId: Int) {
         if (token.isBlank() || conversationId <= 0) return
         bindSession(token)
-        if (_uiState.value.isSending || _uiState.value.isSessionExpired) return
+        if (_uiState.value.isSending || _uiState.value.isDeletingConversation || _uiState.value.isSessionExpired) return
         messagesJob?.cancel()
         val generation = sessionGeneration
         val revision = ++conversationRevision
         _uiState.update { it.copy(currentConversationId = conversationId, messages = emptyList(),
-            isLoadingMessages = true, errorMessage = null) }
+            isLoadingMessages = true, errorMessage = null, conversationToDelete = null, deletionErrorMessage = null) }
         messagesJob = viewModelScope.launch {
             try {
                 val response = repository.getAssistantMessages(token, conversationId)
@@ -177,18 +180,33 @@ class AssistantViewModel(
         }
     }
 
-    fun deleteConversation(token: String, conversationId: Int) {
-        if (token.isBlank() || conversationId <= 0) return
-        bindSession(token)
+    fun requestDeleteConversation(conversationId: Int) {
+        val state = _uiState.value
+        if (conversationId <= 0 || token == null || state.isSending || state.isDeletingConversation || state.isSessionExpired) return
+        val conversation = state.conversations.firstOrNull { it.conversation_id == conversationId } ?: return
+        _uiState.update { it.copy(conversationToDelete = conversation, deletionErrorMessage = null) }
+    }
+
+    fun cancelDeleteConversation() {
+        if (_uiState.value.isDeletingConversation) return
+        _uiState.update { it.copy(conversationToDelete = null, deletionErrorMessage = null) }
+    }
+
+    fun confirmDeleteConversation(token: String) {
+        // A confirmation belongs to the session and item that opened it.
+        if (token.isBlank() || this.token != token) return
+        val conversationId = _uiState.value.conversationToDelete?.conversation_id ?: return
         if (_uiState.value.isSending || _uiState.value.isSessionExpired || deletions[conversationId]?.isActive == true) return
         val generation = sessionGeneration
+        _uiState.update { it.copy(isDeletingConversation = true, deletionErrorMessage = null) }
         val job = viewModelScope.launch(start = CoroutineStart.LAZY) {
             try {
                 repository.deleteAssistantConversation(token, conversationId)
                 currentCoroutineContext().ensureActive()
                 if (generation != sessionGeneration) return@launch
+                _uiState.update { it.copy(conversations = it.conversations.filter { conversation -> conversation.conversation_id != conversationId },
+                    conversationToDelete = null, isDeletingConversation = false, deletionErrorMessage = null) }
                 if (_uiState.value.currentConversationId == conversationId) startNewConversation()
-                _uiState.update { it.copy(conversations = it.conversations.filter { conversation -> conversation.conversation_id != conversationId }) }
                 historyRevision++
                 loadConversations(token)
             } catch (cancel: CancellationException) { throw cancel }
@@ -196,10 +214,13 @@ class AssistantViewModel(
                 currentCoroutineContext().ensureActive()
                 if (generation == sessionGeneration) {
                     if (error.isExpired()) expireSession()
-                    else _uiState.update { it.copy(errorMessage = error.userMessageOr("Não foi possível apagar essa conversa.")) }
+                    else _uiState.update { it.copy(deletionErrorMessage = error.userMessageOr("Não foi possível apagar essa conversa.")) }
                 }
             } finally {
-                if (generation == sessionGeneration) deletions.remove(conversationId)
+                if (generation == sessionGeneration) {
+                    deletions.remove(conversationId)
+                    _uiState.update { it.copy(isDeletingConversation = false) }
+                }
             }
         }
         deletions[conversationId] = job
@@ -207,10 +228,11 @@ class AssistantViewModel(
     }
 
     fun startNewConversation() {
-        if (_uiState.value.isSending) return
+        if (_uiState.value.isSending || _uiState.value.isDeletingConversation) return
         conversationRevision++
         messagesJob?.cancel()
-        _uiState.update { it.copy(currentConversationId = null, messages = emptyList(), isLoadingMessages = false, errorMessage = null) }
+        _uiState.update { it.copy(currentConversationId = null, messages = emptyList(), isLoadingMessages = false,
+            errorMessage = null, conversationToDelete = null, deletionErrorMessage = null) }
     }
 
     private fun Exception.isExpired() = this is SessionExpiredException || (this is ApiResponseException && statusCode == 401)

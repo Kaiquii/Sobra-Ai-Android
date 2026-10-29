@@ -1,6 +1,8 @@
 package com.example.appfinanceiro.feature.assistant
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,6 +25,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -98,6 +102,7 @@ fun AssistantScreen(
     val textColor = colorScheme.onBackground
     val canSend = input.isNotBlank() &&
             !uiState.isSending &&
+            !uiState.isDeletingConversation &&
             !uiState.isLoadingMessages &&
             userToken != null &&
             (uiState.quotaRetrySeconds ?: 0) <= 0
@@ -162,7 +167,8 @@ fun AssistantScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.startNewConversation() }) {
+                    IconButton(enabled = !uiState.isSending && !uiState.isDeletingConversation,
+                        onClick = { viewModel.startNewConversation() }) {
                         Icon(
                             Icons.Default.Add,
                             tint = textColor,
@@ -274,7 +280,8 @@ fun AssistantScreen(
 
     if (showConversations) {
         AppModalBottomSheet(
-            onDismissRequest = { showConversations = false },
+            onDismissRequest = { viewModel.cancelDeleteConversation(); showConversations = false },
+            dismissEnabled = !uiState.isDeletingConversation,
             containerColor = backgroundColor
         ) {
             ConversationsSheet(
@@ -290,12 +297,38 @@ fun AssistantScreen(
                     showConversations = false
                 },
                 onDeleteConversation = { conversationId ->
-                    userToken?.let { token ->
-                        viewModel.deleteConversation(token, conversationId)
-                    }
+                    viewModel.requestDeleteConversation(conversationId)
                 }
             )
         }
+    }
+
+    uiState.conversationToDelete?.let { conversation ->
+        AlertDialog(
+            onDismissRequest = viewModel::cancelDeleteConversation,
+            containerColor = backgroundColor,
+            titleContentColor = textColor,
+            textContentColor = textColor,
+            title = { Text("Apagar conversa?") },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Tem certeza que deseja apagar a conversa “${conversation.title}”? Todas as mensagens dela serão excluídas. Esta ação não pode ser desfeita.")
+                    uiState.deletionErrorMessage?.let { Text(it, color = colorScheme.error) }
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = !uiState.isDeletingConversation,
+                    onClick = { viewModel.confirmDeleteConversation(userToken) }) {
+                    if (uiState.isDeletingConversation) AppLoadingIndicator()
+                    else Text("Apagar", color = colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(enabled = !uiState.isDeletingConversation,
+                    onClick = viewModel::cancelDeleteConversation) { Text("Cancelar") }
+            }
+        )
     }
 }
 
@@ -326,7 +359,7 @@ private fun ConversationsSheet(
                 color = colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
             )
-            IconButton(onClick = onNewConversation) {
+            IconButton(enabled = !uiState.isSending && !uiState.isDeletingConversation, onClick = onNewConversation) {
                 Icon(
                     Icons.Default.Add,
                     contentDescription = "Nova conversa",
@@ -355,7 +388,9 @@ private fun ConversationsSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onOpenConversation(conversation.conversation_id) }
+                        .clickable(enabled = !uiState.isSending && !uiState.isDeletingConversation) {
+                            onOpenConversation(conversation.conversation_id)
+                        }
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -379,7 +414,8 @@ private fun ConversationsSheet(
                             color = colorScheme.onSurfaceVariant
                         )
                     }
-                    IconButton(onClick = { onDeleteConversation(conversation.conversation_id) }) {
+                    IconButton(enabled = !uiState.isSending && !uiState.isDeletingConversation,
+                        onClick = { onDeleteConversation(conversation.conversation_id) }) {
                         Icon(
                             Icons.Default.Delete,
                             contentDescription = "Apagar conversa",

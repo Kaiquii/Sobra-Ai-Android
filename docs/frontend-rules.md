@@ -241,6 +241,15 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
 
 ## Mensagens do Assistente
 
+- A lixeira do histórico apenas solicita a exclusão: abrir confirmação “Apagar
+  conversa?” com o título da conversa, aviso de exclusão das mensagens e botões
+  Cancelar/Apagar, usando o fundo e as cores dos modais existentes. Cancelar,
+  voltar ou tocar fora não apagam nada. Durante a requisição, bloquear novo
+  envio, troca de conversa, confirmação repetida e fechamento do modal/histórico.
+  Em falha, preservar conversa e confirmação com erro e tentativa explícita;
+  sucesso remove somente a escolhida. Troca de conta invalida a confirmação.
+  A apresentação e a regra são comuns a Android/iOS.
+
 - `ChatBubble` usa uma apresentação comum Android/iOS para respostas novas e
   histórico. Interpretar somente formatação limitada nas respostas normais do
   assistente: negrito `**texto**`, parágrafos, quebras e listas simples, com

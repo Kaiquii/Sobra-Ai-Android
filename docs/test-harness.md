@@ -32,6 +32,14 @@ o pedido real do sistema e seu ciclo de vida precisam ser conferidos no aparelho
 
 ### Revisão transversal obrigatória
 
+`AssistantDeletionConfirmationTest` cobre lixeira sem DELETE, cancelamento,
+confirmação única mesmo com toques repetidos, exclusão da conversa atual ou de
+outra, erro com tentativa explícita e invalidação por troca de sessão/resposta
+tardia. Conferir manualmente Android/iPhone: Histórico > lixeira > Cancelar,
+voltar e tocar fora; confirmar a conversa escolhida, falha de conexão e nova
+tentativa; temas claro/escuro, título longo e fonte ampliada. O teste comum não
+substitui a conferência visual dos modais nos aparelhos.
+
 Antes de considerar o harness concluído, identificar todos os consumidores do
 componente alterado e os fluxos semelhantes, em Android e iOS. Corrigir a causa
 comum e os demais casos afetados na mesma tarefa. A entrega deve dizer quais
