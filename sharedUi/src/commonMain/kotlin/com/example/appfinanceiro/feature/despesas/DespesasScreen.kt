@@ -607,14 +607,6 @@ fun DespesasScreen(
                 }
             } else {
                 null
-            },
-            onRemoveAdvanceClick = if (expense.supportsAdvance && expense.isAdvanced) {
-                {
-                    expenseToView = null
-                    expenseToRemoveAdvance = expense
-                }
-            } else {
-                null
             }
         )
     }
@@ -624,6 +616,9 @@ fun DespesasScreen(
             expense = expense,
             isUpdating = uiState.isUpdatingAdvanceStatus,
             onDismiss = { expenseToAdvance = null },
+            onRemoveAdvanceClick = if (expense.supportsAdvance && expense.isAdvanced) {
+                { expenseToRemoveAdvance = expense }
+            } else null,
             onConfirm = { date ->
                 val token = userToken ?: return@AdvanceExpenseDialog
                 viewModel.updateAdvanceStatus(
@@ -654,6 +649,7 @@ fun DespesasScreen(
                     advancedAt = null,
                     onUpdated = {
                         expenseToRemoveAdvance = null
+                        expenseToAdvance = null
                         refreshTrigger++
                     }
                 )

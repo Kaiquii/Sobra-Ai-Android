@@ -4,10 +4,13 @@ import com.example.appfinanceiro.core.network.supportsAdvance
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,6 +21,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,7 +54,8 @@ fun AdvanceExpenseDialog(
     expense: Expense,
     isUpdating: Boolean,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (String) -> Unit,
+    onRemoveAdvanceClick: (() -> Unit)? = null
 ) {
     if (!expense.supportsAdvance) return
 
@@ -100,7 +105,10 @@ fun AdvanceExpenseDialog(
             )
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 Text(
                     text = "${expense.displayDescription} está prevista para $scheduledPeriod.",
                     color = MaterialTheme.colorScheme.onBackground
@@ -143,6 +151,16 @@ fun AdvanceExpenseDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
+                if (expense.isAdvanced && onRemoveAdvanceClick != null) {
+                    OutlinedButton(
+                        onClick = onRemoveAdvanceClick,
+                        enabled = !isUpdating,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text("Remover adiantamento", color = DangerRed)
+                    }
+                }
             }
         },
         confirmButton = {

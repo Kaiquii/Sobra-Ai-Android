@@ -30,7 +30,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
-import com.example.appfinanceiro.core.designsystem.theme.DangerRed
 import com.example.appfinanceiro.core.designsystem.theme.expenseDetailBlock
 import com.example.appfinanceiro.core.network.Expense
 import com.example.appfinanceiro.core.network.PaymentSplit
@@ -45,8 +44,7 @@ fun ExpenseDetailsDialog(
     categoryName: String,
     onDismiss: () -> Unit,
     onAdvanceClick: (() -> Unit)? = null,
-    onChangeAdvanceDateClick: (() -> Unit)? = null,
-    onRemoveAdvanceClick: (() -> Unit)? = null
+    onChangeAdvanceDateClick: (() -> Unit)? = null
 ) {
     val dialogBackgroundColor = MaterialTheme.colorScheme.background
     val dialogTextColor = MaterialTheme.colorScheme.onBackground
@@ -118,8 +116,7 @@ fun ExpenseDetailsDialog(
                         isAdvanced = expense.isAdvanced,
                         advancedAtLabel = advancedAtLabel,
                         onAdvanceClick = onAdvanceClick,
-                        onChangeDateClick = onChangeAdvanceDateClick,
-                        onRemoveClick = onRemoveAdvanceClick
+                        onChangeDateClick = onChangeAdvanceDateClick
                     )
                 }
 
@@ -146,8 +143,7 @@ private fun AdvanceDetailsBlock(
     isAdvanced: Boolean,
     advancedAtLabel: String?,
     onAdvanceClick: (() -> Unit)?,
-    onChangeDateClick: (() -> Unit)?,
-    onRemoveClick: (() -> Unit)?
+    onChangeDateClick: (() -> Unit)?
 ) {
     if (!isAdvanced && onAdvanceClick == null) return
 
@@ -183,7 +179,7 @@ private fun AdvanceDetailsBlock(
             fontSize = 12.sp
         )
 
-        if (onChangeDateClick != null || onRemoveClick != null) {
+        if (onChangeDateClick != null) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -195,15 +191,6 @@ private fun AdvanceDetailsBlock(
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text("Alterar data", color = PrimaryBlue, maxLines = 1)
-                    }
-                }
-                onRemoveClick?.let { onClick ->
-                    OutlinedButton(
-                        onClick = onClick,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp)
-                    ) {
-                        Text("Remover", color = DangerRed, maxLines = 1)
                     }
                 }
             }

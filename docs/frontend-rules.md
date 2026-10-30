@@ -112,7 +112,12 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   acrescentar um botão. A referência web orienta somente a posição; manter os
   ícones e cores do Android: calendário azul com seta para adiantar e calendário
   com marca de confirmação nas despesas já adiantadas, para alterar a data.
-  Remover o adiantamento continua nos detalhes. Não alterar Paga como consequência
+  Remover adiantamento fica no modal Alterar adiantamento, com botão contornado
+  de largura total e confirmação própria, apenas para despesa já adiantada.
+  Detalhes mantém estado/data e Alterar data, sem ação de remoção. Cancelar a
+  confirmação preserva a data editada; sucesso fecha ambos os modais. Conteúdo
+  rolável mantém ações acessíveis em telas baixas/fonte ampliada e a atualização
+  bloqueia os controles. Não alterar Paga como consequência
   de adiantar ou remover o adiantamento.
 - Adiantamento é permitido somente para Única (incluindo `Unica` legado) e
   Parcelada. Despesa Fixa não exibe ação de adiantar/alterar/remover adiantamento,

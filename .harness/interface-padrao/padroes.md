@@ -1,0 +1,2 @@
+# Padrões confirmados
+Pedido e aceite de 30/10/2026: manter modal de alteração de data, mover remoção dos detalhes para botão contornado largura total Remover adiantamento no modal. Proposta v2 explicitamente aceita; v3/v4 descartadas pelo usuário. Reusar AlertDialog/OutlinedButton/RemoveAdvanceDialog existentes. Preservar Paga, regras de elegibilidade, data editada ao cancelar confirmação e bloqueios durante atualização. Matriz: detalhe → Alterar data → modal de adiantamento → confirmação de remoção; cancelar confirmação retorna à edição, sucesso fecha ambos.
