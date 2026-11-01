@@ -599,15 +599,7 @@ fun DespesasScreen(
         ExpenseDetailsDialog(
             expense = expense,
             categoryName = uiState.categoriesMap[expense.category_id] ?: "Outros",
-            onDismiss = { expenseToView = null },
-            onChangeAdvanceDateClick = if (expense.supportsAdvance && expense.isAdvanced) {
-                {
-                    expenseToView = null
-                    expenseToAdvance = expense
-                }
-            } else {
-                null
-            }
+            onDismiss = { expenseToView = null }
         )
     }
 

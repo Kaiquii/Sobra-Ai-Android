@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -32,20 +33,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 import com.example.appfinanceiro.core.designsystem.theme.TextSecondary
+import com.example.appfinanceiro.core.designsystem.theme.BackgroundDark
+import com.example.appfinanceiro.core.designsystem.theme.SurfaceLight
 
 @Composable
 fun AuthHeader(
-    icon: ImageVector,
+    icon: ImageVector?,
     iconDescription: String,
     title: String,
     subtitle: String,
-    compact: Boolean = false
+    compact: Boolean = false,
+    textAlign: TextAlign = TextAlign.Center
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
     val textColor = MaterialTheme.colorScheme.onBackground
@@ -54,27 +59,29 @@ fun AuthHeader(
     val titleTopSpacing = if (compact) 18.dp else 32.dp
     val titleSize = if (compact) 26.sp else 28.sp
 
-    Box(
-        modifier = Modifier
-            .size(iconContainerSize)
-            .background(surfaceColor, RoundedCornerShape(16.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = iconDescription,
-            tint = PrimaryBlue,
-            modifier = Modifier.size(iconSize)
-        )
+    if (icon != null) {
+        Box(
+            modifier = Modifier.size(iconContainerSize)
+                .background(surfaceColor, RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = iconDescription.takeIf { it.isNotBlank() },
+                tint = PrimaryBlue,
+                modifier = Modifier.size(iconSize)
+            )
+        }
+        Spacer(modifier = Modifier.height(titleTopSpacing))
     }
-
-    Spacer(modifier = Modifier.height(titleTopSpacing))
 
     Text(
         text = title,
         fontSize = titleSize,
         fontWeight = FontWeight.Bold,
-        color = textColor
+        color = textColor,
+        textAlign = textAlign,
+        modifier = Modifier.fillMaxWidth()
     )
 
     Spacer(modifier = Modifier.height(8.dp))
@@ -82,7 +89,9 @@ fun AuthHeader(
     Text(
         text = subtitle,
         fontSize = 14.sp,
-        color = TextSecondary
+        color = authSupportingColor(),
+        textAlign = textAlign,
+        modifier = Modifier.fillMaxWidth()
     )
 }
 
@@ -96,7 +105,8 @@ fun AuthTextField(
     keyboardType: KeyboardType,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    leadingIcon: ImageVector? = null
 ) {
     AuthFieldLabel(label)
 
@@ -105,11 +115,12 @@ fun AuthTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(placeholder, color = TextSecondary) },
-        modifier = modifier.fillMaxWidth(),
+        placeholder = { Text(placeholder, color = authSupportingColor()) },
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
         enabled = enabled,
+        leadingIcon = leadingIcon?.let { icon -> { Icon(icon, contentDescription = null, tint = authSupportingColor()) } },
         colors = authTextFieldColors(),
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions
@@ -123,7 +134,10 @@ fun AuthPasswordField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     enabled: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    leadingIcon: ImageVector? = null
 ) {
     var visible by remember { mutableStateOf(false) }
 
@@ -134,26 +148,29 @@ fun AuthPasswordField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(placeholder, color = TextSecondary) },
-        modifier = modifier.fillMaxWidth(),
+        placeholder = { Text(placeholder, color = authSupportingColor()) },
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
         enabled = enabled,
+        leadingIcon = leadingIcon?.let { icon -> { Icon(icon, contentDescription = null, tint = authSupportingColor()) } },
         visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
             IconButton(
                 onClick = { visible = !visible },
+                enabled = enabled,
                 modifier = Modifier.size(48.dp)
             ) {
                 Icon(
                     imageVector = if (visible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                     contentDescription = if (visible) "Ocultar senha" else "Mostrar senha",
-                    tint = TextSecondary
+                    tint = authSupportingColor()
                 )
             }
         },
         colors = authTextFieldColors(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions
     )
 }
 
@@ -169,9 +186,9 @@ fun AuthPrimaryButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(50.dp),
+            .heightIn(min = 54.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue, contentColor = Color.White),
         enabled = enabled && !isLoading
     ) {
         if (isLoading) {
@@ -215,10 +232,20 @@ private fun AuthFieldLabel(text: String) {
 
 @Composable
 private fun authTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-    focusedContainerColor = MaterialTheme.colorScheme.surface,
-    unfocusedBorderColor = Color.Transparent,
+    unfocusedContainerColor = authFieldSurface(),
+    focusedContainerColor = authFieldSurface(),
+    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
     focusedBorderColor = PrimaryBlue,
     focusedTextColor = MaterialTheme.colorScheme.onBackground,
     unfocusedTextColor = MaterialTheme.colorScheme.onBackground
 )
+
+@Composable
+internal fun authSupportingColor(): Color =
+    if (MaterialTheme.colorScheme.background == BackgroundDark) TextSecondary
+    else MaterialTheme.colorScheme.onSurfaceVariant
+
+@Composable
+internal fun authFieldSurface(): Color =
+    if (MaterialTheme.colorScheme.background == BackgroundDark) MaterialTheme.colorScheme.surface
+    else SurfaceLight

@@ -40,6 +40,7 @@ Na base `sharedUi/src/commonMain/kotlin/com/example/appfinanceiro/`:
 | Fluxo | Fontes |
 | --- | --- |
 | Login/cadastro/recuperação | `feature/login/`, `feature/register/`, `core/data/AuthViewModel.kt`; sessão e bloqueio em `br/com/sobraai/ui/AppController.kt` |
+| Apresentação de autenticação | `feature/login/components/AuthPage.kt`, `AuthComponents.kt` e `AuthCodeField.kt`: shell com marca/retorno/áreas seguras/rolagem, campos/ações comuns e código do cadastro em um campo editável com seis células visuais. Recuperação continua em duas etapas |
 | Visão mensal | `feature/home/HomeScreen.kt`, `HomeViewModel.kt`, resumo e diálogos em `feature/home/components/` |
 | Despesas | `feature/despesas/DespesasScreen.kt`, `DespesasViewModel.kt`, filtros, detalhes, pagamento e adiantamentos |
 | Criar/editar despesa | `feature/despesas/components/NovaDespesaScreen.kt`, `EditarDespesaScreen.kt`, seletores de data, rateio e categorias |

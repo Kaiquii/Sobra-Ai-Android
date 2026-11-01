@@ -1,58 +1,40 @@
 package com.example.appfinanceiro.feature.login
 
-import br.com.sobraai.ui.runtime.UiToast as Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.MarkEmailRead
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import br.com.sobraai.ui.runtime.LocalUiServices
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import br.com.sobraai.ui.runtime.AuthProtectionException
+import br.com.sobraai.ui.runtime.LocalUiServices
+import br.com.sobraai.ui.runtime.UiToast as Toast
 import br.com.sobraai.ui.runtime.rememberPresentation
 import com.example.appfinanceiro.core.data.ApiResponseException as ApiRequestException
 import com.example.appfinanceiro.core.data.AuthViewModel
 import com.example.appfinanceiro.core.data.userMessageOr
-import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
-import com.example.appfinanceiro.core.designsystem.theme.TextSecondary
-import br.com.sobraai.ui.runtime.AuthProtectionException
-import com.example.appfinanceiro.feature.login.components.AuthErrorMessage
-import com.example.appfinanceiro.feature.login.components.AuthPasswordField
-import com.example.appfinanceiro.feature.login.components.AuthPrimaryButton
-import com.example.appfinanceiro.feature.login.components.AuthTextField
+import com.example.appfinanceiro.feature.login.components.*
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import com.example.appfinanceiro.core.designsystem.theme.PrimaryBlue
 
 private enum class RegisterStep {
     Details,
@@ -77,7 +59,6 @@ fun RegisterScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val context = LocalUiServices.current
-    val scrollState = rememberScrollState()
     val isConfirmation = step == RegisterStep.Confirmation
 
     fun clearError() {
@@ -85,6 +66,7 @@ fun RegisterScreen(
     }
 
     fun requestCode() {
+        if (isLoading) return
         when {
             name.isBlank() -> errorMessage = "Informe seu nome."
             email.isBlank() -> errorMessage = "Informe seu e-mail."
@@ -133,6 +115,7 @@ fun RegisterScreen(
     }
 
     fun register() {
+        if (isLoading) return
         if (code.length != 6) {
             errorMessage = "O código deve ter 6 dígitos."
             return
@@ -171,220 +154,75 @@ fun RegisterScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 24.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(top = 12.dp)
-        ) {
-            IconButton(
-                onClick = {
-                    if (isConfirmation) {
-                        step = RegisterStep.Details
-                        clearError()
-                        resendBlocked = false
-                    } else {
-                        onNavigateBack()
-                    }
-                },
-                enabled = !isLoading,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .offset(x = (-12).dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .navigationBarsPadding()
-                .imePadding()
-                .verticalScroll(scrollState)
-                .padding(bottom = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(if (isConfirmation) 0.dp else 16.dp))
-
-            RegisterHeader(isConfirmation = isConfirmation)
-
-            Spacer(modifier = Modifier.height(if (isConfirmation) 20.dp else 32.dp))
-
-            if (!isConfirmation) {
-                AuthTextField(
-                    label = "Nome",
-                    value = name,
-                    onValueChange = { name = it; clearError() },
-                    placeholder = "Seu nome completo",
-                    enabled = !isLoading,
-                    keyboardType = KeyboardType.Text
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                AuthTextField(
-                    label = "E-mail",
-                    value = email,
-                    onValueChange = {
-                        email = it.replace(" ", "").replace("\n", "")
-                        clearError()
-                    },
-                    placeholder = "seu@email.com",
-                    enabled = !isLoading,
-                    keyboardType = KeyboardType.Email
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                AuthPasswordField(
-                    label = "Senha",
-                    value = password,
-                    onValueChange = { password = it.replace("\n", ""); clearError() },
-                    placeholder = "Crie uma senha forte",
-                    enabled = !isLoading
-                )
-            } else {
-                AuthTextField(
-                    label = "Código de confirmação",
-                    value = code,
-                    onValueChange = {
-                        code = it.filter(Char::isDigit).take(6)
-                        clearError()
-                    },
-                    placeholder = "000000",
-                    enabled = !isLoading,
-                    keyboardType = KeyboardType.Number
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = if (codeSent) "Enviamos um código de 6 dígitos para ${email.trim()}."
-                        else "Informe o código válido de 6 dígitos já recebido para ${email.trim()}.",
-                    color = TextSecondary,
-                    fontSize = 13.sp,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            if (errorMessage.isNotBlank()) {
-                AuthErrorMessage(errorMessage)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            AuthPrimaryButton(
-                text = if (isConfirmation) "Criar Conta" else if (context.codeDeliveryAvailable) "Enviar Código" else "Usar código já recebido",
-                isLoading = isLoading,
-                enabled = true,
-                onClick = {
-                    if (isConfirmation) register() else requestCode()
-                }
-            )
-
-            if (isConfirmation) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = if (!context.codeDeliveryAvailable) {
-                        "Envio de códigos indisponível no momento"
-                    } else if (resendBlocked) {
-                        "Reenvio indisponível temporariamente"
-                    } else {
-                        "Reenviar código"
-                    },
-                    color = if (resendBlocked) TextSecondary else PrimaryBlue,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable(enabled = !isLoading && !resendBlocked && context.codeDeliveryAvailable) {
-                        requestCode()
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "Usar outro e-mail",
-                    color = TextSecondary,
-                    modifier = Modifier.clickable(enabled = !isLoading) {
-                        step = RegisterStep.Details
-                        resendBlocked = false
-                        clearError()
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            if (!isConfirmation) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Já tem uma conta? ", color = TextSecondary)
-                    Text(
-                        text = "Entrar",
-                        color = PrimaryBlue,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable(enabled = !isLoading) { onNavigateBack() }
-                    )
-                }
-            }
-        }
+    val focusManager = LocalFocusManager.current
+    val goBack = {
+        if (isConfirmation) {
+            step = RegisterStep.Details
+            clearError()
+            resendBlocked = false
+        } else onNavigateBack()
     }
-}
-
-@Composable
-private fun RegisterHeader(isConfirmation: Boolean) {
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val textColor = MaterialTheme.colorScheme.onBackground
-    val icon = if (isConfirmation) Icons.Default.MarkEmailRead else Icons.Default.AccountBalanceWallet
-
-    Box(
-        modifier = Modifier
-            .size(if (isConfirmation) 56.dp else 64.dp)
-            .background(surfaceColor, RoundedCornerShape(16.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = PrimaryBlue,
-            modifier = Modifier.size(if (isConfirmation) 28.dp else 32.dp)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(if (isConfirmation) 18.dp else 32.dp))
-
-    Text(
-        text = if (isConfirmation) "Confirme seu e-mail" else "Criar Conta",
-        fontSize = if (isConfirmation) 26.sp else 28.sp,
-        fontWeight = FontWeight.Bold,
-        color = textColor
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Text(
-        text = if (isConfirmation) {
-            "Digite o código que enviamos para você"
+    AuthPage(onBack = goBack, enabled = !isLoading, footer = if (!isConfirmation) ({
+        TextButton(onClick = onNavigateBack, enabled = !isLoading,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            Text(buildAnnotatedString {
+                withStyle(SpanStyle(color = authSupportingColor())) { append("Já tem uma conta? ") }
+                withStyle(SpanStyle(color = PrimaryBlue, fontWeight = FontWeight.Bold)) { append("Entrar") }
+            }, textAlign = TextAlign.Center)
+        }
+    }) else null) {
+        AuthHeader(
+            icon = null,
+            iconDescription = "",
+            title = if (isConfirmation) "Confirme seu e-mail" else "Crie sua conta",
+            subtitle = if (isConfirmation) {
+                if (codeSent) "Digite o código de 6 dígitos que enviamos para ${email.trim()}."
+                else "Informe o código de 6 dígitos já recebido para ${email.trim()}."
+            } else "Comece a organizar seu dinheiro de forma simples.",
+            compact = isConfirmation, textAlign = TextAlign.Start)
+        Spacer(Modifier.height(28.dp))
+        if (!isConfirmation) {
+            AuthTextField("Nome", name, { name = it; clearError() }, "Seu nome completo", !isLoading,
+                KeyboardType.Text,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }))
+            Spacer(Modifier.height(20.dp))
+            AuthTextField("E-mail", email,
+                { email = it.replace(" ", "").replace("\n", ""); clearError() }, "seu@email.com", !isLoading,
+                KeyboardType.Email,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }))
+            Spacer(Modifier.height(20.dp))
+            AuthPasswordField("Senha", password, { password = it.replace("\n", ""); clearError() },
+                "Crie uma senha forte", !isLoading,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); requestCode() }))
         } else {
-            "Preencha seus dados para começar"
-        },
-        fontSize = 14.sp,
-        color = TextSecondary
-    )
+            AuthCodeField("Código de confirmação", code,
+                { code = it.filter(Char::isDigit).take(6); clearError() }, !isLoading,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); register() }))
+        }
+        Spacer(Modifier.height(24.dp))
+        if (errorMessage.isNotBlank()) {
+            AuthErrorMessage(errorMessage)
+            Spacer(Modifier.height(12.dp))
+        }
+        AuthPrimaryButton(
+            text = if (isConfirmation) "Criar conta" else if (context.codeDeliveryAvailable) "Enviar código" else "Usar código já recebido",
+            isLoading = isLoading, enabled = true,
+            onClick = { focusManager.clearFocus(); if (isConfirmation) register() else requestCode() })
+        if (isConfirmation) {
+            Spacer(Modifier.height(12.dp))
+            TextButton(enabled = !isLoading && !resendBlocked && context.codeDeliveryAvailable,
+                onClick = { focusManager.clearFocus(); requestCode() }, modifier = Modifier.fillMaxWidth()) {
+                Text(if (!context.codeDeliveryAvailable) "Envio de códigos indisponível no momento"
+                    else if (resendBlocked) "Reenvio indisponível temporariamente" else "Reenviar código",
+                    textAlign = TextAlign.Center)
+            }
+            TextButton(enabled = !isLoading, onClick = goBack, modifier = Modifier.fillMaxWidth()) {
+                Text("Usar outro e-mail", color = authSupportingColor())
+            }
+        }
+    }
 }

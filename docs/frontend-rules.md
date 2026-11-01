@@ -114,7 +114,9 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   com marca de confirmação nas despesas já adiantadas, para alterar a data.
   Remover adiantamento fica no modal Alterar adiantamento, com botão contornado
   de largura total e confirmação própria, apenas para despesa já adiantada.
-  Detalhes mantém estado/data e Alterar data, sem ação de remoção. Cancelar a
+  Detalhes mantém somente o informativo de estado/data, sem botões de adiantar,
+  alterar data ou remover. Todas essas ações ficam no calendário do card e no
+  modal aberto por ele. Cancelar a
   confirmação preserva a data editada; sucesso fecha ambos os modais. Conteúdo
   rolável mantém ações acessíveis em telas baixas/fonte ampliada e a atualização
   bloqueia os controles. Não alterar Paga como consequência
@@ -271,6 +273,17 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   TalkBack e VoiceOver nos aparelhos; testes do parser não comprovam esses fluxos.
 
 ## Entrada com biometria
+
+- Login, cadastro/confirmação e recuperação usam `AuthPage` e `AuthComponents`
+  comuns: marca compacta no topo, cabeçalho de conteúdo à esquerda sem ícone
+  grande adicional no corpo, campos e botões com
+  raio 12 dp e alturas mínimas compatíveis com fonte ampliada. Preservar tema
+  claro/escuro, áreas seguras e rolagem com teclado, sem fixar o botão de envio
+  longe do formulário. Recuperar senha mantém duas etapas: e-mail/Enviar código
+  e depois e-mail/código/nova senha/confirmação/Atualizar senha. No cadastro,
+  `AuthCodeField` tem seis células visuais e um único campo editável/colável.
+  Não acrescentar ajuda, contador de expiração, login social nem regras de senha
+  sem suporte confirmado. GateScreen preserva seu cabeçalho centralizado.
 
 - Com sessão salva e biometria ativada, exibir a mesma tela de login enquanto
   o sistema solicita automaticamente digital, Face ID ou Touch ID. Não criar tela

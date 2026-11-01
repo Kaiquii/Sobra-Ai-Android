@@ -3,6 +3,7 @@ package com.example.appfinanceiro.core.designsystem.components
 import com.example.appfinanceiro.core.network.supportsAdvance
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +21,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -42,9 +42,7 @@ import br.com.sobraai.ui.runtime.Locale
 fun ExpenseDetailsDialog(
     expense: Expense,
     categoryName: String,
-    onDismiss: () -> Unit,
-    onAdvanceClick: (() -> Unit)? = null,
-    onChangeAdvanceDateClick: (() -> Unit)? = null
+    onDismiss: () -> Unit
 ) {
     val dialogBackgroundColor = MaterialTheme.colorScheme.background
     val dialogTextColor = MaterialTheme.colorScheme.onBackground
@@ -111,13 +109,8 @@ fun ExpenseDetailsDialog(
                     textColor = dialogTextColor
                 )
 
-                if (expense.supportsAdvance) {
-                    AdvanceDetailsBlock(
-                        isAdvanced = expense.isAdvanced,
-                        advancedAtLabel = advancedAtLabel,
-                        onAdvanceClick = onAdvanceClick,
-                        onChangeDateClick = onChangeAdvanceDateClick
-                    )
+                if (expense.supportsAdvance && expense.isAdvanced) {
+                    AdvanceDetailsBlock(advancedAtLabel = advancedAtLabel)
                 }
 
                 NotesDetailBox(
@@ -139,14 +132,7 @@ fun ExpenseDetailsDialog(
 }
 
 @Composable
-private fun AdvanceDetailsBlock(
-    isAdvanced: Boolean,
-    advancedAtLabel: String?,
-    onAdvanceClick: (() -> Unit)?,
-    onChangeDateClick: (() -> Unit)?
-) {
-    if (!isAdvanced && onAdvanceClick == null) return
-
+private fun AdvanceDetailsBlock(advancedAtLabel: String?) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -154,47 +140,16 @@ private fun AdvanceDetailsBlock(
                 color = PrimaryBlue.copy(alpha = 0.10f),
                 shape = RoundedCornerShape(16.dp)
             )
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
-        if (!isAdvanced) {
-            OutlinedButton(
-                onClick = onAdvanceClick ?: {},
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Text("Adiantar despesa", color = PrimaryBlue, fontWeight = FontWeight.Bold)
-            }
-            return@Column
-        }
-
         Text(
             text = advancedAtLabel?.let { "Adiantada em $it" } ?: "Despesa adiantada",
             color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            softWrap = false,
+            modifier = Modifier.horizontalScroll(rememberScrollState())
         )
-        Text(
-            text = "O status Paga é independente deste adiantamento.",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 12.sp
-        )
-
-        if (onChangeDateClick != null) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                onChangeDateClick?.let { onClick ->
-                    OutlinedButton(
-                        onClick = onClick,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp)
-                    ) {
-                        Text("Alterar data", color = PrimaryBlue, maxLines = 1)
-                    }
-                }
-            }
-        }
     }
 }
 

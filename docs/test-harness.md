@@ -32,6 +32,15 @@ o pedido real do sistema e seu ciclo de vida precisam ser conferidos no aparelho
 
 ### Revisão transversal obrigatória
 
+No redesign de autenticação, conferir manualmente Android/iPhone, temas e fontes:
+login com/sem biometria configurada; cadastro e código (colar seis dígitos,
+apagar, reenviar/bloqueio existente, usar outro e-mail); recuperação em duas
+etapas preservando o e-mail, senhas divergentes, erro de API, carregamento e
+retorno após sucesso. Incluir teclado/fonte ampliada e altura/largura compactas,
+foco Próximo/Concluir, olhos das senhas e ações desabilitadas durante envio.
+GateScreen (biometria/erro de armazenamento) também consome AuthComponents.
+Build/JVM/KLIB não comprovam composição visual, TalkBack/VoiceOver ou teclado.
+
 `AssistantDeletionConfirmationTest` cobre lixeira sem DELETE, cancelamento,
 confirmação única mesmo com toques repetidos, exclusão da conversa atual ou de
 outra, erro com tentativa explícita e invalidação por troca de sessão/resposta
