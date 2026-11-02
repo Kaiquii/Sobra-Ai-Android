@@ -320,7 +320,8 @@ fun ExpenseItem(
     isAdvanced: Boolean = false,
     advancedLabel: String? = null,
     onViewClick: () -> Unit,
-    expenseType: String
+    expenseType: String,
+    notes: String? = null
 ) {
     ExpenseCard(
         style = ExpenseCardStyle.Compact,
@@ -331,6 +332,7 @@ fun ExpenseItem(
         date = date,
         value = value,
         expenseType = expenseType,
+        notes = notes,
         isPaid = isPaid,
         isAdvanced = isAdvanced,
         advancedLabel = advancedLabel,

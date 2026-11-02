@@ -1,5 +1,11 @@
 # Acervo do escopo
 
+ExpenseCard (designSystem/.../core/designsystem/components/ExpenseCard.kt):
+`notes: String? = null` ao final do contrato, em Compact/Detailed; indicador de
+documento somente quando há observações não vazias. Consumidores: DespesasScreen
+e HomeScreen via ExpenseItem em DespesasSection. Metadados roláveis em pouca
+largura preservam o indicador informativo e as ações originais; texto nos detalhes.
+
 Autenticação: `sharedUi/.../feature/login/components/AuthComponents.kt` oferece
 `AuthHeader`, `AuthTextField`, `AuthPasswordField`, `AuthPrimaryButton` e
 `AuthErrorMessage`. Consumidores: `LoginScreen`, `RegisterScreen` e

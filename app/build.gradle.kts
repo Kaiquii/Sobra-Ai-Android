@@ -39,8 +39,8 @@ android {
         applicationId = "br.com.sobraai.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 151
-        versionName = "1.5.1"
+        versionCode = 152
+        versionName = "1.5.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

@@ -5,6 +5,8 @@ import com.example.appfinanceiro.core.network.supportsExpenseAdvance
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
@@ -65,7 +68,8 @@ fun ExpenseCard(
     onDelete: (() -> Unit)? = null,
     onPaymentStatusClick: (() -> Unit)? = null,
     expenseType: String,
-    onAdvanceClick: (() -> Unit)? = null
+    onAdvanceClick: (() -> Unit)? = null,
+    notes: String? = null
 ) {
     val typeAccent = expenseTypeStyle(expenseType).accent()
     when (style) {
@@ -81,6 +85,7 @@ fun ExpenseCard(
             isAdvanced = isAdvanced,
             advancedLabel = advancedLabel,
             showDate = showDate,
+            hasNotes = !notes.isNullOrBlank(),
             onView = onView
         )
 
@@ -96,6 +101,7 @@ fun ExpenseCard(
             isAdvanced = isAdvanced,
             advancedLabel = advancedLabel,
             showDate = showDate,
+            hasNotes = !notes.isNullOrBlank(),
             onView = onView,
             onEdit = onEdit ?: {},
             onDelete = onDelete ?: {},
@@ -118,6 +124,7 @@ private fun CompactExpenseCard(
     isAdvanced: Boolean,
     advancedLabel: String?,
     showDate: Boolean,
+    hasNotes: Boolean,
     onView: () -> Unit
 ) {
     val textColor = MaterialTheme.colorScheme.onBackground
@@ -154,23 +161,32 @@ private fun CompactExpenseCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                MiniChip(label = type, color = typeAccent)
-                if (isPaid) {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    MiniChip(label = "Paga", color = GreenPositive)
+                Row(
+                    modifier = Modifier.weight(1f, fill = false).horizontalScroll(rememberScrollState()),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    MiniChip(label = type, color = typeAccent)
+                    if (isPaid) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        MiniChip(label = "Paga", color = GreenPositive)
+                    }
+                    if (isAdvanced) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        CompactAdvanceIndicator(label = advancedLabel)
+                    }
+                    if (showDate) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = date,
+                            color = TextMuted,
+                            fontSize = 10.sp,
+                            maxLines = 1
+                        )
+                    }
                 }
-                if (isAdvanced) {
+                if (hasNotes) {
                     Spacer(modifier = Modifier.width(6.dp))
-                    CompactAdvanceIndicator(label = advancedLabel)
-                }
-                if (showDate) {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = date,
-                        color = TextMuted,
-                        fontSize = 10.sp,
-                        maxLines = 1
-                    )
+                    ExpenseNoteIndicatorIcon()
                 }
             }
         }
@@ -240,6 +256,7 @@ private fun DetailedExpenseCard(
     isAdvanced: Boolean,
     advancedLabel: String?,
     showDate: Boolean,
+    hasNotes: Boolean,
     onView: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -283,30 +300,36 @@ private fun DetailedExpenseCard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .background(typeAccent.copy(alpha = 0.10f), RoundedCornerShape(4.dp))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    Row(
+                        modifier = Modifier.weight(1f, fill = false).horizontalScroll(rememberScrollState()),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = type, color = typeAccent, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    if (isAdvanced) {
-                        Spacer(modifier = Modifier.width(5.dp))
-                        CompactAdvanceIndicator(label = advancedLabel)
-                    }
-                    if (showDate) {
-                        Text(
-                            text = " • $date",
-                            color = secondaryColor,
-                            fontSize = 12.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                        Box(
                             modifier = Modifier
-                                .padding(start = 8.dp)
-                                .weight(1f)
-                        )
-                    } else {
-                        Spacer(modifier = Modifier.weight(1f))
+                                .background(typeAccent.copy(alpha = 0.10f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(text = type, color = typeAccent, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        if (isAdvanced) {
+                            Spacer(modifier = Modifier.width(5.dp))
+                            CompactAdvanceIndicator(label = advancedLabel)
+                        }
+                        if (showDate) {
+                            Text(
+                                text = " • $date",
+                                color = secondaryColor,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .padding(start = 8.dp)
+                            )
+                        }
+                    }
+                    if (hasNotes) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        ExpenseNoteIndicatorIcon()
                     }
                 }
             }
@@ -426,6 +449,23 @@ private fun DetailedExpenseCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ExpenseNoteIndicatorIcon() {
+    Box(
+        modifier = Modifier
+            .background(PrimaryBlue.copy(alpha = 0.10f), RoundedCornerShape(6.dp))
+            .padding(4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Description,
+            contentDescription = "Tem observações",
+            tint = PrimaryBlue,
+            modifier = Modifier.size(12.dp)
+        )
     }
 }
 

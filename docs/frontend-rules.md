@@ -56,6 +56,10 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   Quando houver subtítulo, alinhar também à esquerda. Preservar os cabeçalhos de
   formulários de autenticação que fazem parte do conteúdo rolável.
 - Em telas com conteúdo extenso, usar rolagem vertical e `imePadding()` para que os campos e botões não fiquem inacessíveis pelo teclado.
+- Criar e editar despesa reservam o teclado no `Scaffold` com `imePadding()`;
+  a coluna rolável recebe uma área já reduzida. Não aplicar o inset novamente
+  nos campos ou rateios. Preservar a rolagem nativa do cursor em Observações,
+  inclusive ao acrescentar linhas, mover a seleção e usar teclado alto.
 - Painéis inferiores usam `AppModalBottomSheet`, do designSystem comum, para
   proteger o formulário com o teclado aberto: deslizar, tocar na alça, tocar fora
   ou voltar não devem fechar o painel e descartar o rascunho. Com o teclado
@@ -98,7 +102,12 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
   teclado ou fonte ampliada. O total mantém o período efetivo e os filtros atuais.
 - `ExpenseCard` é compartilhado entre Início e Despesas. Não reservar coluna para
   o antigo ícone grande de recibo, nem exibir a carta de observações; o conteúdo das
-  observações continua nos detalhes.
+  observações continua nos detalhes. Restaurar/preservar o pequeno indicador de
+  documento azul na linha de tipo/data quando `notes` tiver conteúdo (não nulo,
+  vazio ou apenas espaços), tanto no Início quanto em Despesas. Não é botão;
+  descrição acessível “Tem observações”. Ícone de 12 dp, padding 4 dp, fundo azul
+  a 10% e raio 6 dp. Metadados podem rolar horizontalmente quando faltar largura,
+  reservando o indicador sem aumentar o card nem deslocar ações.
 - Somente o marcador do tipo usa azul para Única, roxo para Parcelada e verde-água
   para Fixa, com tons adequados ao tema. Não colorir nem adicionar bordas ao card,
   preservar a hierarquia de nome, categoria, tipo, valor e origem. `ExpenseTypeStyle`

@@ -697,6 +697,7 @@ fun DespesaListItem(
         date = formattedDate,
         value = "- $formattedAmount",
         expenseType = expense.type,
+        notes = expense.notes,
         isPaid = expense.is_paid,
         isAdvanced = expense.isAdvanced,
         advancedLabel = formatAdvancedDate(expense.advancedAt)?.let { "Adiantada em $it" },

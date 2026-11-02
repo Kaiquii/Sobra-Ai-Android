@@ -378,6 +378,7 @@ fun HomeScreen(
                     date = formattedDate,
                     value = "- ${formatCurrency(expense.amount)}",
                     expenseType = expense.type,
+                    notes = expense.notes,
                     isPaid = expense.is_paid,
                     isAdvanced = expense.isAdvanced,
                     advancedLabel = formatAdvancedDate(expense.advancedAt)?.let { "Adiantada em $it" },

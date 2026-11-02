@@ -244,6 +244,31 @@ com o requisito Mac/Xcode, sem apresentar tarefas Native desabilitadas como suce
 Os testes usam fakes/MockEngine e dados sintéticos. Não fazem login no backend
 real nem comprovam App Attest, Keychain, Face ID, microfone ou galeria em execução.
 
+## Regressão manual: campos visíveis com teclado
+
+No Android e iPhone, em tela pequena e com fonte ampliada:
+
+- Criar e editar despesa: focar Observações no final do formulário, abrir o
+  teclado, digitar várias linhas até o limite, mover o cursor para o começo/fim
+  e conferir que a linha editada permanece visível. Repetir com teclado alto.
+- Repetir descrição, data e valores de rateio, incluindo adicionar origens.
+  Fechar/reabrir o teclado e conferir rolagem, acesso a Salvar e rascunho intacto.
+- Conferir os equivalentes: autenticação/recuperação, editar perfil, categorias,
+  rendas, editores de patrimônio, busca dos seletores e mensagem do Assistente.
+  Cada contêiner deve tratar o teclado uma vez; campos não somam outro inset.
+
+O build e os testes JVM não comprovam foco, cursor ou animação do teclado.
+O usuário conduz esta verificação nos aparelhos; não iniciar dispositivos.
+
+## Regressão manual: indicador de observações
+
+Nos cards de Início e Despesas, conferir indicador de documento somente com
+observações não vazias, inclusive após criar/editar/apagar o texto. Conferir null,
+vazio e espaços sem ícone; tipo, status e adiantamento não alteram essa regra.
+Repetir em tema claro/escuro, fonte ampliada e pouca largura: indicador visível,
+metadados consultáveis e ações/altura preservadas. Leitor de tela anuncia “Tem
+observações”, sem ler o conteúdo; visualizar mantém as observações nos detalhes.
+
 ## Critério de entrega
 
 Em toda alteração de código/configuração, mantenha Android e iPhone funcionais
