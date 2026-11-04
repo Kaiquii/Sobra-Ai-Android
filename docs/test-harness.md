@@ -30,7 +30,32 @@ o pedido real do sistema e seu ciclo de vida precisam ser conferidos no aparelho
 
 ## Modos e alcance
 
+### Política Git do harness
+
+Antes de trabalhar/validar e antes de qualquer commit ou push, conferir
+`git status --short` e `git branch --show-current`. O checkout deve estar na
+`main`; commits e pushes exigem autorização do usuário, além desta conferência.
+Não criar novas branches, inclusive temporárias, `codex/`, auxiliares ou por
+worktree, nem criar branches reais em testes desta política.
+Se estiver em outra branch ou em HEAD destacado, preservar e informar a
+divergência. Não fazer checkout, reset, stash, limpeza ou criação/troca/exclusão
+automática de branches/refs/arquivos para adequar o checkout.
+Estas são instruções operacionais de revisão: um build aprovado não comprova a
+autorização de commit/push nem substitui a conferência da branch. Registre essa
+conferência no trabalho do harness sem expor configurações privadas.
+
 ### Revisão transversal obrigatória
+
+Preferências de saldo VA/VR: `BalancePreferencesHttpTest` cobre o GET/PATCH
+parcial, false explícito, JSON incompleto, erros e não repetição de gravação;
+`BalancePreferencesViewModelTest` cobre escolhas confirmadas, bloqueios,
+falhas, revisão financeira e respostas de sessão antiga;
+`AvailableBalancePresentationTest` cobre as quatro legendas, aviso negativo e
+saldo autoritativo preservado ao receber rendas/trocar mês. Conferir manualmente
+Android/iPhone: controles como última seção após Renda Extra, resumo curto,
+ajuda “?” (abrir/fechar, voltar, toque fora, rolagem, foco), fonte ampliada, temas,
+persistência entre dispositivos e retorno ao resumo. Não executar dispositivos
+automaticamente. Ver [contrato e cenários](beneficios-va-vr.md).
 
 No redesign de autenticação, conferir manualmente Android/iPhone, temas e fontes:
 login com/sem biometria configurada; cadastro e código (colar seis dígitos,

@@ -30,6 +30,15 @@ interface SharedFinanceApi {
         year: Int
     ): SummaryResponse
 
+    suspend fun getBalancePreferences(
+        token: String
+    ): BalancePreferences = error("Preferências de saldo não disponíveis nesta implementação.")
+
+    suspend fun updateBalancePreferences(
+        token: String,
+        request: BalancePreferencesUpdate
+    ): BalancePreferences = error("Preferências de saldo não disponíveis nesta implementação.")
+
     suspend fun getCategories(
         token: String
     ): CategoriesResponse

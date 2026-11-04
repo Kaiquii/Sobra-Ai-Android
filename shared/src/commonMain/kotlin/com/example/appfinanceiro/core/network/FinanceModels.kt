@@ -24,7 +24,9 @@ data class SummaryResponse(
     val total_gasto_va: Double = 0.0,
     val total_gasto_vr: Double = 0.0,
     val restante_va: Double = 0.0,
-    val restante_vr: Double = 0.0
+    val restante_vr: Double = 0.0,
+    val exclude_va_from_available: Boolean = false,
+    val exclude_vr_from_available: Boolean = false
 )
 
 @Serializable

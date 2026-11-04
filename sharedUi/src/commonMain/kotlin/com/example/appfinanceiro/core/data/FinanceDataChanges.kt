@@ -24,4 +24,8 @@ object FinanceDataChanges {
     fun notifyIncomeChanged() {
         _revision.update { it + 1 }
     }
+
+    fun notifyBalancePreferencesChanged() {
+        _revision.update { it + 1 }
+    }
 }

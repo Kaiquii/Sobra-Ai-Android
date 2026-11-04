@@ -7,7 +7,11 @@ próprias e não podem ser presumidos a partir de um resultado JVM.
 
 ## Investigar e implementar
 
-1. Confirme o pedido e o estado do Git. Localize o fluxo no
+1. Confirme o pedido, `git status --short` e `git branch --show-current`. O trabalho
+   ocorre somente na `main`: não criar branches, inclusive temporárias, `codex/`,
+   auxiliares ou por worktree. Se estiver em outra branch/HEAD destacado, preservar
+   alterações e refs e informar ao usuário; não usar checkout, reset, stash ou
+   exclusão automática para contornar. Localize o fluxo no
    [mapa do projeto](ai-project-map.md), leia os fontes e os testes pertinentes.
 2. Identifique o contrato que deve permanecer estável: comportamento visual,
    dados da API, regras financeiras ou persistência. Para interface, aplique
@@ -132,6 +136,9 @@ os testes apropriados e a documentação coerente. A resposta final deve separar
 Android/JVM, compilação KMP, build/link Apple e execução real, informando as
 validações que não puderam ser feitas. Não faça commit, push ou publicação
 sem que isso faça parte do pedido.
+Quando autorizados, commit e push devem ocorrer somente na `main`, conferida
+novamente antes de cada operação. Não criar branches reais nem em testes da
+política; preservar arquivos e referências existentes.
 
 ## Uso e manutenção destas instruções
 

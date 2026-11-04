@@ -59,6 +59,24 @@ class KtorFinanceApi(private val transport: ApiTransport) : SharedFinanceApi {
             query = mapOf("month" to month, "year" to year),
         )
 
+    override suspend fun getBalancePreferences(
+        token: String
+    ): BalancePreferences =
+        transport.request(
+            method = "GET", path = "api/users/balance-preferences",
+            authorization = token,
+        )
+
+    override suspend fun updateBalancePreferences(
+        token: String,
+        request: BalancePreferencesUpdate
+    ): BalancePreferences =
+        transport.request(
+            method = "PATCH", path = "api/users/balance-preferences",
+            authorization = token,
+            body = FinanceJson.encodeToString(request),
+        )
+
     override suspend fun getCategories(
         token: String
     ): CategoriesResponse =

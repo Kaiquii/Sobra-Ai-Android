@@ -1,5 +1,22 @@
 # Padrões confirmados
 
+04/11/2026, decisão mais recente VA/VR: Saldo disponível é a ÚLTIMA seção de
+Configurações de Renda, depois de Renda Extra. Resumo curto e “?” junto ao
+título abrem ajuda em modal, com exemplo e detalhes. Mock v2 aceito: “Aprovado,
+só deixa o modal mais bonito”. Prevalece sobre a localização original abaixo
+dos benefícios e antes de Renda Extra. Preservar cálculos e estados existentes.
+
+04/11/2026: controles independentes de exclusão do restante de VA/VR ficam em
+Configurações de Renda, por escolha explícita do usuário. Proposta visual v1
+em trabalhos/preferencias-saldo-va-vr/spec.md, aceita pelo usuário em 04/11/2026,
+reafirmando localização abaixo de VA/VR e texto explicativo.
+
+Política Git explícita: não criar branches novas, inclusive temporárias/codex,
+auxiliares ou por worktree. Conferir main antes do trabalho e de commit/push,
+que continuam exigindo autorização. Preservar refs e alterações; divergência
+de branch/HEAD destacado deve ser informada, sem checkout/reset/stash ou
+exclusão automática para contorná-la. Não criar branches reais para testar.
+
 31/10/2026: o usuário aprovou a proposta de autenticação do Stitch
 (`projects/6150502095301066848`) e pediu visualizar Trocar senha antes da
 implementação. A referência visual aprovada é login/cadastro: fundo escuro,

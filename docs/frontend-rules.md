@@ -197,6 +197,20 @@ compartilhadas em `sharedUi` e aos adaptadores dos dois hosts. Consulte também 
 
 ## Textos e idioma
 
+- Configurações de Renda mantém as preferências “Excluir VA do disponível” e
+  “Excluir VR do disponível” como última seção, depois de Renda Extra.
+  Reutilizar `SettingsToggleItem`, com resumo curto e IconButton “?” de ajuda.
+  A explicação completa fica em AlertDialog comum, com corpo rolável, exemplo
+  em SettingsCard, ação Fechar, fundo/cores do tema e raio de 24dp. Abrir/fechar
+  ajuda não salva nada e continua disponível durante leitura/gravação.
+  A explicação informa que vale para todos
+  os meses e somente o restante é excluído; os cartões continuam integrais.
+  Não vincular a preferência ao seletor mensal. Só refletir mudanças após
+  confirmação do servidor, bloqueando controles durante leitura/gravação e
+  mantendo estado confirmado em falha, sem gravar defaults por erro.
+  No Início, a legenda identifica fontes excluídas sem remover o aviso de saldo
+  negativo. Respeitar privacidade, texto multilinha, temas e alvos de 48 dp.
+
 - Dropdowns usam `AppSelectField` e `AppSelectDialog` do designSystem. Usar o
   mesmo campo e lista de seleção nos formulários, rateios, filtros e relatórios;
   não reintroduzir menus ancorados que comprimem listas curtas. O modal adapta

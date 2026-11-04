@@ -10,6 +10,17 @@ arquivo concentra a política KMP; os comandos estão no
 
 ## Implementação nas duas plataformas
 
+### Política Git: somente main
+
+Não criar branches, inclusive temporárias, auxiliares, `codex/` ou por worktree.
+Conferir `git branch --show-current` antes do trabalho e de cada commit/push.
+Commits e pushes autorizados pelo usuário devem ocorrer somente na `main`;
+esta regra não concede autorização para executá-los.
+Se houver outra branch ou HEAD destacado, preservar o checkout, alterações e
+refs e informar a divergência. Não usar checkout, reset, stash, criação/troca ou
+exclusão de branches/arquivos automaticamente para contornar a política.
+Não criar branches reais em validações ou testes desta regra.
+
 ### Interface única: Android e iOS devem ser visualmente iguais
 
 - **O front-end Android existente é a referência oficial. O iOS deve reproduzir

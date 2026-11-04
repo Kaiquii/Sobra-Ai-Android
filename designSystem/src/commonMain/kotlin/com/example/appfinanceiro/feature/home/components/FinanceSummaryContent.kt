@@ -50,8 +50,7 @@ fun FinanceSummaryContent(data: SummaryResponse?, salarioIncome: Income?, adiant
 
                 HighlightSummaryCard(
                     title = "Total Geral Disponível",
-                    subtitle = if (totalDisp < 0)
-                        "Atenção: saldo negativo no mês" else "Saldo livre no mês",
+                    subtitle = availableBalanceSubtitle(data),
                     value = formatCurrency(totalDisp),
                     bgColor = cardBlue,
                     valueColor = if (!valuesHidden && totalDisp < 0) alertColor else PrimaryBlue

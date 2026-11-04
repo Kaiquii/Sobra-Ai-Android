@@ -4,7 +4,7 @@ import com.example.appfinanceiro.core.network.*
 
 
 
-open class SharedFinanceRepository(private val api: SharedFinanceApi) : HomeDataSource, ExpensesDataSource, ReportsDataSource, AssistantDataSource, FinanceMutationDataSource, ProfileDataSource {
+open class SharedFinanceRepository(private val api: SharedFinanceApi) : HomeDataSource, ExpensesDataSource, ReportsDataSource, AssistantDataSource, FinanceMutationDataSource, ProfileDataSource, BalancePreferencesDataSource {
 
     private fun bearer(token: String): String = "Bearer $token"
 
@@ -17,6 +17,24 @@ open class SharedFinanceRepository(private val api: SharedFinanceApi) : HomeData
                 token = bearer(token),
                 month = month,
                 year = year
+            )
+        }
+    }
+
+    override suspend fun getBalancePreferences(token: String): BalancePreferences {
+        return authorizedRequest {
+            api.getBalancePreferences(bearer(token))
+        }
+    }
+
+    override suspend fun updateBalancePreferences(
+        token: String,
+        request: BalancePreferencesUpdate
+    ): BalancePreferences {
+        return authorizedRequest {
+            api.updateBalancePreferences(
+                token = bearer(token),
+                request = request
             )
         }
     }

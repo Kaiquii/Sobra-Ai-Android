@@ -55,6 +55,7 @@ Na base `sharedUi/src/commonMain/kotlin/com/example/appfinanceiro/`:
 | Patrimônio | `feature/patrimonio/PatrimonyScreen.kt`, `PatrimonyViewModel.kt`, `InvestmentCategoriesViewModel.kt` e `InvestmentCategoriesDialog.kt`; `shared/.../core/data/PatrimonyDataSource.kt` e `core/network/PatrimonyModels.kt`. Atalho no Início e entrada em Perfil. FGTS/investimentos isolados do mês; [contrato](patrimonio.md) |
 | Rendas/categorias | `feature/perfil/components/ConfiguracoesRendaScreen.kt`, `CategoriasScreen.kt` |
 | VA e VR | Fontes canônicas em `shared/.../core/network/PaymentSources.kt`; renda mensal, despesas, filtros e resumo comuns. Contrato e validação em [beneficios-va-vr.md](beneficios-va-vr.md) |
+| Preferências de saldo VA/VR | `shared/.../core/network/BalancePreferencesModels.kt`, `core/data/BalancePreferencesDataSource.kt`; GET/PATCH comum via Ktor e SharedFinanceRepository. `sharedUi/.../feature/perfil/BalancePreferencesViewModel.kt` e controles sob VA/VR em Configurações de Renda. `designSystem/.../feature/home/components/AvailableBalancePresentation.kt` descreve as flags; disponível continua vindo da API |
 | Mutação de dados | `core/data/FinanceActionsViewModel.kt`; repositórios/contratos em `shared` |
 
 As pastas nem sempre coincidem com o package: `RegisterScreen.kt` usa o pacote

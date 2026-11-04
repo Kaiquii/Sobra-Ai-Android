@@ -3,9 +3,16 @@ package com.example.appfinanceiro.feature.perfil.components
 import br.com.sobraai.ui.runtime.UiServices as Context
 import br.com.sobraai.ui.runtime.UiToast as Toast
 import com.example.appfinanceiro.feature.perfil.SettingsListLoadViewModel
+import com.example.appfinanceiro.feature.perfil.BalanceBenefit
+import com.example.appfinanceiro.feature.perfil.BalancePreferencesViewModel
+import com.example.appfinanceiro.feature.perfil.SettingsToggleItem
+import com.example.appfinanceiro.feature.perfil.SectionTitle
 import com.example.appfinanceiro.core.data.FinanceDataChanges
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.imePadding
@@ -72,6 +79,7 @@ import com.example.appfinanceiro.feature.home.components.MonthSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import br.com.sobraai.ui.runtime.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,12 +91,64 @@ fun ConfiguracoesRendaScreen(
     val context = LocalUiServices.current
     val coroutineScope = rememberCoroutineScope()
     val userToken by remember { context.session }.token.collectAsState(initial = null)
+    val preferencesModel = rememberPresentation("BalancePreferencesViewModel") { services ->
+        BalancePreferencesViewModel(services.finance)
+    }
+    val preferencesState by preferencesModel.state.collectAsState()
+    var showBalanceHelp by remember { mutableStateOf(false) }
+    // Collect the real session emissions; a Compose initial null is not a logout.
+    LaunchedEffect(context.session, preferencesModel) {
+        context.session.token.collect { preferencesModel.load(it) }
+    }
 
     val backgroundColor = MaterialTheme.colorScheme.background
 
     val dialogSurfaceColor = MaterialTheme.colorScheme.background
     val dialogTextColor = MaterialTheme.colorScheme.onBackground
     val dialogSecondaryTextColor = dialogTextColor.copy(alpha = 0.8f)
+
+    if (showBalanceHelp) {
+        AlertDialog(
+            onDismissRequest = { showBalanceHelp = false },
+            containerColor = dialogSurfaceColor,
+            shape = RoundedCornerShape(24.dp),
+            title = {
+                Text("Como funciona", color = dialogTextColor, fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        "Ao ativar, o restante do VA ou VR sai do Total Geral Disponível. " +
+                            "Ao desativar, ele volta a compor o total.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    SettingsCard(compact = true, spacing = 8.dp) {
+                        Text("Exemplo com VA", style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold)
+                        Text("R$ 725 − R$ 600 gastos = R$ 125 restantes",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary)
+                        Text("Só os R$ 125 saem do disponível. Os R$ 600 não são descontados novamente.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text("Não apaga rendas ou despesas nem altera os cartões, o Total Recebido e o Total Gasto.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Vale para todos os meses e dispositivos da conta.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showBalanceHelp = false }) {
+                    Text("Fechar", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                }
+            }
+        )
+    }
 
     val calendar = remember { Calendar.getInstance() }
     var selectedMonthIndex by remember { mutableIntStateOf(calendar.get(Calendar.MONTH)) }
@@ -494,6 +554,64 @@ fun ConfiguracoesRendaScreen(
                     )
 
                 }
+                item(key = "balance_preferences_heading") {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.weight(1f)) { SectionTitle("Saldo disponível") }
+                            IconButton(onClick = { showBalanceHelp = true }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.HelpOutline,
+                                    contentDescription = "Como funciona o saldo disponível",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        Text(
+                            "Ative para tirar o restante do benefício do total geral.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                preferencesState.error?.let { error ->
+                    item(key = "balance_preferences_error") {
+                        AppDataErrorBanner(
+                            message = error,
+                            isRetrying = preferencesState.loading,
+                            onRetry = { preferencesModel.load(userToken, force = true) }
+                        )
+                    }
+                }
+
+                item(key = "balance_preferences_va") {
+                    SettingsToggleItem(
+                        icon = Icons.Default.AccountBalanceWallet,
+                        title = "Excluir VA do disponível",
+                        subtitle = "Vale-alimentação",
+                        checked = preferencesState.preferences?.exclude_va_from_available ?: false,
+                        enabled = userToken != null && preferencesState.canEdit,
+                        loading = preferencesState.loading || preferencesState.saving == BalanceBenefit.VA,
+                        onCheckedChange = { excluded ->
+                            userToken?.let { preferencesModel.setExcluded(it, BalanceBenefit.VA, excluded) }
+                        }
+                    )
+                }
+
+                item(key = "balance_preferences_vr") {
+                    SettingsToggleItem(
+                        icon = Icons.Default.AccountBalanceWallet,
+                        title = "Excluir VR do disponível",
+                        subtitle = "Vale-refeição",
+                        checked = preferencesState.preferences?.exclude_vr_from_available ?: false,
+                        enabled = userToken != null && preferencesState.canEdit,
+                        loading = preferencesState.loading || preferencesState.saving == BalanceBenefit.VR,
+                        onCheckedChange = { excluded ->
+                            userToken?.let { preferencesModel.setExcluded(it, BalanceBenefit.VR, excluded) }
+                        }
+                    )
+                }
+
             }
         }
     }

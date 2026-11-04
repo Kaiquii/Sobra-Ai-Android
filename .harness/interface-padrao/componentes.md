@@ -29,3 +29,18 @@ O informativo de adiantamento apresenta somente a data em uma linha compacta;
 fonte ampliada pode rolar horizontalmente para consultar o texto completo.
 
 Extensão aceita: AdvanceExpenseDialog.onRemoveAdvanceClick opcional; ação visível somente isAdvanced+supportsAdvance, bloqueada por isUpdating; consumidor DespesasScreen. Não foi criado componente paralelo.
+
+Preferências de saldo (04/11/2026): SettingsToggleItem existente, em
+designSystem/.../feature/perfil/ProfileComponents.kt, recebe ícone/título/subtítulo,
+checked/enabled/loading/onCheckedChange; área inteira toggleable Role.Switch,
+48dp e texto com quebra. Reuso direto no Perfil (biometria) e em
+ConfiguracoesRendaScreen (VA/VR), sem alterar a API nem o consumidor antigo.
+O bloco é a última seção, após Renda Extra, e compõe SectionTitle, IconButton
+HelpOutline e resumo curto com os mesmos tokens do tema. A ajuda usa AlertDialog
+e SettingsCard compacto para o exemplo, corpo rolável e Fechar fora do scroll;
+abrir/fechar não altera dados. BalancePreferencesViewModel mantém dados/HTTP
+fora dos componentes visuais.
+AvailableBalancePresentation.availableBalanceSubtitle, em
+designSystem/.../feature/home/components/, deriva somente a legenda das flags
+e do sinal do saldo; FinanceSummaryContent mantém FinancialValue/privacidade,
+card existente e total fornecido pela API. Não foi criado controle alternativo.

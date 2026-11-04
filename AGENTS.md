@@ -18,7 +18,8 @@ repositório do servidor a partir de informações de outra conversa.
 
 Antes de editar:
 
-1. Confira `git status --short` e preserve alterações existentes.
+1. Confira `git status --short` e `git branch --show-current`; preserve alterações
+   existentes e confirme que o checkout está na `main`, conforme a política Git abaixo.
 2. Leia [o mapa do projeto](docs/ai-project-map.md) e localize o fluxo afetado.
 3. Leia [o fluxo de trabalho e validação](docs/ai-workflow.md).
 4. Para mudanças visuais, leia integralmente [as regras de front-end](docs/frontend-rules.md).
@@ -35,6 +36,21 @@ Antes de editar:
 Responda em português brasileiro. Execute o trabalho solicitado até a validação
 adequada; se houver impedimento real, informe o que falta e a evidência. Não
 declare testes, interface ou release aprovados sem ter feito essa validação.
+
+## Git: trabalho somente na main
+
+- Não criar branches novas, inclusive `codex/`, temporárias, auxiliares ou por
+  worktree. Não criar branches reais nem para testar esta regra.
+- Conferir a branch antes de iniciar o trabalho e novamente antes de qualquer
+  commit ou push. Commits e pushes, quando autorizados pelo usuário, são sempre
+  na `main`. Esta política não autoriza commit, push ou publicação por si só.
+- Se o checkout estiver em outra branch ou em HEAD destacado, preservar o estado
+  e informar a divergência ao usuário. Não trocar, criar, renomear ou remover
+  branches/refs automaticamente para contorná-la.
+- Não executar checkout, reset, stash ou limpeza/exclusão automática para adequar
+  o repositório à regra. Preservar arquivos, alterações e referências existentes.
+- A mesma orientação vale para subagentes e handoffs. Consulte o registro no
+  [harness](docs/test-harness.md#política-git-do-harness).
 
 ## Identidade e organização
 
